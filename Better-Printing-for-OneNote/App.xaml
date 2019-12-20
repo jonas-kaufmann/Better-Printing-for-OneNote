@@ -7,7 +7,8 @@
 >
     <Application.Resources>
         <ResourceDictionary>
-            <sys:String x:Key="Title">Hallo</sys:String>
+            <sys:String x:Key="LocalFolderTitle">Better-Printing</sys:String>
+            <sys:String x:Key="Title">Better Printing Dialog</sys:String>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

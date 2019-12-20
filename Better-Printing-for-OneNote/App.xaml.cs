@@ -17,16 +17,7 @@ namespace Better_Printing_for_OneNote
         {
             var argFilePath = "";
             if(e.Args.Length > 0)
-            {
-
-            }
-            /*foreach(var arg in e.Args)
-                if(arg.Contains("-file="))
-                {
-                    argFilePath = arg.Remove(0, argFilePath.IndexOf("="));
-                    argFilePath.Remove(argFilePath.Length - 2, argFilePath.Length - 1);
-                    break;
-                }*/
+                argFilePath = e.Args[0];
             (new MainWindow(argFilePath)).Show();
         }
     }

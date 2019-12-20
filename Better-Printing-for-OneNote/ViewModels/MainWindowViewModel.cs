@@ -8,23 +8,15 @@ namespace Better_Printing_for_OneNote.ViewModels
 {
     class MainWindowViewModel : NotifyBase
     {
-        #region Konstanten
-
-        private string LOCAL_FOLDER_PATH
-        {
-            get => Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\SupremeBot";
-        }
-
-        private string TITLE
-        {
-            get => FindResource("SupremeBot_Title");
-        }
-
-        #endregion
 
         #region Properties
 
         public event EventHandler BringWindowToFrontEvent;
+
+        private string TITLE
+        {
+            get => GeneralHelperClass.FindResource("Title");
+        }
 
         private RelayCommand _testCommand;
         public RelayCommand TestCommand
@@ -66,25 +58,6 @@ namespace Better_Printing_for_OneNote.ViewModels
         private void Test()
         {
             MessageBox.Show(FilePath);
-        }
-
-        /// <summary>
-        /// Gibt den Wert der Resource als string zurück
-        /// </summary>
-        /// <param name="key">x:Key der Resource</param>
-        /// <returns>Wert als string</returns>
-        private string FindResource(string key)
-        {
-            return Application.Current.FindResource(key).ToString();
-        }
-
-        /// <summary>
-        /// Führt die übergebene Action im Application UI Thread aus
-        /// </summary>
-        /// <param name="call">Action</param>
-        private void ExecuteInUiThread(Action call)
-        {
-            Application.Current.Dispatcher.Invoke(call);
         }
     }
 }

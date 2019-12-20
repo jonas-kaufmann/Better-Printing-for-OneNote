@@ -1,4 +1,5 @@
-﻿using Better_Printing_for_OneNote.ViewModels;
+﻿using Better_Printing_for_OneNote.AdditionalClasses;
+using Better_Printing_for_OneNote.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -35,7 +36,7 @@ namespace Better_Printing_for_OneNote
             if (!DEBUG_MODE)
             {
                 var path = Environment.GetFolderPath(
-                        Environment.SpecialFolder.LocalApplicationData) + "\\Better-Printing-for-One-Note";
+                        Environment.SpecialFolder.LocalApplicationData) + "\\" + GeneralHelperClass.FindResource("LocalFolderTitle");
                 try
                 {
                     Directory.CreateDirectory(path);
