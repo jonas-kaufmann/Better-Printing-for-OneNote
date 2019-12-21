@@ -14,6 +14,7 @@ using System.Windows.Documents;
 using System.Windows.Controls;
 using System.Diagnostics;
 using System.Drawing;
+using System.Windows.Shell;
 
 namespace Better_Printing_for_OneNote.ViewModels
 {
@@ -91,6 +92,20 @@ namespace Better_Printing_for_OneNote.ViewModels
             {
                 _document = value;
                 OnPropertyChanged("Document");
+            }
+        }
+
+        private TaskbarItemProgressState _windowProgressState = TaskbarItemProgressState.None;
+        public TaskbarItemProgressState WindowProgressState
+        {
+            get
+            {
+                return _windowProgressState;
+            }
+            set
+            {
+                _windowProgressState = value;
+                OnPropertyChanged("WindowProgressState");
             }
         }
 
