@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Better_Printing_for_OneNote"
         mc:Ignorable="d"
         Title="{StaticResource Title}" Height="450" Width="800">
-    
+
     <Border>
         <Grid>
             <Grid.ColumnDefinitions>
@@ -21,9 +21,8 @@
             <StackPanel Orientation="Horizontal" Grid.Column="1">
                 <Button Command="{Binding TestCommand}">TestButton</Button>
             </StackPanel>
-            
-            <DocumentViewer Grid.Row="1" Grid.ColumnSpan="2"></DocumentViewer>
+
+            <DocumentViewer Grid.Row="1" Grid.ColumnSpan="2" Document="{Binding Document}"/>
         </Grid>
-        
     </Border>
 </Window>
