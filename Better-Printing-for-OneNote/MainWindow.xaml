@@ -3,27 +3,34 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:Better_Printing_for_OneNote"
+        xmlns:toolkit="http://schemas.xceed.com/wpf/xaml/toolkit"
+        xmlns:controls="clr-namespace:Better_Printing_for_OneNote.Views.Controls"
         mc:Ignorable="d"
-        Title="{StaticResource Title}" Height="450" Width="800">
-    
-    <Border>
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition/>
-                <ColumnDefinition/>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="50"/>
-                <RowDefinition/>
-            </Grid.RowDefinitions>
+        Title="{StaticResource Title}" Height="600" Width="800">
 
-            <StackPanel Orientation="Horizontal" Grid.Column="1">
-                <Button Command="{Binding TestCommand}">TestButton</Button>
-            </StackPanel>
-            
-            <DocumentViewer Grid.Row="1" Grid.ColumnSpan="2"></DocumentViewer>
+    <DockPanel>
+        <Grid DockPanel.Dock="Top" Margin="12 12 12 0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="4" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="4" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <toolkit:WatermarkTextBox Name="FilePathTb" Watermark="Datei" Width="128" />
+            <Button x:Name="ChooseFilePathBtn" Content="Durchsuchen" Grid.Column="2" />
+
+            <toolkit:WatermarkTextBox Name="PrinterTb" Watermark="Drucker" Width="128" Grid.Column="4" />
+            <Button x:Name="ChoosePrinterBtn" Content="Auswählen" Grid.Column="6" />
+
+            <Button x:Name="PrintBtn" Content="Drucken" Grid.Column="8" />
         </Grid>
-        
-    </Border>
+
+        <controls:InteractiveFixedDocumentViewer x:Name="MainIFDV" Margin="0 12 0 0" />
+    </DockPanel>
 </Window>
