@@ -7,7 +7,7 @@
         xmlns:controls="clr-namespace:Better_Printing_for_OneNote.Views.Controls"
         mc:Ignorable="d"
         Title="{StaticResource Title}" Height="600" Width="800">
-
+    
     <DockPanel>
         <Grid DockPanel.Dock="Top" Margin="12 12 12 0">
             <Grid.ColumnDefinitions>
@@ -25,7 +25,7 @@
             <toolkit:WatermarkTextBox Name="FilePathTb" Watermark="Datei" Width="128" />
             <Button x:Name="ChooseFilePathBtn" Content="Durchsuchen" Grid.Column="2" />
 
-            <toolkit:WatermarkTextBox Name="PrinterTb" Watermark="Drucker" Width="128" Grid.Column="4" />
+                        <toolkit:WatermarkTextBox Name="PrinterTb" Watermark="Drucker" Width="128" Grid.Column="4" />
             <Button x:Name="ChoosePrinterBtn" Content="Auswählen" Grid.Column="6" />
 
             <Button x:Name="PrintBtn" Content="Drucken" Grid.Column="8" />

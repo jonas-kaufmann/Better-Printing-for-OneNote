@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Windows;
 
 namespace Better_Printing_for_OneNote.AdditionalClasses
@@ -22,6 +23,16 @@ namespace Better_Printing_for_OneNote.AdditionalClasses
         private static void ExecuteInUiThread(Action call)
         {
             Application.Current.Dispatcher.Invoke(call);
+        }
+
+        /// <summary>
+        /// Erstellt den angegebenen Ordner, falls dieser nicht existiert
+        /// </summary>
+        /// <param name="path">Pfad zum Ordner</param>
+        public static void CreateDirectoryIfNotExists(string path)
+        {
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
         }
     }
 }
