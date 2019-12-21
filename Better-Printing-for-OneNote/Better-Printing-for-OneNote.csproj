@@ -21,6 +21,6 @@
       <NoWarn>NU1701</NoWarn>
     </PackageReference>
     <PackageReference Include="System.Drawing.Common" Version="4.7.0" />
+    <PackageReference Include="Extended.Wpf.Toolkit" Version="3.7.0" />
   </ItemGroup>
-
 </Project>
