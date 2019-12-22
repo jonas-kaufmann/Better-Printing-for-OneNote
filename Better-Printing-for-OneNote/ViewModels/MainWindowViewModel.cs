@@ -15,6 +15,8 @@ using System.Windows.Controls;
 using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Shell;
+using Better_Printing_for_OneNote.Models;
+using Microsoft.Win32;
 
 namespace Better_Printing_for_OneNote.ViewModels
 {
@@ -35,12 +37,12 @@ namespace Better_Printing_for_OneNote.ViewModels
             get => GeneralHelperClass.FindResource("Title");
         }
 
-        private RelayCommand _testCommand;
-        public RelayCommand TestCommand
+        private RelayCommand _searchFileCommand;
+        public RelayCommand SearchFileCommand
         {
             get
             {
-                return _testCommand ?? (_testCommand = new RelayCommand(c => Test()));
+                return _searchFileCommand ?? (_searchFileCommand = new RelayCommand(c => SearchFile()));
             }
         }
 
@@ -53,16 +55,23 @@ namespace Better_Printing_for_OneNote.ViewModels
             }
             set
             {
-                // split document
                 if (File.Exists(value))
                 {
-                    _filePath = value;
-                    OnPropertyChanged("FilePath");
-                    Document = PngToFixedDoc(PsToPng(value), Signature);
+                    var pngPath = Conversion.PsToPng(value, LOCAL_FOLDER);
+                    if(pngPath != "")
+                    {
+                        var doc = Conversion.PngToFixedDoc(pngPath, Signature);
+                        if (doc != null)
+                        {
+                            Document = doc;
+                            _filePath = value;
+                            OnPropertyChanged("FilePath");
+                        }
+                    }
                 }
                 else
                 {
-                    MessageBox.Show("Die zu öffnende Postscript Datei existiert nicht oder ist nicht valide. Bitte mit valider Datei neu versuchen.");
+                    MessageBox.Show($"Die zu öffnende Postscript Datei ({value}) existiert nicht.");
                 }
             }
         }
@@ -77,7 +86,7 @@ namespace Better_Printing_for_OneNote.ViewModels
             set
             {
                 _signature = value;
-                ChangeSignature(Document, value);
+                Conversion.ChangeSignature(Document, value);
             }
         }
 
@@ -117,6 +126,7 @@ namespace Better_Printing_for_OneNote.ViewModels
                 FilePath = argFilePath;
 
             FilePath = @"D:\Daten\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Zahlen.ps";
+            Signature = "Test";
 
             //eventuell unnötig
             Task.Run(() =>
@@ -126,144 +136,14 @@ namespace Better_Printing_for_OneNote.ViewModels
             });
         }
 
-        private void Test()
+        private void SearchFile()
         {
-        }
-
-        /// <summary>
-        /// Changes the signature of all Sites without recreating the document
-        /// </summary>
-        /// <param name="document">modified Fixeddocument</param>
-        /// <param name="signature">signature to set</param>
-        private void ChangeSignature(FixedDocument document, string signature)
-        {
-            // Signatur anpassen
-            foreach (var page in Document.Pages)
-                ((page.Child.Children[0] as StackPanel).Children[0] as TextBlock).Text = signature;
-        }
-
-        /// <summary>
-        /// Converts png to a FixedDocument
-        /// </summary>
-        /// <param name="imagePath">path to the image to convert</param>
-        /// <param name="documentWidth">width of the output document; default: DINA4</param>
-        /// <param name="documentHeight">height of the output document; default: DINA4</param>
-        /// <param name="signature">signature on every site of the document</param>
-        /// <param name="cropHeight">height to split</param>
-        /// <param name="srcBitmap">just ignore (its for the helper Method with "int cropHeight")</param>
-        /// <returns>the document</returns>
-        private FixedDocument PngToFixedDoc(string imagePath, string signature, int[] cropHeights, double documentWidth = 793.7007874, double documentHeight = 1122.519685, Bitmap src = null)
-        {
-            FixedDocument document = new FixedDocument();
-            Bitmap srcBitmap = src ?? System.Drawing.Image.FromFile(imagePath) as Bitmap;
-            var cropPostionY = 0;
-            foreach (var cropHeight in cropHeights)
+            OpenFileDialog fileDialog = new OpenFileDialog();
+            fileDialog.Filter = "PostScript Dateien (*.ps)|*.ps";
+            if (fileDialog.ShowDialog() == true)
             {
-                // Crop Image
-                Rectangle cropRect;
-                cropRect = new Rectangle(0, cropPostionY, srcBitmap.Width, cropHeight);
-                cropPostionY += cropHeight;
-                var targetBitmap = new Bitmap(cropRect.Width, cropRect.Height);
-                using (Graphics g = Graphics.FromImage(targetBitmap))
-                {
-                    g.DrawImage(srcBitmap, new Rectangle(0, 0, targetBitmap.Width, targetBitmap.Height), cropRect, GraphicsUnit.Document);
-                }
-
-                // Convert Bitmap to BitmapImage
-                BitmapImage croppedImage = new BitmapImage();
-                MemoryStream ms = new MemoryStream();
-                targetBitmap.Save(ms, srcBitmap.RawFormat);
-                croppedImage.BeginInit();
-                ms.Seek(0, SeekOrigin.Begin);
-                croppedImage.StreamSource = ms;
-                croppedImage.EndInit();
-
-                // Create page and add it to the FixedDocument
-                var page = new PageContent();
-                var fixedPage = new FixedPage();
-                fixedPage.Width = documentWidth;
-                fixedPage.Height = documentHeight;
-                page.Child = fixedPage;
-                var stackpanel = new StackPanel();
-                var imageControl = new System.Windows.Controls.Image() { Source = croppedImage };
-                imageControl.Width = documentWidth;
-                var signatureTB = new TextBlock() { Text = signature };
-                stackpanel.Children.Add(signatureTB);
-                stackpanel.Children.Add(imageControl);
-                page.Child.Children.Add(stackpanel);
-                document.Pages.Add(page);
+                FilePath = fileDialog.FileName;
             }
-
-            return document;
-        }
-
-        /// <summary>
-        /// Converts png to a FixedDocument
-        /// </summary>
-        /// <param name="imagePath">path to the image to convert</param>
-        /// <param name="documentWidth">width of the output document; default: DINA4</param>
-        /// <param name="documentHeight">height of the output document; default: DINA4</param>
-        /// <param name="signature">signature on every site of the document</param>
-        /// <param name="cropHeight">height to split</param>
-        /// <returns>the document</returns>
-        private FixedDocument PngToFixedDoc(string imagePath, string signature, int cropHeight = 3500, double documentWidth = 793.7007874, double documentHeight = 1122.519685)
-        {
-            var srcBitmap = System.Drawing.Image.FromFile(imagePath) as Bitmap;
-            var splits = (int)Math.Ceiling(decimal.Divide(srcBitmap.Height, cropHeight));
-            var cropHeights = new int[splits];
-            for (int i = 0; i < splits - 1; i++)
-                cropHeights[i] = cropHeight;
-            cropHeights[splits - 1] = srcBitmap.Height - (splits - 1) * cropHeight;
-            return PngToFixedDoc(imagePath, signature, cropHeights, documentWidth, documentHeight, srcBitmap);
-        }
-
-        /// <summary>
-        /// Converts Ps file to a Png file and stores it in the Temp Directory (if the conversion fails the program exits with error messages)
-        /// </summary>
-        /// <param name="filePath">Path to the PS file</param>
-        /// <returns>Path to converted file</returns>
-        private string PsToPng(string filePath)
-        {
-            if (GhostscriptVersionInfo.IsGhostscriptInstalled)
-            {
-                var temp = LOCAL_FOLDER + "\\Temp";
-                FileInfo fileInfo = new FileInfo(filePath);
-                var outputPath = Path.Combine(temp,
-                    string.Format("{0}.png", Path.GetFileNameWithoutExtension(fileInfo.Name)));
-
-                try
-                {
-                    using (GhostscriptProcessor processor = new GhostscriptProcessor())
-                    {
-                        List<string> switches = new List<string>();
-                        switches.Add("empty");
-                        switches.Add("-dSAFER");
-                        switches.Add("-dBATCH");
-                        switches.Add("-r300");
-                        switches.Add("-sDEVICE=png16m");
-                        switches.Add("-sOutputFile=" + outputPath);
-                        switches.Add(filePath);
-
-                        GeneralHelperClass.CreateDirectoryIfNotExists(temp);
-                        processor.StartProcessing(switches.ToArray(), null);
-
-                        return outputPath;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Es kam zu einem Fehler. Mehr Informationen sind in den Log-Dateien in { LOCAL_FOLDER } hinterlegt.");
-                    Console.WriteLine($"Application Shutdown: PsToPng conversion failed:\n {ex.ToString()}");
-                    Application.Current.Shutdown();
-                }
-            }
-            else
-            {
-                MessageBox.Show("Bitte installieren Sie Ghostscript. (Es wird die 64-bit Version benötigt)");
-                Console.WriteLine("Application Shutdown: Ghostscript is not installed (64-bit needed)");
-                Application.Current.Shutdown();
-            }
-            return "";
         }
     }
 }

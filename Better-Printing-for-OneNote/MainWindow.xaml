@@ -26,10 +26,10 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <toolkit:WatermarkTextBox Name="FilePathTb" Watermark="Datei" Width="128" />
-            <Button x:Name="ChooseFilePathBtn" Content="Durchsuchen" Grid.Column="2" />
+            <toolkit:WatermarkTextBox Text="{Binding FilePath}" Watermark="Datei" Width="500" />
+            <Button Content="Durchsuchen" Command="{Binding SearchFileCommand}" Grid.Column="2" />
 
-                        <toolkit:WatermarkTextBox Name="PrinterTb" Watermark="Drucker" Width="128" Grid.Column="4" />
+            <toolkit:WatermarkTextBox Name="PrinterTb" Watermark="Drucker" Width="128" Grid.Column="4" />
             <Button x:Name="ChoosePrinterBtn" Content="Auswählen" Grid.Column="6" />
 
             <Button x:Name="PrintBtn" Content="Drucken" Grid.Column="8" />
