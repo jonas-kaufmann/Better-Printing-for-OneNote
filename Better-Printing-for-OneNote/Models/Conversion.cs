@@ -15,6 +15,8 @@ namespace Better_Printing_for_OneNote.Models
 {
     class Conversion
     {
+        private const int PNG_FILE_TOP_MARGIN = 150;
+
         /// <summary>
         /// Changes the signature of all Sites without recreating the document
         /// </summary>
@@ -35,52 +37,61 @@ namespace Better_Printing_for_OneNote.Models
         /// <param name="documentWidth">width of the output document; default: DINA4</param>
         /// <param name="documentHeight">height of the output document; default: DINA4</param>
         /// <param name="signature">signature on every site of the document</param>
-        /// <param name="cropHeight">height to split</param>
-        /// <param name="srcBitmap">just ignore (its for the helper Method with "int cropHeight")</param>
-        /// <returns>the document</returns>
-        public static FixedDocument PngToFixedDoc(string imagePath, string signature, int[] cropHeights, double documentWidth = 793.7007874, double documentHeight = 1122.519685, Bitmap src = null)
+        /// <param name="cropHeights">heights to split as array</param>
+        /// <param name="src">just ignore (its for the helper Method with "int cropHeight")</param>
+        /// <returns>the document and the cropheights, null if exception ist thrown</returns>
+        public static PngToFdOutput PngToFixedDoc(string imagePath, string signature, List<int> cropHeights, double documentWidth = 793.7007874, double documentHeight = 1122.519685, Bitmap src = null)
         {
-            FixedDocument document = new FixedDocument();
-            Bitmap srcBitmap = src ?? System.Drawing.Image.FromFile(imagePath) as Bitmap;
-            var cropPostionY = 0;
-            foreach (var cropHeight in cropHeights)
+            try
             {
-                // Crop Image
-                Rectangle cropRect;
-                cropRect = new Rectangle(0, cropPostionY, srcBitmap.Width, cropHeight);
-                cropPostionY += cropHeight;
-                var targetBitmap = new Bitmap(cropRect.Width, cropRect.Height);
-                using (Graphics g = Graphics.FromImage(targetBitmap))
+                FixedDocument document = new FixedDocument();
+                Bitmap srcBitmap = src ?? System.Drawing.Image.FromFile(imagePath) as Bitmap;
+                var cropPostionY = PNG_FILE_TOP_MARGIN;
+                foreach (var cropHeight in cropHeights)
                 {
-                    g.DrawImage(srcBitmap, new Rectangle(0, 0, targetBitmap.Width, targetBitmap.Height), cropRect, GraphicsUnit.Document);
+                    // Crop Image
+                    Rectangle cropRect;
+                    cropRect = new Rectangle(0, cropPostionY, srcBitmap.Width, cropHeight);
+                    cropPostionY += cropHeight;
+                    var targetBitmap = new Bitmap(cropRect.Width, cropRect.Height);
+                    using (Graphics g = Graphics.FromImage(targetBitmap))
+                    {
+                        g.DrawImage(srcBitmap, new Rectangle(0, 0, targetBitmap.Width, targetBitmap.Height), cropRect, GraphicsUnit.Document);
+                    }
+
+                    // Convert Bitmap to BitmapImage
+                    BitmapImage croppedImage = new BitmapImage();
+                    MemoryStream ms = new MemoryStream();
+                    targetBitmap.Save(ms, srcBitmap.RawFormat);
+                    croppedImage.BeginInit();
+                    ms.Seek(0, SeekOrigin.Begin);
+                    croppedImage.StreamSource = ms;
+                    croppedImage.EndInit();
+
+                    // Create page and add it to the FixedDocument
+                    var page = new PageContent();
+                    var fixedPage = new FixedPage();
+                    fixedPage.Width = documentWidth;
+                    fixedPage.Height = documentHeight;
+                    page.Child = fixedPage;
+                    var stackpanel = new StackPanel();
+                    var imageControl = new System.Windows.Controls.Image() { Source = croppedImage };
+                    imageControl.Width = documentWidth;
+                    var signatureTB = new TextBlock() { Text = signature };
+                    stackpanel.Children.Add(signatureTB);
+                    stackpanel.Children.Add(imageControl);
+                    page.Child.Children.Add(stackpanel);
+                    document.Pages.Add(page);
                 }
 
-                // Convert Bitmap to BitmapImage
-                BitmapImage croppedImage = new BitmapImage();
-                MemoryStream ms = new MemoryStream();
-                targetBitmap.Save(ms, srcBitmap.RawFormat);
-                croppedImage.BeginInit();
-                ms.Seek(0, SeekOrigin.Begin);
-                croppedImage.StreamSource = ms;
-                croppedImage.EndInit();
-
-                // Create page and add it to the FixedDocument
-                var page = new PageContent();
-                var fixedPage = new FixedPage();
-                fixedPage.Width = documentWidth;
-                fixedPage.Height = documentHeight;
-                page.Child = fixedPage;
-                var stackpanel = new StackPanel();
-                var imageControl = new System.Windows.Controls.Image() { Source = croppedImage };
-                imageControl.Width = documentWidth;
-                var signatureTB = new TextBlock() { Text = signature };
-                stackpanel.Children.Add(signatureTB);
-                stackpanel.Children.Add(imageControl);
-                page.Child.Children.Add(stackpanel);
-                document.Pages.Add(page);
+                return new PngToFdOutput() { CropHeights = cropHeights, Document = document };
             }
-
-            return document;
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Es kam zu einem Fehler bei der Konvertierung der PostScript Datei. Bitte mit anderer PostScript Datei erneut versuchen.");
+                Console.WriteLine($"PngToFixedDoc conversion failed [probably because of corrupt or empty Postscript file]:\n {ex.ToString()}");
+                return null;
+            }
         }
 
         /// <summary>
@@ -91,20 +102,20 @@ namespace Better_Printing_for_OneNote.Models
         /// <param name="documentHeight">height of the output document; default: DINA4</param>
         /// <param name="signature">signature on every site of the document</param>
         /// <param name="cropHeight">height to split</param>
-        /// <returns>the document, null if exception is thrown</returns>
-        public static FixedDocument PngToFixedDoc(string imagePath, string signature, int cropHeight = 3500, double documentWidth = 793.7007874, double documentHeight = 1122.519685)
+        /// <returns>the document and the cropheights, null if exception is thrown</returns>
+        public static PngToFdOutput PngToFixedDoc(string imagePath, string signature, int cropHeight, double documentWidth = 793.7007874, double documentHeight = 1122.519685)
         {
             try
             {
                 var srcBitmap = System.Drawing.Image.FromFile(imagePath) as Bitmap;
                 var splits = (int)Math.Ceiling(decimal.Divide(srcBitmap.Height, cropHeight));
-                var cropHeights = new int[splits];
+                var cropHeights = new List<int>();
                 for (int i = 0; i < splits - 1; i++)
-                    cropHeights[i] = cropHeight;
-                cropHeights[splits - 1] = srcBitmap.Height - (splits - 1) * cropHeight;
+                    cropHeights.Add(cropHeight);
+                cropHeights.Add(srcBitmap.Height - (splits - 1) * cropHeight);
                 return PngToFixedDoc(imagePath, signature, cropHeights, documentWidth, documentHeight, srcBitmap);
             }
-            catch (FileNotFoundException ex)
+            catch (Exception ex)
             {
                 MessageBox.Show($"Es kam zu einem Fehler bei der Konvertierung der PostScript Datei. Bitte mit anderer PostScript Datei erneut versuchen.");
                 Console.WriteLine($"PngToFixedDoc conversion failed [probably because of corrupt or empty Postscript file]:\n {ex.ToString()}");
@@ -160,5 +171,11 @@ namespace Better_Printing_for_OneNote.Models
             }
             return "";
         }
+    }
+
+    class PngToFdOutput
+    {
+        public FixedDocument Document;
+        public List<int> CropHeights;
     }
 }

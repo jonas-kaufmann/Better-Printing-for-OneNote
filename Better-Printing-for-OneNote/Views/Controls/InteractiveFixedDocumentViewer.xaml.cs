@@ -113,7 +113,7 @@ namespace Better_Printing_for_OneNote.Views.Controls
 
                 PagesSP.Children.Add(dPV);
                 documentPageViews.Add(dPV);
-                dPV.MouseLeftButtonUp += DocumentPageView_MouseLeftButtonUp;
+                dPV.PreviewMouseLeftButtonUp += DocumentPageView_PreviewMouseLeftButtonUp;
                 dPV.MouseLeave += DPV_MouseLeave;
             }
         }
@@ -124,7 +124,7 @@ namespace Better_Printing_for_OneNote.Views.Controls
                 PageSplitLine.Visibility = Visibility.Collapsed;
         }
 
-        private void DocumentPageView_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void DocumentPageView_PreviewMouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             if (sender is DocumentPageView dPV)
             {
@@ -163,16 +163,22 @@ namespace Better_Printing_for_OneNote.Views.Controls
 
         private void PagesGrid_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
-            lastMousePos = e.GetPosition(MainScrollViewer);
-            moveViewByMouse = true;
+            if (e.ChangedButton == MouseButton.Right)
+            {
+                lastMousePos = e.GetPosition(MainScrollViewer);
+                moveViewByMouse = true;
 
-            e.Handled = true;
+                e.Handled = true;
+            }
         }
 
         private void PagesGrid_PreviewMouseUp(object sender, MouseButtonEventArgs e)
         {
-            moveViewByMouse = false;
-            e.Handled = true;
+            if (e.ChangedButton == MouseButton.Right)
+            {
+                moveViewByMouse = false;
+                e.Handled = true;
+            }
         }
 
         private void UpdateSplittingLine()
