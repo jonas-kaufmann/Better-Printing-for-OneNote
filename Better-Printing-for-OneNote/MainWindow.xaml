@@ -35,6 +35,6 @@
             <Button x:Name="PrintBtn" Content="Drucken" Grid.Column="8" />
         </Grid>
 
-        <controls:InteractiveFixedDocumentViewer x:Name="MainIFDV" Margin="0 12 0 0" PageSplitRequestedCommand="{Binding SplitPageRequestHandler}" Document="{Binding Document}"/>
+        <controls:InteractiveFixedDocumentViewer x:Name="MainIFDV" Margin="0 12 0 0" UndoRequestedCommand="{Binding UndoRequestHandler}" PageSplitRequestedCommand="{Binding SplitPageRequestHandler}" Document="{Binding Document}"/>
     </DockPanel>
 </Window>

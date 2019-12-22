@@ -87,19 +87,7 @@ namespace Better_Printing_for_OneNote.ViewModels
 
         private string _pngPath;
 
-        private List<List<int>> _changesList = new List<List<int>>();
-        public List<List<int>> ChangesList
-        {
-            get
-            {
-                return _changesList;
-            }
-            set
-            {
-                _changesList = value;
-                OnPropertyChanged("ChangesList");
-            }
-        }
+        private List<int> _lastChange;
 
         private List<int> _cropHeights;
         private List<int> CropHeights
@@ -110,8 +98,8 @@ namespace Better_Printing_for_OneNote.ViewModels
             }
             set
             {
+                _lastChange = _cropHeights;
                 _cropHeights = value;
-                _changesList.Add(_cropHeights);
             }
         }
 
@@ -158,6 +146,7 @@ namespace Better_Printing_for_OneNote.ViewModels
         }
 
         public InteractiveFixedDocumentViewer.PageSplitRequestedHandler SplitPageRequestHandler { get; set; }
+        public InteractiveFixedDocumentViewer.UndoRequestedHandler UndoRequestHandler { get; set; }
 
         #endregion
 
@@ -165,7 +154,7 @@ namespace Better_Printing_for_OneNote.ViewModels
         {
             // command handler
             SplitPageRequestHandler = ChangeCropHeights;
-
+            UndoRequestHandler = UndoChange;
 
             if (argFilePath != "")
                 FilePath = argFilePath;
@@ -180,13 +169,18 @@ namespace Better_Printing_for_OneNote.ViewModels
                 Thread.Sleep(2000);
                 BringWindowToFrontEvent?.Invoke(this, EventArgs.Empty);
             });
-
-            /*_cropHeights[0] = 2100;
-            ReCropImage(_cropHeights);*/
-
         }
 
-        public void ChangeCropHeights(object sender, int pageToEdit, double splitAtPercentage)
+        private void UndoChange(object sender)
+        {
+            if (_lastChange != null && CropHeights != null && !GeneralHelperClass.CompareList<int>(CropHeights, _lastChange))
+            {
+                _cropHeights = null;
+                ReCropDocument(_lastChange);
+            }
+        }
+
+        private void ChangeCropHeights(object sender, int pageToEdit, double splitAtPercentage)
         {
             var page = Document.Pages[pageToEdit];
             var imageControl = (page.Child.Children[0] as StackPanel).Children[1] as Image;
