@@ -11,6 +11,8 @@ using Better_Printing_for_OneNote.Models;
 using Microsoft.Win32;
 using System.Windows.Media.Imaging;
 using System.Collections.Generic;
+using Better_Printing_for_OneNote.Views.Controls;
+using System.Windows.Data;
 
 namespace Better_Printing_for_OneNote.ViewModels
 {
@@ -155,15 +157,21 @@ namespace Better_Printing_for_OneNote.ViewModels
             }
         }
 
+        public InteractiveFixedDocumentViewer.PageSplitRequestedHandler SplitPageRequestHandler { get; set; }
+
         #endregion
 
         public MainWindowViewModel(string argFilePath)
         {
+            // command handler
+            SplitPageRequestHandler = ChangeCropHeights;
+
+
             if (argFilePath != "")
                 FilePath = argFilePath;
 
 # if DEBUG
-            FilePath = @"C:\Users\jokau\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Zahlen.ps";
+            FilePath = @"D:\Daten\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Zahlen.ps";
 #endif
 
             //might be unnecessary
@@ -178,11 +186,12 @@ namespace Better_Printing_for_OneNote.ViewModels
 
         }
 
-        private void ChangeCropHeights(int pageToEdit, double splitAt)
+        public void ChangeCropHeights(object sender, int pageToEdit, double splitAtPercentage)
         {
             var page = Document.Pages[pageToEdit];
             var imageControl = (page.Child.Children[0] as StackPanel).Children[1] as Image;
             var imagePositionY = (imageControl.TransformToAncestor(page.Child).Transform(new Point(0, 0))).Y;
+            var splitAt = splitAtPercentage * page.Child.ActualHeight;
             var yPosInImage = splitAt - imagePositionY;
             var cropHeight = (int)Math.Round((yPosInImage / imageControl.ActualHeight) * (imageControl.Source as BitmapImage).PixelHeight);
 
@@ -222,21 +231,6 @@ namespace Better_Printing_for_OneNote.ViewModels
             }
 
             ReCropDocument(newCropHeights);
-        }
-
-        public FixedDocument Test(int pageToEdit, int splitAt)
-        {
-
-            //var percentage = 0.5;
-            //var pageToEdit = 0;
-            ChangeCropHeights(pageToEdit, splitAt);
-            return Document;
-
-            /*for (int i = pageToEdit; i < Document.Pages.Count; i++)
-            {
-
-            }*/
-
         }
 
         private void ReCropDocument(List<int> cropHeights)

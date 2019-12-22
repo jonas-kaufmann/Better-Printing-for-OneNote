@@ -9,8 +9,6 @@ namespace Better_Printing_for_OneNote
     /// </summary>
     public partial class MainWindow : Window
     {
-        private MainWindowViewModel vm;
-
         public MainWindow(string argFilePath)
         {
             var viewModel = new MainWindowViewModel(argFilePath);
@@ -18,9 +16,6 @@ namespace Better_Printing_for_OneNote
             viewModel.BringWindowToFrontEvent += new EventHandler(BringWindowToFront);
 
             InitializeComponent();
-
-
-            vm = viewModel;
         }
 
 
@@ -41,11 +36,6 @@ namespace Better_Printing_for_OneNote
                 Topmost = false;
                 Focus();
             });
-        }
-
-        private System.Windows.Documents.FixedDocument MainIFDV_PageSplitRequested(int pageNr, int splitAt)
-        {
-            return vm.Test(pageNr, splitAt);
         }
     }
 }
