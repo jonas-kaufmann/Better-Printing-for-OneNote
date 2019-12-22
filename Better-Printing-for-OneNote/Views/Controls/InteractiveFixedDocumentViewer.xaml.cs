@@ -10,15 +10,32 @@ namespace Better_Printing_for_OneNote.Views.Controls
 {
     public partial class InteractiveFixedDocumentViewer : UserControl
     {
-        private FixedDocument document;
+
+        public readonly DependencyProperty DocumentProperty = DependencyProperty.Register("Document", typeof(FixedDocument), typeof(InteractiveFixedDocumentViewer), new PropertyMetadata(Document_PropertyChanged));
         public FixedDocument Document
         {
-            get => document;
+            get
+            {
+                return (FixedDocument)GetValue(DocumentProperty);
+            }
             set
             {
-                document = value;
-                RerenderDocument();
+                SetValue(DocumentProperty, value);
             }
+        }
+
+        private static void Document_PropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
+        {
+            var c = sender as InteractiveFixedDocumentViewer;
+            if (c != null)
+            {
+                c.Document_IsChanged();
+            }
+        }
+
+        protected virtual void Document_IsChanged()
+        {
+            RerenderDocument();
         }
 
         public delegate FixedDocument PageSplitRequestedEventHandler(int pageNr, int splitAt);
@@ -89,7 +106,7 @@ namespace Better_Printing_for_OneNote.Views.Controls
             {
                 DocumentPageView dPV = new DocumentPageView()
                 {
-                    DocumentPaginator = document.DocumentPaginator,
+                    DocumentPaginator = Document.DocumentPaginator,
                     PageNumber = i
                 };
 
