@@ -162,10 +162,11 @@ namespace Better_Printing_for_OneNote.ViewModels
             if (argFilePath != "")
                 FilePath = argFilePath;
 
-            FilePath = @"D:\Daten\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Zahlen.ps";
-            Signature = "Test";
+# if DEBUG
+            FilePath = @"C:\Users\jokau\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Zahlen.ps";
+#endif
 
-            //eventuell unnötig
+            //might be unnecessary
             Task.Run(() =>
             {
                 Thread.Sleep(2000);
