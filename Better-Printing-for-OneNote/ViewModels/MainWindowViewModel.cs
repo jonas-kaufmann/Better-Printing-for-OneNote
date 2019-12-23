@@ -12,7 +12,7 @@ using Microsoft.Win32;
 using System.Windows.Media.Imaging;
 using System.Collections.Generic;
 using Better_Printing_for_OneNote.Views.Controls;
-using System.Windows.Data;
+using Better_Printing_for_OneNote.Properties;
 
 namespace Better_Printing_for_OneNote.ViewModels
 {
@@ -25,14 +25,13 @@ namespace Better_Printing_for_OneNote.ViewModels
 
         private const int CROP_HEIGHT = 3500;
 
-        private string LOCAL_FOLDER
+        public string TEMP_FOLDER_PATH
         {
-            get => Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\" + GeneralHelperClass.FindResource("LocalFolderTitle");
+            get => GeneralHelperClass.FindResource("TempFolderPath");
         }
-
-        private string TITLE
+        public string LOCAL_FOLDER_PATH
         {
-            get => GeneralHelperClass.FindResource("Title");
+            get => GeneralHelperClass.FindResource("LocalFolderPath");
         }
 
         private RelayCommand _searchFileCommand;
@@ -64,7 +63,7 @@ namespace Better_Printing_for_OneNote.ViewModels
             {
                 if (File.Exists(value))
                 {
-                    var pngPath = Conversion.PsToPng(value, LOCAL_FOLDER);
+                    var pngPath = Conversion.PsToPng(value, LOCAL_FOLDER_PATH, TEMP_FOLDER_PATH);
                     if (pngPath != "")
                     {
                         var output = Conversion.PngToFixedDoc(pngPath, Signature, CROP_HEIGHT);
@@ -160,15 +159,15 @@ namespace Better_Printing_for_OneNote.ViewModels
                 FilePath = argFilePath;
 
 # if DEBUG
-            FilePath = @"D:\Daten\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Zahlen.ps";
+            FilePath = @"D:\Daten\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Ringe_2_Seiten.ps";
 #endif
 
             //might be unnecessary
-            Task.Run(() =>
+            /*Task.Run(() =>
             {
                 Thread.Sleep(2000);
                 BringWindowToFrontEvent?.Invoke(this, EventArgs.Empty);
-            });
+            });*/
         }
 
         private void UndoChange(object sender)

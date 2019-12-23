@@ -5,8 +5,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:toolkit="http://schemas.xceed.com/wpf/xaml/toolkit"
         xmlns:controls="clr-namespace:Better_Printing_for_OneNote.Views.Controls"
+        xmlns:resx="clr-namespace:Better_Printing_for_OneNote.Properties"
         mc:Ignorable="d"
-        Title="{StaticResource Title}" Height="450" Width="800">
+        Title="{x:Static resx:Resources.ApplicationTitle}" Height="450" Width="800">
 
     <Window.TaskbarItemInfo>
         <TaskbarItemInfo ProgressState="{Binding WindowProgressState}"/>
