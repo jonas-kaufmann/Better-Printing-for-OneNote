@@ -3,6 +3,7 @@ using Ghostscript.NET;
 using Ghostscript.NET.Processor;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Text;
@@ -16,6 +17,7 @@ namespace Better_Printing_for_OneNote.Models
     class Conversion
     {
         private const int PNG_FILE_TOP_MARGIN = 150;
+        private const GraphicsUnit GRAPHICS_UNIT = GraphicsUnit.Document;
 
         /// <summary>
         /// Changes the signature of all Sites without recreating the document
@@ -56,7 +58,7 @@ namespace Better_Printing_for_OneNote.Models
                     var targetBitmap = new Bitmap(cropRect.Width, cropRect.Height);
                     using (Graphics g = Graphics.FromImage(targetBitmap))
                     {
-                        g.DrawImage(srcBitmap, new Rectangle(0, 0, targetBitmap.Width, targetBitmap.Height), cropRect, GraphicsUnit.Document);
+                        g.DrawImage(srcBitmap, new Rectangle(0, 0, targetBitmap.Width, targetBitmap.Height), cropRect, GRAPHICS_UNIT);
                     }
 
                     // Convert Bitmap to BitmapImage
@@ -89,7 +91,7 @@ namespace Better_Printing_for_OneNote.Models
             catch (Exception ex)
             {
                 MessageBox.Show($"Es kam zu einem Fehler bei der Konvertierung der PostScript Datei. Bitte mit anderer PostScript Datei erneut versuchen.");
-                Console.WriteLine($"PngToFixedDoc conversion failed [probably because of corrupt or empty Postscript file]:\n {ex.ToString()}");
+                Trace.WriteLine($"\nPngToFixedDoc conversion failed [probably because of corrupt or empty Postscript file]:\n {ex.ToString()}");
                 return null;
             }
         }
@@ -118,7 +120,7 @@ namespace Better_Printing_for_OneNote.Models
             catch (Exception ex)
             {
                 MessageBox.Show($"Es kam zu einem Fehler bei der Konvertierung der PostScript Datei. Bitte mit anderer PostScript Datei erneut versuchen.");
-                Console.WriteLine($"PngToFixedDoc conversion failed [probably because of corrupt or empty Postscript file]:\n {ex.ToString()}");
+                Trace.WriteLine($"\nPngToFixedDoc conversion failed [probably because of corrupt or empty Postscript file]:\n {ex.ToString()}");
                 return null;
             }
         }
@@ -128,14 +130,14 @@ namespace Better_Printing_for_OneNote.Models
         /// </summary>
         /// <param name="filePath">Path to the PS file</param>
         /// <param name="localFolder">Path to the local folder for MessageBox</param>
+        /// <param name="tempFolderPath">Path to the temp folder (or antother folder to store temporary files in)</param>
         /// <returns>Path to converted file or empty string if ps file ist corrupted</returns>
-        public static string PsToPng(string filePath, string localFolder)
+        public static string PsToPng(string filePath, string localFolder, string tempFolderPath)
         {
             if (GhostscriptVersionInfo.IsGhostscriptInstalled)
             {
-                var temp = Path.GetTempPath();
                 FileInfo fileInfo = new FileInfo(filePath);
-                var outputPath = Path.Combine(temp,
+                var outputPath = Path.Combine(tempFolderPath,
                     string.Format("{0}.png", Path.GetFileNameWithoutExtension(fileInfo.Name)));
 
                 try
@@ -151,7 +153,7 @@ namespace Better_Printing_for_OneNote.Models
                         switches.Add("-sOutputFile=" + outputPath);
                         switches.Add(filePath);
 
-                        GeneralHelperClass.CreateDirectoryIfNotExists(temp);
+                        GeneralHelperClass.CreateDirectoryIfNotExists(tempFolderPath);
                         processor.StartProcessing(switches.ToArray(), null);
 
                         return outputPath;
@@ -160,13 +162,13 @@ namespace Better_Printing_for_OneNote.Models
                 catch (Exception ex)
                 {
                     MessageBox.Show($"Es kam zu einem Fehler bei der Konvertierung der PostScript Datei. Bitte mit anderer PostScript Datei erneut versuchen.\n\nMehr Informationen sind in den Log-Dateien in { localFolder } hinterlegt.");
-                    Console.WriteLine($"PsToPng conversion failed:\n {ex.ToString()}");
+                    Trace.WriteLine($"\nPsToPng conversion failed:\n {ex.ToString()}");
                 }
             }
             else
             {
                 MessageBox.Show("Bitte installieren Sie Ghostscript. (Es wird die 64-bit Version benötigt)");
-                Console.WriteLine("Application Shutdown: Ghostscript is not installed (64-bit needed)");
+                Trace.WriteLine("\nApplication Shutdown: Ghostscript is not installed (64-bit needed)");
                 Application.Current.Shutdown();
             }
             return "";

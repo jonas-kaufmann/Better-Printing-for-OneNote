@@ -45,9 +45,12 @@ namespace Better_Printing_for_OneNote.AdditionalClasses
         /// <returns>true: equal, false: not equal</returns>
         public static bool CompareList<T>(List<T> list1, List<T> list2)
         {
-            for (int i = 0; i < list1.Count; i++)
-                if (!EqualityComparer<T>.Default.Equals(list1[i], list2[i])) return false;
-            return list1.Count == list2.Count;
+            if (list1.Count == list2.Count)
+            {
+                for (int i = 0; i < list1.Count; i++)
+                    if (!EqualityComparer<T>.Default.Equals(list1[i], list2[i])) return false;
+            } else return false;
+            return true;
         }
     }
 }
