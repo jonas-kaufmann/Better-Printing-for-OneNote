@@ -23,8 +23,6 @@ namespace Better_Printing_for_OneNote.ViewModels
 
         public event EventHandler BringWindowToFrontEvent;
 
-        private const int CROP_HEIGHT = 3500;
-
         public string TEMP_FOLDER_PATH
         {
             get => GeneralHelperClass.FindResource("TempFolderPath");
@@ -43,15 +41,6 @@ namespace Better_Printing_for_OneNote.ViewModels
             }
         }
 
-        /*private RelayCommand _pageSplitRequestCommand;
-        public RelayCommand PageSplitRequestCommand
-        {
-            get
-            {
-                return _pageSplitRequestCommand ?? (_pageSplitRequestCommand = new RelayCommand(c => Test(c)));
-            }
-        }*/
-
         private string _filePath;
         public string FilePath
         {
@@ -66,15 +55,15 @@ namespace Better_Printing_for_OneNote.ViewModels
                     var pngPath = Conversion.PsToPng(value, LOCAL_FOLDER_PATH, TEMP_FOLDER_PATH);
                     if (pngPath != "")
                     {
-                        var output = Conversion.PngToFixedDoc(pngPath, Signature, CROP_HEIGHT);
-                        if (output != null)
-                        {
-                            Document = output.Document;
-                            CropHeights = output.CropHeights;
-                            _filePath = value;
-                            _pngPath = pngPath;
-                            OnPropertyChanged("FilePath");
-                        }
+                        // load sourceimage once
+                        var image = new BitmapImage();
+                        image.BeginInit();
+                        image.UriSource = new Uri(pngPath);
+                        image.CacheOption = BitmapCacheOption.OnLoad;
+                        image.EndInit();
+                        CropHelper = new CropHelper(image);
+
+                        OnPropertyChanged("FilePath");
                     }
                 }
                 else
@@ -84,49 +73,18 @@ namespace Better_Printing_for_OneNote.ViewModels
             }
         }
 
-        private string _pngPath;
 
-        private List<int> _lastChange;
-
-        private List<int> _cropHeights;
-        private List<int> CropHeights
+        private CropHelper _cropHelper;
+        public CropHelper CropHelper
         {
             get
             {
-                return _cropHeights;
+                return _cropHelper;
             }
             set
             {
-                _lastChange = _cropHeights;
-                _cropHeights = value;
-            }
-        }
-
-        private string _signature;
-        public string Signature
-        {
-            get
-            {
-                return _signature;
-            }
-            set
-            {
-                _signature = value;
-                Conversion.ChangeSignature(Document, value);
-            }
-        }
-
-        private FixedDocument _document;
-        public FixedDocument Document
-        {
-            get
-            {
-                return _document;
-            }
-            set
-            {
-                _document = value;
-                OnPropertyChanged("Document");
+                _cropHelper = value;
+                OnPropertyChanged("CropHelper");
             }
         }
 
@@ -152,13 +110,14 @@ namespace Better_Printing_for_OneNote.ViewModels
         public MainWindowViewModel(string argFilePath)
         {
             // command handler
-            SplitPageRequestHandler = ChangeCropHeights;
-            UndoRequestHandler = UndoChange;
+            SplitPageRequestHandler = (sender, x, y) => CropHelper.SplitPageAt(x, y);
+            UndoRequestHandler = (sender) => CropHelper.UndoChange();
+
 
             if (argFilePath != "")
                 FilePath = argFilePath;
 
-# if DEBUG
+#if DEBUG
             FilePath = @"D:\Daten\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Ringe_2_Seiten.ps";
 #endif
 
@@ -168,72 +127,6 @@ namespace Better_Printing_for_OneNote.ViewModels
                 Thread.Sleep(2000);
                 BringWindowToFrontEvent?.Invoke(this, EventArgs.Empty);
             });*/
-        }
-
-        private void UndoChange(object sender)
-        {
-            if (_lastChange != null && CropHeights != null && !GeneralHelperClass.CompareList<int>(CropHeights, _lastChange))
-            {
-                _cropHeights = null;
-                ReCropDocument(_lastChange);
-            }
-        }
-
-        private void ChangeCropHeights(object sender, int pageToEdit, double splitAtPercentage)
-        {
-            var page = Document.Pages[pageToEdit];
-            var imageControl = (page.Child.Children[0] as StackPanel).Children[1] as Image;
-            var imagePositionY = (imageControl.TransformToAncestor(page.Child).Transform(new Point(0, 0))).Y;
-            var splitAt = splitAtPercentage * page.Child.ActualHeight;
-            var yPosInImage = splitAt - imagePositionY;
-            var cropHeight = (int)Math.Round((yPosInImage / imageControl.ActualHeight) * (imageControl.Source as BitmapImage).PixelHeight);
-
-            // addopt all Siteheights before the page to edit, reset all pages after the eidted page
-            var imageHeight = 0;
-            foreach (var height in CropHeights)
-                imageHeight += height;
-            int i = 0;
-            var newCropHeights = new List<int>();
-            while (imageHeight > 0)
-            {
-                if (i < pageToEdit)
-                {
-                    newCropHeights.Add(CropHeights[i]);
-                    imageHeight -= CropHeights[i];
-                }
-                else
-                if (i > pageToEdit)
-                {
-                    if (imageHeight < CROP_HEIGHT)
-                    {
-                        newCropHeights.Add(imageHeight);
-                        imageHeight = 0;
-                    }
-                    else
-                    {
-                        newCropHeights.Add(CROP_HEIGHT);
-                        imageHeight -= CROP_HEIGHT;
-                    }
-                }
-                else
-                {
-                    newCropHeights.Add(cropHeight);
-                    imageHeight -= cropHeight;
-                }
-                i++;
-            }
-
-            ReCropDocument(newCropHeights);
-        }
-
-        private void ReCropDocument(List<int> cropHeights)
-        {
-            var output = Conversion.PngToFixedDoc(_pngPath, Signature, cropHeights);
-            if (output != null)
-            {
-                Document = output.Document;
-                CropHeights = output.CropHeights;
-            }
         }
 
         private void SearchFile()
