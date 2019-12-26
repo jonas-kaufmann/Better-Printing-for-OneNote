@@ -18,7 +18,6 @@ namespace Better_Printing_for_OneNote
             InitializeComponent();
         }
 
-
         private void BringWindowToFront(object sender, EventArgs e)
         {
             Dispatcher.Invoke(() =>
