@@ -130,10 +130,27 @@ namespace Better_Printing_for_OneNote.Views.Controls
         }
         public void UpdateZoom()
         {
+            var oldMousePos = Mouse.GetPosition(PagesGrid);
+            double oldHeight = PagesGrid.ActualHeight;
+
             PageSplitLine.Visibility = Visibility.Collapsed; // otherwise would block resizing of grid
 
             PagesSP.LayoutTransform = new ScaleTransform(Zoom, Zoom);
             PagesGrid.UpdateLayout();
+
+            #region keep currently focused point in place
+            double multiplier = PagesGrid.ActualHeight / oldHeight;
+
+            double newX = oldMousePos.X * multiplier;
+            double newY = oldMousePos.Y * multiplier;
+
+            double offsetX = MainScrollViewer.HorizontalOffset + (newX - oldMousePos.X);
+            double offsetY = MainScrollViewer.VerticalOffset + (newY - oldMousePos.Y);
+
+            MainScrollViewer.ScrollToVerticalOffset(offsetY);
+            MainScrollViewer.ScrollToHorizontalOffset(offsetX);
+
+            #endregion
 
             UpdateSplittingLine();
         }
@@ -167,6 +184,8 @@ namespace Better_Printing_for_OneNote.Views.Controls
         {
             if (PageSplitRequestedCommand != null && sender is DocumentPageView dPV)
             {
+                PageSplitLine.Visibility = Visibility.Collapsed; // prevent visual glitches
+
                 int pageIndex = documentPageViews.IndexOf(dPV);
                 if (pageIndex < 0)
                     return;
