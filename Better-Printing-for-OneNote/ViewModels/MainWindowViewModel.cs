@@ -1,19 +1,9 @@
 ﻿using System;
-using System.Windows;
 using Better_Printing_for_OneNote.AdditionalClasses;
-using System.Threading.Tasks;
-using System.Threading;
-using System.IO;
-using System.Windows.Documents;
-using System.Windows.Controls;
 using System.Windows.Shell;
 using Better_Printing_for_OneNote.Models;
 using Microsoft.Win32;
-using System.Windows.Media.Imaging;
-using System.Collections.Generic;
 using Better_Printing_for_OneNote.Views.Controls;
-using Better_Printing_for_OneNote.Properties;
-using System.Diagnostics;
 
 namespace Better_Printing_for_OneNote.ViewModels
 {
@@ -92,21 +82,25 @@ namespace Better_Printing_for_OneNote.ViewModels
 
         public InteractiveFixedDocumentViewer.PageSplitRequestedHandler SplitPageRequestHandler { get; set; }
         public InteractiveFixedDocumentViewer.UndoRequestedHandler UndoRequestHandler { get; set; }
+        public InteractiveFixedDocumentViewer.RedoRequestedHandler RedoRequestHandler { get; set; }
+        public InteractiveFixedDocumentViewer.PageDeleteRequestedHandler DeleteRequestHandler { get; set; }
 
         #endregion
 
         public MainWindowViewModel(string argFilePath)
         {
             // command handler
-            SplitPageRequestHandler = (sender, x, y) => CropHelper.SplitPageAt(x, y);
+            SplitPageRequestHandler = (sender, pageIndex, splitAtPercentage) => CropHelper.SplitPageAt(pageIndex, splitAtPercentage);
             UndoRequestHandler = (sender) => CropHelper.UndoChange();
+            RedoRequestHandler = (sender) => CropHelper.RedoChange();
+            DeleteRequestHandler = (sender, pageIndex) => CropHelper.SkipPage(pageIndex);
 
 
             if (argFilePath != "")
                 FilePath = argFilePath;
 
 #if DEBUG
-            FilePath = @"D:\Daten\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Zahlen.ps";
+            FilePath = @"C:\Users\jokau\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Zahlen.ps";
 #endif
 
 

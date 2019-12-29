@@ -8,7 +8,15 @@
         <ResourceDictionary>
             <sys:String x:Key="LocalFolderPath">path to the local folder of the application (uses "LocalFolderTitle" Resource) [is initialized in Application_Startup]</sys:String>
             <sys:String x:Key="TempFolderPath">path to the Windows temp folder of the user [is initialized in Application_Startup]</sys:String>
+
+            <!-- theme colors -->
+            <SolidColorBrush x:Key="DarkPrimary" Color="#222" />
+            <SolidColorBrush x:Key="LightPrimary" Color="White" />
+
+            <Style TargetType="Button">
+                <Setter Property="Padding" Value="4 0 4 0" />
+            </Style>
         </ResourceDictionary>
     </Application.Resources>
-    
+
 </Application>

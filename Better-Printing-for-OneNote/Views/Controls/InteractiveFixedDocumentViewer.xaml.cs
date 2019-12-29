@@ -1,9 +1,7 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -26,7 +24,7 @@ namespace Better_Printing_for_OneNote.Views.Controls
                 ifdv.UpdateDocument();
         }
 
-        public delegate FixedDocument PageSplitRequestedEventHandler(int pageNr, double splitAtPercentage);
+        public delegate FixedDocument PageSplitRequestedEventHandler(object sender, int pageNr, double splitAtPercentage);
 
         #region zoom properties
         public double MinZoom { get; set; } = 0.4;
@@ -57,6 +55,54 @@ namespace Better_Printing_for_OneNote.Views.Controls
 
             return zoom;
         }
+
+
+        public int PageCount
+        {
+            get => (int)GetValue(PageCountProperty);
+            private set => SetValue(PageCountProperty, value);
+        }
+        public static DependencyProperty PageCountProperty = DependencyProperty.Register(nameof(PageCount), typeof(int), typeof(InteractiveFixedDocumentViewer), new PropertyMetadata(0, PageCount_Changed));
+        private static void PageCount_Changed(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (sender is InteractiveFixedDocumentViewer ifdv && e.OldValue != e.NewValue)
+            {
+                ifdv.MainDPVBorder.Visibility = (int)e.NewValue > 0 ? Visibility.Visible : Visibility.Collapsed; // prevent a black dot in the center of the control when document page view is empty
+
+                ifdv.PageNumber = ifdv.CorrectPageNumber(ifdv.PageNumber); // make sure currently displayed page number is still within bounds
+            }
+        }
+
+        public int PageNumber
+        {
+            get => (int)GetValue(PageNumberProperty);
+            set => SetValue(PageNumberProperty, value);
+        }
+        public static DependencyProperty PageNumberProperty = DependencyProperty.Register(nameof(PageNumber), typeof(int), typeof(InteractiveFixedDocumentViewer), new PropertyMetadata(0, null, PageNumber_Coerce));
+        private static object PageNumber_Coerce(DependencyObject d, object value)
+        {
+            int pageNumber = (int)value;
+            return ((InteractiveFixedDocumentViewer)d).CorrectPageNumber(pageNumber);
+        }
+        private int CorrectPageNumber(int value)
+        {
+            if (PageCount == 0)
+                value = 0;
+            else if (value >= PageCount)
+                value = PageCount - 1;
+            else if (value < 0)
+                value = 0;
+
+            return value;
+        }
+
+
+        public bool RenderPageNumbers
+        {
+            get => (bool)GetValue(RenderPageNumbersProperty);
+            set => SetValue(RenderPageNumbersProperty, value);
+        }
+        public static DependencyProperty RenderPageNumbersProperty = DependencyProperty.Register(nameof(RenderPageNumbers), typeof(bool), typeof(InteractiveFixedDocumentViewer), new PropertyMetadata(false));
         #endregion
 
         #region page split command
@@ -80,53 +126,42 @@ namespace Better_Printing_for_OneNote.Views.Controls
         public delegate void UndoRequestedHandler(object sender);
         public static readonly DependencyProperty UndoRequestedCommandProperty = DependencyProperty.Register(nameof(UndoRequestedCommand), typeof(UndoRequestedHandler), typeof(InteractiveFixedDocumentViewer));
         #endregion
-        #endregion
 
-        #region attributes
-        private readonly List<DocumentPageView> documentPageViews = new List<DocumentPageView>();
-        #endregion
-
-        public InteractiveFixedDocumentViewer() => InitializeComponent();
-
-        private void UserControl_Loaded(object sender, RoutedEventArgs e)
+        #region redo command
+        public RedoRequestedHandler RedoRequestedCommand
         {
-            MainScrollViewer.Focus(); // Needs focus in order to receive keyboard events
+            get => (RedoRequestedHandler)GetValue(RedoRequestedCommandProperty);
+            set => SetValue(RedoRequestedCommandProperty, value);
+        }
+
+        public delegate void RedoRequestedHandler(object sender);
+        public static readonly DependencyProperty RedoRequestedCommandProperty = DependencyProperty.Register(nameof(RedoRequestedCommand), typeof(RedoRequestedHandler), typeof(InteractiveFixedDocumentViewer));
+        #endregion
+
+        #region page delete command
+        public PageDeleteRequestedHandler PageDeleteRequestedCommand
+        {
+            get => (PageDeleteRequestedHandler)GetValue(PageDeleteRequestedCommandProperty);
+            set => SetValue(PageDeleteRequestedCommandProperty, value);
+        }
+
+        public delegate void PageDeleteRequestedHandler(object sender, int pageIndex);
+        public static readonly DependencyProperty PageDeleteRequestedCommandProperty = DependencyProperty.Register(nameof(PageDeleteRequestedCommand), typeof(PageDeleteRequestedHandler), typeof(InteractiveFixedDocumentViewer));
+        #endregion
+        #endregion
+
+        public InteractiveFixedDocumentViewer()
+        {
+            InitializeComponent();
+            MainGrid.DataContext = this;
+
         }
 
         #region rendering
         public void UpdateDocument()
         {
-            // unregister attached event handlers
-            foreach (DocumentPageView dPV in documentPageViews)
-            {
-                dPV.MouseLeftButtonUp -= DocumentPageView_PreviewMouseLeftButtonUp;
-                dPV.MouseLeave -= DPV_MouseLeave;
-            }
-
-            PagesSP.Children.Clear();
-            documentPageViews.Clear();
-
-            for (int i = 0; i < Document.Pages.Count; i++)
-            {
-                Border border = new Border() { BorderThickness = new Thickness(1), BorderBrush = Brushes.Black };
-                if (PagesSP.Children.Count != 0)
-                    border.Margin = new Thickness(0, 24, 0, 0);
-
-                DocumentPageView dPV = new DocumentPageView()
-                {
-                    DocumentPaginator = Document.DocumentPaginator,
-                    PageNumber = i
-                };
-                border.Child = dPV;
-
-
-                PagesSP.Children.Add(border);
-                documentPageViews.Add(dPV);
-
-                //attach event handlers
-                dPV.PreviewMouseLeftButtonUp += DocumentPageView_PreviewMouseLeftButtonUp;
-                dPV.MouseLeave += DPV_MouseLeave;
-            }
+            MainDPV.DocumentPaginator = Document.DocumentPaginator;
+            PageCount = Document.Pages.Count;
         }
         public void UpdateZoom()
         {
@@ -135,7 +170,7 @@ namespace Better_Printing_for_OneNote.Views.Controls
 
             PageSplitLine.Visibility = Visibility.Collapsed; // otherwise would block resizing of grid
 
-            PagesSP.LayoutTransform = new ScaleTransform(Zoom, Zoom);
+            MainDPV.LayoutTransform = new ScaleTransform(Zoom, Zoom);
             PagesGrid.UpdateLayout();
 
             #region keep currently focused point in place
@@ -151,15 +186,13 @@ namespace Better_Printing_for_OneNote.Views.Controls
             MainScrollViewer.ScrollToHorizontalOffset(offsetX);
 
             #endregion
-
-            UpdateSplittingLine();
         }
         #endregion
 
         #region pagesplitting line
         public void UpdateSplittingLine()
         {
-            if (PagesGrid.IsMouseOver)
+            if (MainDPV.IsMouseOver)
             {
                 var pos = Mouse.GetPosition(PagesGrid);
 
@@ -173,20 +206,20 @@ namespace Better_Printing_for_OneNote.Views.Controls
             }
         }
 
-        private void DPV_MouseLeave(object sender, MouseEventArgs e)
+        private void MainDPV_MouseLeave(object sender, MouseEventArgs e)
         {
             if (PageSplitLine.Visibility != Visibility.Collapsed)
                 PageSplitLine.Visibility = Visibility.Collapsed;
         }
 
         // trigger pagesplit request at current mouse position
-        private void DocumentPageView_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        private void MainDPV_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             if (PageSplitRequestedCommand != null && sender is DocumentPageView dPV)
             {
                 PageSplitLine.Visibility = Visibility.Collapsed; // prevent visual glitches
 
-                int pageIndex = documentPageViews.IndexOf(dPV);
+                int pageIndex = MainDPV.PageNumber;
                 if (pageIndex < 0)
                     return;
 
@@ -202,7 +235,7 @@ namespace Better_Printing_for_OneNote.Views.Controls
         #region move view by rightlick & splitting line
         private Point lastMousePos;
         private bool moveViewByMouse = false;
-        private void PagesGrid_PreviewMouseMove(object sender, MouseEventArgs e)
+        private void MainDPV_PreviewMouseMove(object sender, MouseEventArgs e)
         {
             if (moveViewByMouse && e.RightButton == MouseButtonState.Pressed)
             {
@@ -247,32 +280,48 @@ namespace Better_Printing_for_OneNote.Views.Controls
             }
         }
 
-        // zoom & undo with keyboard
-        private void MainScrollViewer_PreviewKeyUp(object sender, KeyEventArgs e)
+        // keyboard commands
+        public void OnApplication_PreviewKeyDown(object sender, KeyEventArgs e)
         {
+            e.Handled = true;
+
             if (Keyboard.IsKeyDown(Key.LeftCtrl))
-            {
                 if (e.Key == Key.D0)
-                {
                     Zoom = 1;
-                    e.Handled = true;
-                }
                 else if (e.Key == Key.Add)
-                {
                     Zoom += .25;
-                    e.Handled = true;
-                }
                 else if (e.Key == Key.Subtract)
-                {
                     Zoom -= .25;
-                    e.Handled = true;
-                }
-                else if (UndoRequestedCommand != null && e.Key == Key.Z)
-                {
+                else if (e.Key == Key.Z && UndoRequestedCommand != null)
                     UndoRequestedCommand(this);
-                    e.Handled = true;
-                }
+                else if (e.Key == Key.Y && RedoRequestedCommand != null)
+                    RedoRequestedCommand(this);
+                else
+                    e.Handled = false;
+            else if (e.Key == Key.Right)
+                PageNumber += 1;
+            else if (e.Key == Key.Left)
+                PageNumber -= 1;
+            else if ((e.Key == Key.Delete || e.Key == Key.Back) && PageDeleteRequestedCommand != null)
+                PageDeleteRequestedCommand(this, MainDPV.PageNumber);
+            else
+                e.Handled = false;
+        }
+
+        // set page when user presses return
+        private void PageNumberTb_PreviewKeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                var bindingExpr = PageNumberTb.GetBindingExpression(TextBox.TextProperty);
+                bindingExpr.UpdateSource();
+                e.Handled = true;
             }
+        }
+
+        private void PageNumbersInDocBtn_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

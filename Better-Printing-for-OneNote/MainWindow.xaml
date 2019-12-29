@@ -36,6 +36,6 @@
             <Button x:Name="PrintBtn" Content="Drucken" Grid.Column="8" />
         </Grid>
 
-        <controls:InteractiveFixedDocumentViewer x:Name="MainIFDV" Margin="0 12 0 0" UndoRequestedCommand="{Binding UndoRequestHandler}" PageSplitRequestedCommand="{Binding SplitPageRequestHandler}" Document="{Binding CropHelper.Document}"/>
+        <controls:InteractiveFixedDocumentViewer x:Name="MainIFDV" Margin="0 12 0 0" RenderPageNumbers="{Binding CropHelper.PageNumbersEnabled, Mode=OneWayToSource}" PageDeleteRequestedCommand="{Binding DeleteRequestHandler}" RedoRequestedCommand="{Binding RedoRequestHandler}" UndoRequestedCommand="{Binding UndoRequestHandler}" PageSplitRequestedCommand="{Binding SplitPageRequestHandler}" Document="{Binding CropHelper.Document}" Background="{StaticResource LightPrimary}" />
     </DockPanel>
 </Window>
