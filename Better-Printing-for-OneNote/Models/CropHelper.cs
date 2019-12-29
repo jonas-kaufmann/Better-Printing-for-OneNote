@@ -135,14 +135,14 @@ namespace Better_Printing_for_OneNote.Models
         private List<List<Crop>> UndoChangeList = new List<List<Crop>>();
         private List<List<Crop>> RedoChangeList = new List<List<Crop>>();
         private int Height;
-        private BitmapImage Image;
+        private WriteableBitmap Image;
         private int MaxCropHeight;
 
         /// <summary>
         /// Initializes the first crops
         /// </summary>
         /// <param name="image"></param>
-        public CropHelper(BitmapImage image)
+        public CropHelper(WriteableBitmap image)
         {
             Image = image;
             Height = Image.PixelHeight;

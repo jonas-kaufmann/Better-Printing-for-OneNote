@@ -4,140 +4,76 @@ using Ghostscript.NET.Processor;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Documents;
 using System.Windows.Media.Imaging;
 
-namespace Better_Printing_for_OneNote.Models
+namespace Better_Printing_for_OneNote
 {
     class Conversion
     {
-        private const int PNG_FILE_TOP_MARGIN = 150;
-        private const GraphicsUnit GRAPHICS_UNIT = GraphicsUnit.Document;
+        private const int DPI = 300; // 300
+        private const int ROWS_TO_CHECK = 30; // 30
+        private const int MAX_WRONG_PIXELS = 150; // 50
+        private const double SECTION_TO_CHECK = 0.25;
 
         /// <summary>
-        /// Changes the signature of all Sites without recreating the document
+        /// Converts a Postscript document with (multiple) pages to one Bitmap (removes the created files after conversion)
         /// </summary>
-        /// <param name="document">modified Fixeddocument</param>
-        /// <param name="signature">signature to set</param>
-        public static void ChangeSignature(FixedDocument document, string signature)
-        {
-            if (document != null)
-                // Signatur anpassen
-                foreach (var page in document.Pages)
-                    ((page.Child.Children[0] as StackPanel).Children[0] as TextBlock).Text = signature;
-        }
-
-        /// <summary>
-        /// Converts png to a FixedDocument
-        /// </summary>
-        /// <param name="imagePath">path to the image to convert</param>
-        /// <param name="documentWidth">width of the output document; default: DINA4</param>
-        /// <param name="documentHeight">height of the output document; default: DINA4</param>
-        /// <param name="signature">signature on every site of the document</param>
-        /// <param name="cropHeights">heights to split as array</param>
-        /// <param name="src">just ignore (its for the helper Method with "int cropHeight")</param>
-        /// <returns>the document and the cropheights, null if exception ist thrown</returns>
-        public static PngToFdOutput PngToFixedDoc(string imagePath, string signature, List<int> cropHeights, double documentWidth = 793.7007874, double documentHeight = 1122.519685, Bitmap src = null)
-        {
-            try
-            {
-                FixedDocument document = new FixedDocument();
-                Bitmap srcBitmap = src ?? System.Drawing.Image.FromFile(imagePath) as Bitmap;
-                var cropPostionY = PNG_FILE_TOP_MARGIN;
-                foreach (var cropHeight in cropHeights)
-                {
-                    // Crop Image
-                    Rectangle cropRect;
-                    cropRect = new Rectangle(0, cropPostionY, srcBitmap.Width, cropHeight);
-                    cropPostionY += cropHeight;
-                    var targetBitmap = new Bitmap(cropRect.Width, cropRect.Height);
-                    using (Graphics g = Graphics.FromImage(targetBitmap))
-                    {
-                        g.DrawImage(srcBitmap, new Rectangle(0, 0, targetBitmap.Width, targetBitmap.Height), cropRect, GRAPHICS_UNIT);
-                    }
-
-                    // Convert Bitmap to BitmapImage
-                    BitmapImage croppedImage = new BitmapImage();
-                    MemoryStream ms = new MemoryStream();
-                    targetBitmap.Save(ms, srcBitmap.RawFormat);
-                    croppedImage.BeginInit();
-                    ms.Seek(0, SeekOrigin.Begin);
-                    croppedImage.StreamSource = ms;
-                    croppedImage.EndInit();
-
-                    // Create page and add it to the FixedDocument
-                    var page = new PageContent();
-                    var fixedPage = new FixedPage();
-                    fixedPage.Width = documentWidth;
-                    fixedPage.Height = documentHeight;
-                    page.Child = fixedPage;
-                    var stackpanel = new StackPanel();
-                    var imageControl = new System.Windows.Controls.Image() { Source = croppedImage };
-                    imageControl.Width = documentWidth;
-                    var signatureTB = new TextBlock() { Text = signature };
-                    stackpanel.Children.Add(signatureTB);
-                    stackpanel.Children.Add(imageControl);
-                    page.Child.Children.Add(stackpanel);
-                    document.Pages.Add(page);
-                }
-
-                return new PngToFdOutput() { CropHeights = cropHeights, Document = document };
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Es kam zu einem Fehler bei der Konvertierung der PostScript Datei. Bitte mit anderer PostScript Datei erneut versuchen.");
-                Trace.WriteLine($"\nPngToFixedDoc conversion failed [probably because of corrupt or empty Postscript file]:\n {ex.ToString()}");
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Converts png to a FixedDocument
-        /// </summary>
-        /// <param name="imagePath">path to the image to convert</param>
-        /// <param name="documentWidth">width of the output document; default: DINA4</param>
-        /// <param name="documentHeight">height of the output document; default: DINA4</param>
-        /// <param name="signature">signature on every site of the document</param>
-        /// <param name="cropHeight">height to split</param>
-        /// <returns>the document and the cropheights, null if exception is thrown</returns>
-        public static PngToFdOutput PngToFixedDoc(string imagePath, string signature, int cropHeight, double documentWidth = 793.7007874, double documentHeight = 1122.519685)
-        {
-            try
-            {
-                var srcBitmap = System.Drawing.Image.FromFile(imagePath) as Bitmap;
-                var splits = (int)Math.Ceiling(decimal.Divide(srcBitmap.Height, cropHeight));
-                var cropHeights = new List<int>();
-                for (int i = 0; i < splits - 1; i++)
-                    cropHeights.Add(cropHeight);
-                cropHeights.Add(srcBitmap.Height - (splits - 1) * cropHeight);
-                return PngToFixedDoc(imagePath, signature, cropHeights, documentWidth, documentHeight, srcBitmap);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Es kam zu einem Fehler bei der Konvertierung der PostScript Datei. Bitte mit anderer PostScript Datei erneut versuchen.");
-                Trace.WriteLine($"\nPngToFixedDoc conversion failed [probably because of corrupt or empty Postscript file]:\n {ex.ToString()}");
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Converts Ps file to a Png file and stores it in the Temp Directory (if ghostscript is not installed the program exits with error messages)
-        /// </summary>
-        /// <param name="filePath">Path to the PS file</param>
+        /// <param name="filePath">Path to the Ps file</param>
         /// <param name="localFolder">Path to the local folder for MessageBox</param>
-        /// <param name="tempFolderPath">Path to the temp folder (or antother folder to store temporary files in)</param>
-        /// <returns>Path to converted file or empty string if ps file ist corrupted</returns>
-        public static string PsToPng(string filePath, string localFolder, string tempFolderPath)
+        /// <param name="tempFolder">Path to the temp folder (or another folder to store temporary files in)</param>
+        /// <returns>the bitmap and Error=true in case of an exception</returns>
+        public static ConversionOutput ConvertPsToOneImage(string filePath, string localFolder, string tempFolder)
+        {
+            if (File.Exists(filePath))
+            {
+                var paths = PsToBmp(filePath, localFolder, tempFolder);
+                if (paths != null)
+                {
+                    var bitmap = CombineImages(paths);
+                    // run Task to clear the files
+                    Task.Run(() =>
+                    {
+                        while (paths.Count > 0)
+                        {
+                            try
+                            {
+                                File.Delete(paths[0]);
+                                paths.RemoveAt(0);
+                            }
+                            catch (Exception e)
+                            {
+                                Trace.WriteLine($"Could not delete the file {paths[0]}. Trying again. Exception:\n{e.ToString()}");
+                                Thread.Sleep(500);
+                            }
+                        }
+                    });
+                    return new ConversionOutput() { Bitmap = bitmap };
+                }
+            }
+            else
+            {
+                MessageBox.Show($"Die zu öffnende Postscript Datei ({filePath}) existiert nicht.");
+            }
+            return new ConversionOutput { Error = true };
+        }
+
+        /// <summary>
+        /// Converts a Postscript file to multiple Bitmap files and stores them in the Temp Directory (if ghostscript is not installed the program exits with error messages)
+        /// </summary>
+        /// <param name="filePath">Path to the Ps file</param>
+        /// <param name="localFolder">Path to the local folder for MessageBox</param>
+        /// <param name="tempFolderPath">Path to the temp folder (or another folder to store temporary files in)</param>
+        /// <returns>Paths to the converted files or null if the ps file is corrupted</returns>
+        private static List<string> PsToBmp(string filePath, string localFolder, string tempFolderPath)
         {
             if (GhostscriptVersionInfo.IsGhostscriptInstalled)
             {
                 FileInfo fileInfo = new FileInfo(filePath);
-                var outputPath = Path.Combine(tempFolderPath,
-                    string.Format("{0}.png", Path.GetFileNameWithoutExtension(fileInfo.Name)));
+                var outputPath = Path.Combine(tempFolderPath, Path.GetFileNameWithoutExtension(fileInfo.Name));
 
                 try
                 {
@@ -146,16 +82,21 @@ namespace Better_Printing_for_OneNote.Models
                         List<string> switches = new List<string>();
                         switches.Add("empty");
                         switches.Add("-dSAFER");
-                        switches.Add("-dBATCH");
-                        switches.Add("-r300");
-                        switches.Add("-sDEVICE=png16m");
-                        switches.Add("-sOutputFile=" + outputPath);
-                        switches.Add(filePath);
+                        switches.Add("-sDEVICE=bmp16m");
+                        switches.Add($"-r{DPI}");
+                        switches.Add("-o");
+                        switches.Add($"\"{outputPath}_%d.bmp\"");
+                        switches.Add($"\"{filePath}\"");
 
                         GeneralHelperClass.CreateDirectoryIfNotExists(tempFolderPath);
-                        processor.StartProcessing(switches.ToArray(), null);
+                        var outputHandler = new GSOutputStdIO();
+                        processor.StartProcessing(switches.ToArray(), outputHandler);
 
-                        return outputPath;
+                        var paths = new List<string>();
+                        for (int i = 1; i <= outputHandler.Pages; i++)
+                            paths.Add($"{outputPath}_{i}.bmp");
+
+                        return paths;
                     }
                 }
                 catch (Exception ex)
@@ -170,13 +111,306 @@ namespace Better_Printing_for_OneNote.Models
                 Trace.WriteLine("\nApplication Shutdown: Ghostscript is not installed (64-bit needed)");
                 Application.Current.Shutdown();
             }
-            return "";
+            return null;
+        }
+
+        /// <summary>
+        /// Combines multiple images to a big one by removing white rows at the top and bottom and removing duplicate rows
+        /// </summary>
+        /// <param name="imagePaths">the paths to the images</param>
+        /// <returns>the final combined bitmap</returns>
+        private static WriteableBitmap CombineImages(List<string> imagePaths)
+        {
+            var previousImage = LoadBitmapIntoArray(imagePaths[0]); // first image
+            var stride = previousImage.Stride;
+            var height = previousImage.Height;
+            var width = previousImage.Width;
+            var format = previousImage.Format;
+            var palette = previousImage.Palette;
+
+            // find first not white row in the first image
+            int topOffset1 = 0;
+            try
+            {
+                topOffset1 = FirstNotWhiteRow(previousImage.Pixels, stride, previousImage.Height);
+            }
+            catch (RowNotFoundException e)
+            {
+                Trace.WriteLine($"\nCombining the images failed because \"{imagePaths[0]}\" has no not white row. Using the full image. Exception:\n {e.ToString()}");
+            }
+
+            byte[] finalImageArray;
+            if (imagePaths.Count > 1)
+            {
+                var finalImageList = new List<byte>();
+                // go through all images after the first
+                for (int i = 1; i < imagePaths.Count; i++)
+                {
+                    var image = LoadBitmapIntoArray(imagePaths[i]);
+
+                    // find offset to the first not white row in the image
+                    var topOffset2 = 0;
+                    try
+                    {
+                        topOffset2 = FirstNotWhiteRow(image.Pixels, stride, image.Height);
+                    }
+                    catch (RowNotFoundException e)
+                    {
+                        Trace.WriteLine($"\nCombining the images failed because \"{imagePaths[i]}\" has no not white row. Using the full image. Exception:\n {e.ToString()}");
+                    }
+
+                    // build the rowsequence after the first not white row (inclusive)
+                    var rowSequence = new List<byte[]>();
+                    for (int c = 0; c < ROWS_TO_CHECK; c++)
+                    {
+                        var row = new byte[stride];
+                        for (int j = 0; j < stride; j++)
+                            row[j] = image.Pixels[topOffset2 + j + c * stride];
+                        rowSequence.Add(row);
+                    }
+
+                    // find equal row
+                    var bottomOffset1 = 0;
+                    try
+                    {
+                        bottomOffset1 = FindMatchingRowSequence(previousImage.Pixels, rowSequence, stride, previousImage.Height);
+                    }
+                    catch (RowNotFoundException e)
+                    {
+                        Trace.WriteLine($"\nCombining the images failed because \"{imagePaths[i - 1]}\" and \"{imagePaths[i]}\" have no equal row. Using the full image. Exception:\n {e.ToString()}");
+                        // cut off the white space under image and use that in case of no equal row
+                        try
+                        {
+                            bottomOffset1 = LastNotWhiteRow(previousImage.Pixels, stride, previousImage.Height);
+                        }
+                        catch (RowNotFoundException ex)
+                        {
+                            Trace.WriteLine($"\nCombining the images failed because \"{imagePaths[i-1]}\" has no not white row. Using the full image. Exception:\n {ex.ToString()}");
+                        }
+                    }
+
+                    // copy pixels from the previous to the final image
+                    for (int j = topOffset1; j < bottomOffset1; j++)
+                        finalImageList.Add(previousImage.Pixels[j]);
+
+                    previousImage = image;
+                    topOffset1 = topOffset2;
+
+                    // copy pixels from the last image
+                    if (i == imagePaths.Count - 1)
+                    {
+                        var bottomOffset = 0;
+                        try
+                        {
+                            bottomOffset = LastNotWhiteRow(image.Pixels, stride, image.Height);
+                        }
+                        catch (RowNotFoundException ex)
+                        {
+                            Trace.WriteLine($"\nCombining the images failed because \"{imagePaths[i]}\" has no not white row. Using the full image. Exception:\n {ex.ToString()}");
+                        }
+
+                        for (int j = topOffset2; j < bottomOffset; j++)
+                            finalImageList.Add(image.Pixels[j]);
+                    }
+                }
+                finalImageArray = finalImageList.ToArray();
+                finalImageList = null;
+            }
+            else
+            {
+                // copy all pixels from the first except the white rows
+                var bottomOffset = 0;
+                try
+                {
+                    bottomOffset = LastNotWhiteRow(previousImage.Pixels, stride, previousImage.Height);
+                }
+                catch (RowNotFoundException ex)
+                {
+                    Trace.WriteLine($"\nCombining the images failed because \"{imagePaths[0]}\" has no not white row. Using the full image. Exception:\n {ex.ToString()}");
+                }
+
+                finalImageArray = new byte[bottomOffset - topOffset1];
+                for (int j = 0; j < bottomOffset - topOffset1; j++)
+                    finalImageArray[j] = previousImage.Pixels[j + topOffset1];
+            }
+            previousImage = null;
+
+            // rewrite bytes to Bitmap
+            var heightFinal = finalImageArray.Length / stride;
+            var finalBitmap = new WriteableBitmap(width, heightFinal, DPI, DPI, format, palette);
+            finalBitmap.WritePixels(new Int32Rect(0, 0, width, heightFinal), finalImageArray, stride, 0);
+
+            return finalBitmap;
+        }
+
+        /// <summary>
+        /// Loads a bitmap file from the harddrive and loads the data into an bytearray
+        /// </summary>
+        /// <param name="path">the path to the .bmp file</param>
+        /// <returns>the array and some information about the image</returns>
+        private static BitmapInformation LoadBitmapIntoArray(string path)
+        {
+            // load the image
+            var bitmapImage = new BitmapImage();
+            bitmapImage.BeginInit();
+            bitmapImage.UriSource = new Uri(path);
+            bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+            bitmapImage.EndInit();
+
+            // write information to the output object
+            var output = new BitmapInformation() { Palette = bitmapImage.Palette, Format = bitmapImage.Format, Height = bitmapImage.PixelHeight, Width = bitmapImage.PixelWidth };
+
+            // copy pixels to the array
+            var bytesPerPixel = bitmapImage.Format.BitsPerPixel / 8; // BitsPerPixel: 32 -> BytesPerPixel: hier 4 (s, R, G, B)
+            output.Stride = bitmapImage.PixelWidth * bytesPerPixel;  // stride: Bytes in einer Reihe
+            output.Pixels = new byte[output.Stride * bitmapImage.PixelHeight];
+            bitmapImage.CopyPixels(output.Pixels, output.Stride, 0);
+
+            return output;
+        }
+
+        /// <summary>
+        /// Searches for the first not white row from the top (throws RowNotFoundException)
+        /// </summary>
+        /// <param name="pixels">the pixel array to search in</param>
+        /// <param name="stride">the bytes per row</param>
+        /// <param name="imageHeight">the pixel height of the pixels</param>
+        private static int FirstNotWhiteRow(byte[] pixels, int stride, int imageHeight)
+        {
+            // find first not white row
+            for (int y = 0; y < imageHeight; y++)
+            {
+                // check all bytes of one row
+                for (int b = 0; b < stride; b++)
+                {
+                    if (pixels[y * stride + b] != 255)
+                        return y * stride;
+                }
+            }
+            throw new RowNotFoundException("Could not find a not white row.");
+        }
+
+        /// <summary>
+        /// Searches for the first not white row from the bottom (throws RowNotFoundException)
+        /// </summary>
+        /// <param name="pixels">the pixel array to search in</param>
+        /// <param name="stride">the bytes per row</param>
+        /// <param name="imageHeight">the pixel height of the pixels</param>
+        private static int LastNotWhiteRow(byte[] pixels, int stride, int imageHeight)
+        {
+            // find first not white row
+            for (int y = imageHeight - 1; y >= 0; y--)
+            {
+                // check all bytes of one row
+                for (int b = 0; b < stride; b++)
+                {
+                    if (pixels[y * stride + b] != 255)
+                        return y * stride;
+                }
+            }
+            throw new RowNotFoundException("Could not find a not white row.");
+        }
+
+        /// <summary>
+        /// Searches for the first matching rowsequence in the Pixelarray (throws RowNotFoundException)
+        /// </summary>
+        /// <param name="pixels">the pixel array to search in</param>
+        /// <param name="rowSequence">the rowsequence to search</param>
+        /// <param name="stride">the bytes per row</param>
+        /// <param name="height">the pixel height of the pixels</param>
+        /// <returns>the offset from the bottom (of the pixel array)</returns>
+        private static int FindMatchingRowSequence(byte[] pixels, List<byte[]> rowSequence, int stride, int height)
+        {
+            int rowIndex = rowSequence.Count - 1;
+            bool sequenceFound = false;
+            int supposedPositionY = 0;
+            for (int y = height - 1; y >= (1 - SECTION_TO_CHECK) * height; y--)
+            {
+                // check all bytes of one row
+                var wrongPixels = 0;
+                for (int b = 0; b < stride; b++)
+                {
+                    if (rowSequence[rowIndex][b] != pixels[y * stride + b])
+                        wrongPixels++;
+                    if (wrongPixels > MAX_WRONG_PIXELS)
+                        goto NotEqual;
+                }
+
+                // row is a match 
+                rowIndex--;
+                if (rowIndex < 0)
+                    return y * stride;
+                if (!sequenceFound)
+                {
+                    supposedPositionY = y;
+                    sequenceFound = true;
+                }
+
+                goto End;
+
+            // row is no match
+            NotEqual:
+                if (sequenceFound)
+                {
+                    // reset the values if not the full sequence is matching
+                    sequenceFound = false;
+                    rowIndex = rowSequence.Count - 1;
+                    y = supposedPositionY;
+                }
+
+            End:;
+
+            }
+            throw new RowNotFoundException("Could not find an equal row.");
+        }
+
+        class BitmapInformation
+        {
+            public System.Windows.Media.PixelFormat Format;
+            public BitmapPalette Palette;
+            public byte[] Pixels;
+            public int Stride;
+            public int Height;
+            public int Width;
+        }
+
+        class RowNotFoundException : Exception
+        {
+            public RowNotFoundException(string message) : base(message) { }
+        }
+
+        class GSOutputStdIO : GhostscriptStdIO
+        {
+            public GSOutputStdIO() : base(false, true, false) { }
+
+            private bool FirstOutput = true;
+            public int Pages;
+
+            public override void StdOut(string output)
+            {
+                if (output.Trim().Contains("LastPage")) Pages = output.Split("Page").Length - 2;
+
+                // output to log/trace
+                if (FirstOutput)
+                {
+                    FirstOutput = false;
+                    Trace.Write($"\nGhostScript Protocoll:\n{output}");
+                }
+                else Trace.Write(output);
+            }
+
+            public override void StdError(string error) { }
+
+            public override void StdIn(out string input, int count)
+            {
+                input = "";
+            }
         }
     }
 
-    class PngToFdOutput
+    class ConversionOutput
     {
-        public FixedDocument Document;
-        public List<int> CropHeights;
+        public WriteableBitmap Bitmap;
+        public bool Error = false;
     }
 }
