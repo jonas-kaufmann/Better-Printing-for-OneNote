@@ -7,6 +7,8 @@ using Better_Printing_for_OneNote.Models;
 using Microsoft.Win32;
 using System.Windows.Media.Imaging;
 using Better_Printing_for_OneNote.Views.Controls;
+using Better_Printing_for_OneNote.Properties;
+using System.Diagnostics;
 
 namespace Better_Printing_for_OneNote.ViewModels
 {
@@ -44,29 +46,16 @@ namespace Better_Printing_for_OneNote.ViewModels
             }
             set
             {
-                if (File.Exists(value))
-                {
-                    var pngPath = Conversion.PsToPng(value, LOCAL_FOLDER_PATH, TEMP_FOLDER_PATH);
-                    if (pngPath != "")
-                    {
-                        // load sourceimage once
-                        var image = new BitmapImage();
-                        image.BeginInit();
-                        image.UriSource = new Uri(pngPath);
-                        image.CacheOption = BitmapCacheOption.OnLoad;
-                        image.EndInit();
-                        CropHelper = new CropHelper(image);
 
-                        OnPropertyChanged("FilePath");
-                    }
-                }
-                else
+                var output = Conversion.ConvertPsToOneImage(value, LOCAL_FOLDER_PATH, TEMP_FOLDER_PATH);
+                if (!output.Error)
                 {
-                    MessageBox.Show($"Die zu öffnende Postscript Datei ({value}) existiert nicht.");
+                    CropHelper = new CropHelper(output.Bitmap);
+                    _filePath = value;
+                    OnPropertyChanged("FilePath");
                 }
             }
         }
-
 
         private CropHelper _cropHelper;
         public CropHelper CropHelper
@@ -116,8 +105,9 @@ namespace Better_Printing_for_OneNote.ViewModels
                 FilePath = argFilePath;
 
 #if DEBUG
-            FilePath = @"C:\Users\jokau\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Zahlen.ps";
+            FilePath = @"D:\Daten\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Zahlen.ps";
 #endif
+
 
             //might be unnecessary
             /*Task.Run(() =>

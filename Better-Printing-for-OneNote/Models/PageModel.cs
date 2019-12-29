@@ -142,7 +142,7 @@ namespace Better_Printing_for_OneNote.Models
         /// Creates a new Page (access the Page over the "Page" property to add it to a FixedDocument e.g.)
         /// </summary>
         /// <param name="image">the content image</param>
-        public PageModel(BitmapImage image)
+        public PageModel(WriteableBitmap image)
         {
             var fixedPage = new FixedPage() { Width = DOCUMENT_WIDTH, Height = DOCUMENT_HEIGHT };
             Page.Child = fixedPage;
