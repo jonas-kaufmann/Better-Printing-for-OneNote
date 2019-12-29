@@ -17,7 +17,7 @@ namespace Better_Printing_for_OneNote
         private const int DPI = 300; // 300
         private const int ROWS_TO_CHECK = 30; // 30
         private const int MAX_WRONG_PIXELS = 150; // 50
-        private const double SECTION_TO_CHECK = 0.25;
+        private const double SECTION_TO_CHECK = 0.15;
 
         /// <summary>
         /// Converts a Postscript document with (multiple) pages to one Bitmap (removes the created files after conversion)
@@ -51,6 +51,7 @@ namespace Better_Printing_for_OneNote
                             }
                         }
                     });
+
                     return new ConversionOutput() { Bitmap = bitmap };
                 }
             }
@@ -96,13 +97,20 @@ namespace Better_Printing_for_OneNote
                         for (int i = 1; i <= outputHandler.Pages; i++)
                             paths.Add($"{outputPath}_{i}.bmp");
 
+                        if (paths.Count < 1)
+                        {
+                            MessageBox.Show($"Es kam zu einem Fehler bei der Konvertierung der PostScript Datei. Bitte mit anderer PostScript Datei erneut versuchen.");
+                            Trace.WriteLine($"\nPsToBmp conversion failed. Probably because there is no page in the document or the document is corrupted.");
+                            return null;
+                        }
+
                         return paths;
                     }
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show($"Es kam zu einem Fehler bei der Konvertierung der PostScript Datei. Bitte mit anderer PostScript Datei erneut versuchen.\n\nMehr Informationen sind in den Log-Dateien in { localFolder } hinterlegt.");
-                    Trace.WriteLine($"\nPsToPng conversion failed:\n {ex.ToString()}");
+                    Trace.WriteLine($"\nPsToBmp conversion failed:\n {ex.ToString()}");
                 }
             }
             else

@@ -12,13 +12,15 @@ namespace Better_Printing_for_OneNote
     public partial class App : Application
     {
         private bool DEBUG_MODE = false;
+        private bool LOGGING_INITIALIZED = false;
 
-        private void Application_Startup(object sender, StartupEventArgs e)
+        public App()
         {
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+
             // initialize Resources
             var localFolderPath = $"{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Better_Printing_for_OneNote.Properties.Resources.LocalFolderTitle)}\\";
             Resources["LocalFolderPath"] = localFolderPath;
-            Resources["TempFolderPath"] = Path.GetTempPath();
 
             #region Logging
 
@@ -48,8 +50,27 @@ namespace Better_Printing_for_OneNote
                 Trace.WriteLine("Release-Mode");
             }
             else Trace.WriteLine("Debug-Mode");
+            LOGGING_INITIALIZED = true;
 
             #endregion
+        }
+
+        private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            var output = $"UnhandledException:\n{e.ToString()}";
+            Trace.WriteLine(output);
+            if (!LOGGING_INITIALIZED)
+            {
+                var localFolderPath = GeneralHelperClass.FindResource("LocalFolderPath");
+                GeneralHelperClass.CreateDirectoryIfNotExists(localFolderPath);
+                File.WriteAllText($"{localFolderPath}logs.txt", output);
+            }
+        }
+
+        private void Application_Startup(object sender, StartupEventArgs e)
+        {
+            // initialize Resources
+            Resources["TempFolderPath"] = Path.GetTempPath();
 
             var argFilePath = "";
             if (e.Args.Length > 0)
@@ -58,9 +79,8 @@ namespace Better_Printing_for_OneNote
                 Trace.WriteLine($"Anwendung mit folgendem Startparameter gestartet {argFilePath}");
             }
             else
-            {
                 Trace.WriteLine("Anwendung ohne Startparameter gestartet");
-            }
+
             (new MainWindow(argFilePath) { WindowState = WindowState.Maximized }).Show();
         }
     }
