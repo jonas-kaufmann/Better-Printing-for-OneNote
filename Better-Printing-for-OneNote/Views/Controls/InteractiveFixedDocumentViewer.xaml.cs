@@ -62,7 +62,16 @@ namespace Better_Printing_for_OneNote.Views.Controls
             get => (int)GetValue(PageCountProperty);
             private set => SetValue(PageCountProperty, value);
         }
-        public static DependencyProperty PageCountProperty = DependencyProperty.Register(nameof(PageCount), typeof(int), typeof(InteractiveFixedDocumentViewer), new PropertyMetadata(0));
+        public static DependencyProperty PageCountProperty = DependencyProperty.Register(nameof(PageCount), typeof(int), typeof(InteractiveFixedDocumentViewer), new PropertyMetadata(0, PageCount_Changed));
+        private static void PageCount_Changed(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (sender is InteractiveFixedDocumentViewer ifdv && e.OldValue != e.NewValue)
+            {
+                ifdv.MainDPVBorder.Visibility = (int)e.NewValue > 0 ? Visibility.Visible : Visibility.Collapsed; // prevent a black dot in the center of the control when document page view is empty
+
+                ifdv.PageNumber = ifdv.CorrectPageNumber(ifdv.PageNumber); // make sure currently displayed page number is still within bounds
+            }
+        }
 
         public int PageNumber
         {
@@ -73,11 +82,13 @@ namespace Better_Printing_for_OneNote.Views.Controls
         private static object PageNumber_Coerce(DependencyObject d, object value)
         {
             int pageNumber = (int)value;
-            return ((InteractiveFixedDocumentViewer)d).VerifyPageNumber(pageNumber);
+            return ((InteractiveFixedDocumentViewer)d).CorrectPageNumber(pageNumber);
         }
-        private int VerifyPageNumber(int value)
+        private int CorrectPageNumber(int value)
         {
-            if (value >= PageCount)
+            if (PageCount == 0)
+                value = 0;
+            else if (value >= PageCount)
                 value = PageCount - 1;
             else if (value < 0)
                 value = 0;

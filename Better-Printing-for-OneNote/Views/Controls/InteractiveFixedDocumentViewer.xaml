@@ -76,7 +76,7 @@
         
         <ScrollViewer x:Name="MainScrollViewer" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" PreviewMouseWheel="MainScrollViewer_PreviewMouseWheel" Grid.Row="2">
             <Grid x:Name="PagesGrid" PreviewMouseRightButtonDown="PagesGrid_PreviewMouseRightButtonDown" PreviewMouseRightButtonUp="PagesGrid_PreviewMouseRightButtonUp" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="24">
-                <Border BorderBrush="Black" BorderThickness="1">
+                <Border x:Name="MainDPVBorder" BorderBrush="Black" BorderThickness="1" Visibility="Collapsed">
                     <Border.Effect>
                         <DropShadowEffect ShadowDepth="0" BlurRadius="12" />
                     </Border.Effect>

@@ -1,14 +1,9 @@
 ﻿using System;
-using System.Windows;
 using Better_Printing_for_OneNote.AdditionalClasses;
-using System.IO;
 using System.Windows.Shell;
 using Better_Printing_for_OneNote.Models;
 using Microsoft.Win32;
-using System.Windows.Media.Imaging;
 using Better_Printing_for_OneNote.Views.Controls;
-using Better_Printing_for_OneNote.Properties;
-using System.Diagnostics;
 
 namespace Better_Printing_for_OneNote.ViewModels
 {
@@ -105,7 +100,7 @@ namespace Better_Printing_for_OneNote.ViewModels
                 FilePath = argFilePath;
 
 #if DEBUG
-            FilePath = @"D:\Daten\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Zahlen.ps";
+            FilePath = @"C:\Users\jokau\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Zahlen.ps";
 #endif
 
 
