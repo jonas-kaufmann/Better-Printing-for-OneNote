@@ -1,7 +1,13 @@
 # Visual Studio Files
 **/.vs/
 
-# Project Debug Files
+# project build files
 **/bin/
 **/obj/
+**/publish/
+
+# NuGet
+packages/
+
+# projects to ignore
 /ConversionTestApp
