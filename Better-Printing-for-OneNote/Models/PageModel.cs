@@ -119,7 +119,7 @@ namespace Better_Printing_for_OneNote.Models
             }
         }
 
-        private bool _pageNumberEnabled;
+        private bool _pageNumberEnabled = false;
         public bool PageNumbersEnabled
         {
             get
@@ -130,7 +130,7 @@ namespace Better_Printing_for_OneNote.Models
             {
                 if (value != _pageNumberEnabled)
                 {
-                    PageNumberTB.IsEnabled = value;
+                    PageNumberTB.Visibility = value ? Visibility.Visible : Visibility.Hidden;
                     _pageNumberEnabled = value;
                 }
             }
@@ -160,7 +160,7 @@ namespace Better_Printing_for_OneNote.Models
             grid.Children.Add(border);
             Grid.SetRow(border, 1);
 
-            PageNumberTB = new TextBlock() { HorizontalAlignment = HorizontalAlignment.Right };
+            PageNumberTB = new TextBlock() { HorizontalAlignment = HorizontalAlignment.Right, Visibility = Visibility.Hidden };
             grid.Children.Add(PageNumberTB);
             Grid.SetRow(PageNumberTB, 2);
 

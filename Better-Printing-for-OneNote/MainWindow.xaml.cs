@@ -16,6 +16,9 @@ namespace Better_Printing_for_OneNote
             viewModel.BringWindowToFrontEvent += new EventHandler(BringWindowToFront);
 
             InitializeComponent();
+
+            // register event handlers
+            PreviewKeyDown += MainIFDV.OnApplication_PreviewKeyDown;
         }
 
         private void BringWindowToFront(object sender, EventArgs e)
