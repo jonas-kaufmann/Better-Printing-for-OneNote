@@ -6,7 +6,7 @@
     <RootNamespace>Better_Printing_for_OneNote</RootNamespace>
     <UseWPF>true</UseWPF>
     <ApplicationIcon>Resources\Icon.ico</ApplicationIcon>
-    <StartupObject />
+    <StartupObject>Better_Printing_for_OneNote.App</StartupObject>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
