@@ -63,9 +63,7 @@ namespace Better_Printing_for_OneNote.Models
             }
         }
 
-        #region PageNumbers
-
-        private bool _pageNumbersEnabled;
+        private bool _pageNumbersEnabled = false;
         public bool PageNumbersEnabled
         {
             get
@@ -76,19 +74,14 @@ namespace Better_Printing_for_OneNote.Models
             {
                 if (value != _pageNumbersEnabled)
                 {
-                    foreach (var page in Pages)
-                        page.PageNumbersEnabled = value;
                     _pageNumbersEnabled = value;
+                    CurrentCropHeights = null;
                     OnPropertyChanged("PageNumbersEnabled");
                 }
             }
         }
 
-        #endregion
-
-        #region Signature
-
-        private bool _signatureEnabled;
+        private bool _signatureEnabled = false;
         public bool SignatureEnabled
         {
             get
@@ -99,15 +92,14 @@ namespace Better_Printing_for_OneNote.Models
             {
                 if (value != _signatureEnabled)
                 {
-                    foreach (var page in Pages)
-                        page.SignatureEnabled = value;
                     _signatureEnabled = value;
+                    CurrentCropHeights = null;
                     OnPropertyChanged("SignatureEnabled");
                 }
             }
         }
 
-        private string _signature;
+        private string _signature = "";
         public string Signature
         {
             get
@@ -119,14 +111,12 @@ namespace Better_Printing_for_OneNote.Models
                 if (value != _signature)
                 {
                     foreach (var page in Pages)
-                        page.Signature = value;
+                        page.SetSignature(value);
                     _signature = value;
                     OnPropertyChanged("Signature");
                 }
             }
         }
-
-        #endregion
 
         private ObservableCollection<PageModel> Pages = new ObservableCollection<PageModel>();
         private List<List<Crop>> UndoChangeList = new List<List<Crop>>();
@@ -160,15 +150,12 @@ namespace Better_Printing_for_OneNote.Models
         }
 
         /// <summary>
-        /// Creates new PageModel and copies all needed values (Signature, PageNumbers)
+        /// Creates new PageModel
         /// </summary>
         /// <returns>the page</returns>
         private PageModel CreateNewPage()
         {
-            var page = new PageModel(Image, DocumentHeight, DocumentWidth, ContentHeight, ContentWidth, Padding);
-            page.SignatureEnabled = SignatureEnabled;
-            page.Signature = Signature;
-            page.PageNumbersEnabled = PageNumbersEnabled;
+            var page = new PageModel(Image, DocumentHeight, DocumentWidth, ContentHeight, ContentWidth, Padding, PageNumbersEnabled, SignatureEnabled, Signature);
             return page;
         }
 
@@ -329,7 +316,7 @@ namespace Better_Printing_for_OneNote.Models
         {
             var pageCount = Pages.Count;
             for (int i = 0; i < pageCount; i++)
-                Pages[i].PageNumber = $"{i + 1}/{pageCount}";
+                Pages[i].SetPageNumber($"{i + 1}/{pageCount}");
         }
 
         /// <summary>

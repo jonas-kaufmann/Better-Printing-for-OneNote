@@ -80,7 +80,7 @@ namespace Better_Printing_for_OneNote.ViewModels
                             var cropHelper = new CropHelper(bitmap);
                             UpdatePrintFormat(cropHelper); // set the format and initialize the first pages
                             CropHelper = cropHelper;
-                            cts.Cancel(); // for the closing event
+                            busyDialog.Completed = true;
                             busyDialog.Close();
                             _filePath = value;
                             OnPropertyChanged("FilePath");
@@ -90,14 +90,18 @@ namespace Better_Printing_for_OneNote.ViewModels
                     {
                         GeneralHelperClass.ExecuteInUiThread(() =>
                         {
-                            cts.Cancel(); // for the closing event
+                            busyDialog.Completed = true;
                             busyDialog.Close();
                             MessageBox.Show(e.Message);
                         });
                     }
                     catch (OperationCanceledException)
                     {
-                        GeneralHelperClass.ExecuteInUiThread(busyDialog.Close);
+                        GeneralHelperClass.ExecuteInUiThread(() =>
+                        {
+                            busyDialog.Completed = true;
+                            busyDialog.Close();
+                        });
                     }
                 });
 
@@ -178,9 +182,9 @@ namespace Better_Printing_for_OneNote.ViewModels
         {
             var print = PrintDialog.ShowDialog();
             UpdatePrintFormat(CropHelper);
-            if (print.HasValue && print.Value)
-                PrintDialog.PrintDocument(CropHelper.Document.DocumentPaginator, Properties.Resources.ApplicationTitle);
             OnPropertyChanged("PrintDialog");
+            if (print.HasValue && print.Value)
+                Task.Run(() => PrintDialog.PrintDocument(CropHelper.Document.DocumentPaginator, Properties.Resources.ApplicationTitle));
         }
 
         /// <summary>

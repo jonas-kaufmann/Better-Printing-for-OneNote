@@ -9,8 +9,8 @@ namespace Better_Printing_for_OneNote.Models
 {
     class PageModel
     {
-        private const double SIGNATURE_HEIGHT = 0; // 15.96
-        private const double PAGENUMBER_HEIGHT = 0; // 15.96
+        private const double SIGNATURE_HEIGHT = 15.96; // 15.96
+        private const double PAGENUMBERS_HEIGHT = 15.96; // 15.96
 
         public PageContent Page { get; private set; } = new PageContent();
         private Border HeightBorder;
@@ -21,6 +21,10 @@ namespace Better_Printing_for_OneNote.Models
         private TranslateTransform ShiftTransform = new TranslateTransform(0, 0);
         private double DocumentHeight;
         private Thickness Padding;
+        private TextBlock SignatureTB;
+        private bool SignatureEnabled;
+        private TextBlock PageNumberTB;
+        private bool PageNumbersEnabled;
 
         private int _cropHeight;
         public int CropHeight
@@ -56,86 +60,6 @@ namespace Better_Printing_for_OneNote.Models
             }
         }
 
-        #region Signature
-
-        private TextBlock SignatureTB;
-
-        private string _signature;
-        public string Signature
-        {
-            get
-            {
-                return _signature;
-            }
-            set
-            {
-                if (_signature != value)
-                {
-                    _signature = value;
-                    SignatureTB.Text = value;
-                }
-            }
-        }
-
-        private bool _signatureEnabled;
-        public bool SignatureEnabled
-        {
-            get
-            {
-                return _signatureEnabled;
-            }
-            set
-            {
-                if (value != _signatureEnabled)
-                {
-                    SignatureTB.IsEnabled = value;
-                    _signatureEnabled = value;
-                }
-            }
-        }
-
-        #endregion
-
-        #region Page Numbers
-
-        private TextBlock PageNumberTB;
-
-        private string _pageNumber;
-        public string PageNumber
-        {
-            get
-            {
-                return _pageNumber;
-            }
-            set
-            {
-                if (_pageNumber != value)
-                {
-                    PageNumberTB.Text = value;
-                    _pageNumber = value;
-                }
-            }
-        }
-
-        private bool _pageNumberEnabled = false;
-        public bool PageNumbersEnabled
-        {
-            get
-            {
-                return _pageNumberEnabled;
-            }
-            set
-            {
-                if (value != _pageNumberEnabled)
-                {
-                    PageNumberTB.Visibility = value ? Visibility.Visible : Visibility.Hidden;
-                    _pageNumberEnabled = value;
-                }
-            }
-        }
-
-        #endregion
-
         /// <summary>
         /// Creates a new Page (access the Page over the "Page" property to add it to a FixedDocument e.g.)
         /// </summary>
@@ -145,7 +69,10 @@ namespace Better_Printing_for_OneNote.Models
         /// <param name="documentHeight">the height of the page</param>
         /// <param name="documentWidth">the width of the page</param>
         /// <param name="padding">the padding of the page</param>
-        public PageModel(WriteableBitmap image, double documentHeight, double documentWidth, double contentHeight, double contentWidth, Thickness padding)
+        /// <param name="pageNumbersEnabled">page numbers enabled</param>
+        /// <param name="signature">the signature</param>
+        /// <param name="signatureEnabled">signature enabled</param>
+        public PageModel(WriteableBitmap image, double documentHeight, double documentWidth, double contentHeight, double contentWidth, Thickness padding, bool pageNumbersEnabled, bool signatureEnabled, string signature)
         {
             FixedPage = new FixedPage() { Height = documentHeight, Width = documentWidth };
             DocumentHeight = documentHeight;
@@ -153,21 +80,25 @@ namespace Better_Printing_for_OneNote.Models
             Page.Child = FixedPage;
 
             Grid = new Grid() { Height = contentHeight, Width = contentWidth, Margin = padding };
-            Grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(SIGNATURE_HEIGHT) });
-            Grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Star) });
-            Grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(PAGENUMBER_HEIGHT) });
             FixedPage.Children.Add(Grid);
 
-            SignatureTB = new TextBlock() { HorizontalAlignment = HorizontalAlignment.Center };
-            Grid.Children.Add(SignatureTB);
+            // Signature
+            double extraContentPadding = 0;
+            SignatureEnabled = signatureEnabled;
+            if (SignatureEnabled)
+            {
+                SignatureTB = new TextBlock() { HorizontalAlignment = HorizontalAlignment.Center, Height = SIGNATURE_HEIGHT, Text = signature };
+                Grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(SIGNATURE_HEIGHT) });
+                Grid.Children.Add(SignatureTB);
+                Grid.SetRow(SignatureTB, Grid.Children.Count-1);
+                extraContentPadding += SIGNATURE_HEIGHT;
+            }
 
+            // Image
+            Grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Star) });
             var border = new Border() { VerticalAlignment = VerticalAlignment.Top };
             Grid.Children.Add(border);
-            Grid.SetRow(border, 1);
-
-            PageNumberTB = new TextBlock() { HorizontalAlignment = HorizontalAlignment.Right, Visibility = Visibility.Hidden };
-            Grid.Children.Add(PageNumberTB);
-            Grid.SetRow(PageNumberTB, 2);
+            Grid.SetRow(border, Grid.Children.Count-1);
 
             HeightBorder = new Border();
             Scaling = contentWidth / image.PixelWidth;
@@ -181,8 +112,40 @@ namespace Better_Printing_for_OneNote.Models
             imageControl.RenderTransform = ShiftTransform;
             constBorder.Child = imageControl;
 
-            MaxCropHeight = (int)Math.Round((image.PixelWidth * (contentHeight - SIGNATURE_HEIGHT - PAGENUMBER_HEIGHT)) / contentWidth);
+            // Page Numbers
+            PageNumbersEnabled = pageNumbersEnabled;
+            if (PageNumbersEnabled)
+            {
+                Grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(PAGENUMBERS_HEIGHT) });
+                PageNumberTB = new TextBlock() { HorizontalAlignment = HorizontalAlignment.Right };
+                Grid.Children.Add(PageNumberTB);
+                Grid.SetRow(PageNumberTB, Grid.Children.Count-1);
+                extraContentPadding += PAGENUMBERS_HEIGHT;
+            }
+
+            MaxCropHeight = (int)Math.Round((image.PixelWidth * (contentHeight - extraContentPadding)) / contentWidth);
+            PageNumbersEnabled = pageNumbersEnabled;
             CropHeight = MaxCropHeight;
+        }
+
+        /// <summary>
+        /// Sets the page number
+        /// </summary>
+        /// <param name="pageNumber">the page number text (e.g. 1/5)</param>
+        public void SetPageNumber(string pageNumber)
+        {
+            if (PageNumbersEnabled)
+                PageNumberTB.Text = pageNumber;
+        }
+
+        /// <summary>
+        /// Sets the signature
+        /// </summary>
+        /// <param name="signature">the signature</param>
+        public void SetSignature(string signature)
+        {
+            if (SignatureEnabled)
+                SignatureTB.Text = signature;
         }
 
         /// <summary>
@@ -192,7 +155,11 @@ namespace Better_Printing_for_OneNote.Models
         /// <returns>the height to split the image at</returns>
         public int CalculateSplitHeight(double splitAtPercentage)
         {
-            var splitHeight = (int)Math.Round((splitAtPercentage * DocumentHeight - SIGNATURE_HEIGHT - Padding.Top) / Scaling);
+            int splitHeight;
+            if(SignatureEnabled)
+                splitHeight = (int)Math.Round((splitAtPercentage * DocumentHeight - SIGNATURE_HEIGHT - Padding.Top) / Scaling);
+            else
+                splitHeight = (int)Math.Round((splitAtPercentage * DocumentHeight - Padding.Top) / Scaling);
             if (splitHeight > MaxCropHeight) return MaxCropHeight;
             else if (splitHeight < 0) return 0;
             else return splitHeight;

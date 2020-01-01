@@ -11,8 +11,8 @@
         Title="{x:Static resx:Resources.ApplicationTitle}" SizeToContent="WidthAndHeight" ResizeMode="NoResize"  WindowStartupLocation="CenterOwner">
     <Border Padding="10">
         <StackPanel>
-            <toolkit:BusyIndicator BorderThickness="0" Background="White" IsBusy="True" BusyContent="Konvertiere das Dokument..."/>
-            <Button Width="100" Margin="0 5 0 0" Click="CancelBtn_Click" BorderBrush="LightGray">Abbrechen</Button>
+            <toolkit:BusyIndicator Background="White" IsBusy="True" BusyContent="Konvertiere das Dokument..."/>
+            <Button Width="100" Margin="0 5 0 0" Click="CancelBtn_Click" BorderBrush="DarkGray">Abbrechen</Button>
         </StackPanel>
     </Border>
 </Window>

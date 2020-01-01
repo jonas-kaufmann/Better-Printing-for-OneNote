@@ -21,17 +21,24 @@
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="16" />
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="30" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="4" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <toolkit:WatermarkTextBox Text="{Binding FilePath}" Watermark="Datei" Width="400" IsReadOnly="True" Focusable="False"/>
+            <toolkit:WatermarkTextBox Text="{Binding FilePath}" Watermark="Datei" Width="700" IsReadOnly="True" Focusable="False"/>
             <Button Content="Durchsuchen" Command="{Binding SearchFileCommand}" Grid.Column="2" />
 
-            <toolkit:WatermarkTextBox Watermark="Drucker" Width="128" Grid.Column="4" Text="{Binding PrintDialog.PrintQueue.Name}" IsReadOnly="True" Focusable="False"/>
+            <toolkit:WatermarkTextBox Watermark="Drucker" Width="200" Grid.Column="4" Text="{Binding PrintDialog.PrintQueue.Name}" IsReadOnly="True" Focusable="False"/>
             <Button Content="Auswählen" Grid.Column="6" Command="{Binding ChoosePrinterCommand}"/>
 
             <Button Content="Drucken" Grid.Column="8" Command="{Binding PrintCommand}"/>
+
+            <CheckBox IsChecked="{Binding CropHelper.SignatureEnabled, Mode=TwoWay}" Grid.Column="10" VerticalAlignment="Center"/>
+            <toolkit:WatermarkTextBox Watermark="Signatur" Width="200" Grid.Column="12" Text="{Binding CropHelper.Signature, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
         </Grid>
 
-        <controls:InteractiveFixedDocumentViewer x:Name="MainIFDV" Margin="0 12 0 0" RenderPageNumbers="{Binding CropHelper.PageNumbersEnabled, Mode=OneWayToSource}" PageDeleteRequestedCommand="{Binding DeleteRequestHandler}" RedoRequestedCommand="{Binding RedoRequestHandler}" UndoRequestedCommand="{Binding UndoRequestHandler}" PageSplitRequestedCommand="{Binding SplitPageRequestHandler}" Document="{Binding CropHelper.Document}" Background="{StaticResource LightPrimary}" />
+        <controls:InteractiveFixedDocumentViewer x:Name="MainIFDV" Margin="0 12 0 0" RenderPageNumbers="{Binding CropHelper.PageNumbersEnabled, Mode=TwoWay}" PageDeleteRequestedCommand="{Binding DeleteRequestHandler}" RedoRequestedCommand="{Binding RedoRequestHandler}" UndoRequestedCommand="{Binding UndoRequestHandler}" PageSplitRequestedCommand="{Binding SplitPageRequestHandler}" Document="{Binding CropHelper.Document}" Background="{StaticResource LightPrimary}" />
     </DockPanel>
 </Window>
