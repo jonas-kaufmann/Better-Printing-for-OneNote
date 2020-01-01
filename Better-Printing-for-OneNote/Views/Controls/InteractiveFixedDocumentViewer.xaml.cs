@@ -67,7 +67,7 @@ namespace Better_Printing_for_OneNote.Views.Controls
         {
             if (sender is InteractiveFixedDocumentViewer ifdv && e.OldValue != e.NewValue)
             {
-                ifdv.MainDPVBorder.Visibility = (int)e.NewValue > 0 ? Visibility.Visible : Visibility.Collapsed; // prevent a black dot in the center of the control when document page view is empty
+                ifdv.PagesGrid.Visibility = (int)e.NewValue > 0 ? Visibility.Visible : Visibility.Hidden; // prevent a black dot in the center of the control when document page view is empty
 
                 ifdv.PageNumber = ifdv.CorrectPageNumber(ifdv.PageNumber); // make sure currently displayed page number is still within bounds
             }
