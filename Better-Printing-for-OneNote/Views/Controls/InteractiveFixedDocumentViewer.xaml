@@ -69,7 +69,7 @@
 
                 <controls:IntValueTextBox x:Name="PageNumberTb" PreviewKeyUp="PageNumberTb_PreviewKeyUp" Text="{Binding PageNumber, Converter={StaticResource Add1Converter}}" Width="36" HorizontalContentAlignment="Center" />
                 <TextBlock Text="{Binding PageCount, StringFormat=' / {0}'}" Foreground="White" Grid.Column="2"/>
-                <ToggleButton IsChecked="{Binding RenderPageNumbers}" x:Name="PageNumbersInDocBtn" Click="PageNumbersInDocBtn_Click" Content="Seitenzahlen" Grid.Column="4">
+                <ToggleButton IsChecked="{Binding RenderPageNumbers}" x:Name="PageNumbersInDocBtn" Content="Seitenzahlen" Grid.Column="4">
                 </ToggleButton>
             </Grid>
         </Border>

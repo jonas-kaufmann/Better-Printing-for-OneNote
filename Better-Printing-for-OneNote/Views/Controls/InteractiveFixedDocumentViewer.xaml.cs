@@ -280,9 +280,13 @@ namespace Better_Printing_for_OneNote.Views.Controls
             }
         }
 
-        // keyboard commands
+        // keyboard commands with ctrl
         public void OnApplication_PreviewKeyDown(object sender, KeyEventArgs e)
         {
+            // prevent blocking when typing into textbox
+            if (PageNumberTb.IsFocused)
+                return;
+
             e.Handled = true;
 
             if (Keyboard.IsKeyDown(Key.LeftCtrl))
@@ -317,11 +321,6 @@ namespace Better_Printing_for_OneNote.Views.Controls
                 bindingExpr.UpdateSource();
                 e.Handled = true;
             }
-        }
-
-        private void PageNumbersInDocBtn_Click(object sender, RoutedEventArgs e)
-        {
-
         }
     }
 }
