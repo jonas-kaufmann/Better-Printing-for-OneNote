@@ -11,7 +11,7 @@ namespace Better_Printing_for_OneNote
     {
         public MainWindow(string argFilePath)
         {
-            var viewModel = new MainWindowViewModel(argFilePath);
+            var viewModel = new MainWindowViewModel(argFilePath, this);
             DataContext = viewModel;
             viewModel.BringWindowToFrontEvent += new EventHandler(BringWindowToFront);
 

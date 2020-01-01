@@ -21,7 +21,7 @@ namespace Better_Printing_for_OneNote.AdditionalClasses
         /// Führt die übergebene Action im Application UI Thread aus
         /// </summary>
         /// <param name="call">Action</param>
-        private static void ExecuteInUiThread(Action call)
+        public static void ExecuteInUiThread(Action call)
         {
             Application.Current.Dispatcher.Invoke(call);
         }

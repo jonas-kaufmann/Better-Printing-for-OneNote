@@ -16,7 +16,16 @@ namespace Better_Printing_for_OneNote
 
         public App()
         {
-            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+            #region Logging
+
+#if DEBUG
+            DEBUG_MODE = true;
+#endif
+
+            if (!DEBUG_MODE)
+                AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+
+            #endregion
 
             // initialize Resources
             var localFolderPath = $"{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Better_Printing_for_OneNote.Properties.Resources.LocalFolderTitle)}\\";
@@ -24,9 +33,6 @@ namespace Better_Printing_for_OneNote
 
             #region Logging
 
-#if DEBUG
-            DEBUG_MODE = true;
-#endif
             if (!DEBUG_MODE)
             {
                 try

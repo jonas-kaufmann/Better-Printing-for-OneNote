@@ -14,62 +14,56 @@ namespace Better_Printing_for_OneNote
 {
     class Conversion
     {
-        private const int DPI = 300; // 300
+        private const int DPI = 600; // 300
         private const int ROWS_TO_CHECK = 30; // 30
         private const int MAX_WRONG_PIXELS = 150; // 50
         private const double SECTION_TO_CHECK = 0.15;
 
         /// <summary>
-        /// Converts a Postscript document with (multiple) pages to one Bitmap (removes the created files after conversion)
+        /// Converts a Postscript document with (multiple) pages to one Bitmap (removes the created files after conversion) (throws ConversionFailedException if something went wrong)
         /// </summary>
         /// <param name="filePath">Path to the Ps file</param>
-        /// <param name="localFolder">Path to the local folder for MessageBox</param>
         /// <param name="tempFolder">Path to the temp folder (or another folder to store temporary files in)</param>
-        /// <returns>the bitmap and Error=true in case of an exception</returns>
-        public static ConversionOutput ConvertPsToOneImage(string filePath, string localFolder, string tempFolder)
+        /// <param name="ct">the cancellation token</param>
+        /// <returns>the bitmap</returns>
+        public static WriteableBitmap ConvertPsToOneImage(string filePath, string tempFolder, CancellationToken ct)
         {
             if (File.Exists(filePath))
             {
-                var paths = PsToBmp(filePath, localFolder, tempFolder);
-                if (paths != null)
+                var paths = PsToBmp(filePath, tempFolder);
+                ct.ThrowIfCancellationRequested();
+                var bitmap = CombineImages(paths, ct);
+                // run Task to clear the files
+                Task.Run(() =>
                 {
-                    var bitmap = CombineImages(paths);
-                    // run Task to clear the files
-                    Task.Run(() =>
+                    while (paths.Count > 0)
                     {
-                        while (paths.Count > 0)
+                        try
                         {
-                            try
-                            {
-                                File.Delete(paths[0]);
-                                paths.RemoveAt(0);
-                            }
-                            catch (Exception e)
-                            {
-                                Trace.WriteLine($"Could not delete the file {paths[0]}. Trying again. Exception:\n{e.ToString()}");
-                                Thread.Sleep(500);
-                            }
+                            File.Delete(paths[0]);
+                            paths.RemoveAt(0);
                         }
-                    });
+                        catch (Exception e)
+                        {
+                            Trace.WriteLine($"Could not delete the file {paths[0]}. Trying again. Exception:\n{e.ToString()}");
+                            Thread.Sleep(500);
+                        }
+                    }
+                });
 
-                    return new ConversionOutput() { Bitmap = bitmap };
-                }
+                return bitmap;
             }
             else
-            {
-                MessageBox.Show($"Die zu öffnende Postscript Datei ({filePath}) existiert nicht.");
-            }
-            return new ConversionOutput { Error = true };
+                throw new ConversionFailedException($"Die zu öffnende Postscript Datei ({filePath}) existiert nicht.");
         }
 
         /// <summary>
-        /// Converts a Postscript file to multiple Bitmap files and stores them in the Temp Directory (if ghostscript is not installed the program exits with error messages)
+        /// Converts a Postscript file to multiple Bitmap files and stores them in the Temp Directory (throws ConversionFailedException if something went wrong)
         /// </summary>
         /// <param name="filePath">Path to the Ps file</param>
-        /// <param name="localFolder">Path to the local folder for MessageBox</param>
         /// <param name="tempFolderPath">Path to the temp folder (or another folder to store temporary files in)</param>
-        /// <returns>Paths to the converted files or null if the ps file is corrupted</returns>
-        private static List<string> PsToBmp(string filePath, string localFolder, string tempFolderPath)
+        /// <returns>Paths to the converted files</returns>
+        private static List<string> PsToBmp(string filePath, string tempFolderPath)
         {
             if (GhostscriptVersionInfo.IsGhostscriptInstalled)
             {
@@ -99,9 +93,8 @@ namespace Better_Printing_for_OneNote
 
                         if (paths.Count < 1)
                         {
-                            MessageBox.Show($"Es kam zu einem Fehler bei der Konvertierung der PostScript Datei. Bitte mit anderer PostScript Datei erneut versuchen.");
                             Trace.WriteLine($"\nPsToBmp conversion failed. Probably because there is no page in the document or the document is corrupted.");
-                            return null;
+                            throw new ConversionFailedException($"Es kam zu einem Fehler bei der Konvertierung der PostScript Datei. Bitte mit anderer PostScript Datei erneut versuchen.");
                         }
 
                         return paths;
@@ -109,17 +102,20 @@ namespace Better_Printing_for_OneNote
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Es kam zu einem Fehler bei der Konvertierung der PostScript Datei. Bitte mit anderer PostScript Datei erneut versuchen.\n\nMehr Informationen sind in den Log-Dateien in { localFolder } hinterlegt.");
-                    Trace.WriteLine($"\nPsToBmp conversion failed:\n {ex.ToString()}");
+                    if (ex is ConversionFailedException)
+                        throw ex;
+                    else
+                    {
+                        Trace.WriteLine($"\nPsToBmp conversion failed:\n {ex.ToString()}");
+                        throw new ConversionFailedException($"Es kam zu einem Fehler bei der Konvertierung der PostScript Datei. Bitte mit anderer PostScript Datei erneut versuchen.\n\nMehr Informationen sind in den Log-Dateien hinterlegt.");
+                    }
                 }
             }
             else
             {
-                MessageBox.Show("Bitte installieren Sie Ghostscript. (Es wird die 64-bit Version benötigt)");
                 Trace.WriteLine("\nApplication Shutdown: Ghostscript is not installed (64-bit needed)");
-                Application.Current.Shutdown();
+                throw new ConversionFailedException("Bitte installieren Sie Ghostscript. (Es wird die 64 - bit Version benötigt)");
             }
-            return null;
         }
 
         /// <summary>
@@ -127,7 +123,7 @@ namespace Better_Printing_for_OneNote
         /// </summary>
         /// <param name="imagePaths">the paths to the images</param>
         /// <returns>the final combined bitmap</returns>
-        private static WriteableBitmap CombineImages(List<string> imagePaths)
+        private static WriteableBitmap CombineImages(List<string> imagePaths, CancellationToken ct)
         {
             var previousImage = LoadBitmapIntoArray(imagePaths[0]); // first image
             var stride = previousImage.Stride;
@@ -135,6 +131,8 @@ namespace Better_Printing_for_OneNote
             var width = previousImage.Width;
             var format = previousImage.Format;
             var palette = previousImage.Palette;
+
+            ct.ThrowIfCancellationRequested();
 
             // find first not white row in the first image
             int topOffset1 = 0;
@@ -147,6 +145,8 @@ namespace Better_Printing_for_OneNote
                 Trace.WriteLine($"\nCombining the images failed because \"{imagePaths[0]}\" has no not white row. Using the full image. Exception:\n {e.ToString()}");
             }
 
+            ct.ThrowIfCancellationRequested();
+
             byte[] finalImageArray;
             if (imagePaths.Count > 1)
             {
@@ -155,6 +155,8 @@ namespace Better_Printing_for_OneNote
                 for (int i = 1; i < imagePaths.Count; i++)
                 {
                     var image = LoadBitmapIntoArray(imagePaths[i]);
+
+                    ct.ThrowIfCancellationRequested();
 
                     // find offset to the first not white row in the image
                     var topOffset2 = 0;
@@ -167,6 +169,8 @@ namespace Better_Printing_for_OneNote
                         Trace.WriteLine($"\nCombining the images failed because \"{imagePaths[i]}\" has no not white row. Using the full image. Exception:\n {e.ToString()}");
                     }
 
+                    ct.ThrowIfCancellationRequested();
+
                     // build the rowsequence after the first not white row (inclusive)
                     var rowSequence = new List<byte[]>();
                     for (int c = 0; c < ROWS_TO_CHECK; c++)
@@ -176,6 +180,8 @@ namespace Better_Printing_for_OneNote
                             row[j] = image.Pixels[topOffset2 + j + c * stride];
                         rowSequence.Add(row);
                     }
+
+                    ct.ThrowIfCancellationRequested();
 
                     // find equal row
                     var bottomOffset1 = 0;
@@ -193,9 +199,11 @@ namespace Better_Printing_for_OneNote
                         }
                         catch (RowNotFoundException ex)
                         {
-                            Trace.WriteLine($"\nCombining the images failed because \"{imagePaths[i-1]}\" has no not white row. Using the full image. Exception:\n {ex.ToString()}");
+                            Trace.WriteLine($"\nCombining the images failed because \"{imagePaths[i - 1]}\" has no not white row. Using the full image. Exception:\n {ex.ToString()}");
                         }
                     }
+
+                    ct.ThrowIfCancellationRequested();
 
                     // copy pixels from the previous to the final image
                     for (int j = topOffset1; j < bottomOffset1; j++)
@@ -217,6 +225,8 @@ namespace Better_Printing_for_OneNote
                             Trace.WriteLine($"\nCombining the images failed because \"{imagePaths[i]}\" has no not white row. Using the full image. Exception:\n {ex.ToString()}");
                         }
 
+                        ct.ThrowIfCancellationRequested();
+
                         for (int j = topOffset2; j < bottomOffset; j++)
                             finalImageList.Add(image.Pixels[j]);
                     }
@@ -237,11 +247,15 @@ namespace Better_Printing_for_OneNote
                     Trace.WriteLine($"\nCombining the images failed because \"{imagePaths[0]}\" has no not white row. Using the full image. Exception:\n {ex.ToString()}");
                 }
 
+                ct.ThrowIfCancellationRequested();
+
                 finalImageArray = new byte[bottomOffset - topOffset1];
                 for (int j = 0; j < bottomOffset - topOffset1; j++)
                     finalImageArray[j] = previousImage.Pixels[j + topOffset1];
             }
             previousImage = null;
+
+            ct.ThrowIfCancellationRequested();
 
             // rewrite bytes to Bitmap
             var heightFinal = finalImageArray.Length / stride;
@@ -416,9 +430,8 @@ namespace Better_Printing_for_OneNote
         }
     }
 
-    class ConversionOutput
+    class ConversionFailedException : Exception
     {
-        public WriteableBitmap Bitmap;
-        public bool Error = false;
+        public ConversionFailedException(string message) : base(message) { }
     }
 }

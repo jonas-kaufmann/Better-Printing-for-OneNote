@@ -9,10 +9,6 @@
         mc:Ignorable="d"
         Title="{x:Static resx:Resources.ApplicationTitle}" MinHeight="450" MinWidth="800">
 
-    <Window.TaskbarItemInfo>
-        <TaskbarItemInfo ProgressState="{Binding WindowProgressState}"/>
-    </Window.TaskbarItemInfo>
-
     <DockPanel>
         <Grid DockPanel.Dock="Top" Margin="12 12 12 0">
             <Grid.ColumnDefinitions>
@@ -27,13 +23,13 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <toolkit:WatermarkTextBox Text="{Binding FilePath}" Watermark="Datei" Width="400" />
+            <toolkit:WatermarkTextBox Text="{Binding FilePath}" Watermark="Datei" Width="400" IsReadOnly="True" Focusable="False"/>
             <Button Content="Durchsuchen" Command="{Binding SearchFileCommand}" Grid.Column="2" />
 
-            <toolkit:WatermarkTextBox Name="PrinterTb" Watermark="Drucker" Width="128" Grid.Column="4" />
-            <Button x:Name="ChoosePrinterBtn" Content="Auswählen" Grid.Column="6" />
+            <toolkit:WatermarkTextBox Watermark="Drucker" Width="128" Grid.Column="4" Text="{Binding PrintDialog.PrintQueue.Name}" IsReadOnly="True" Focusable="False"/>
+            <Button Content="Auswählen" Grid.Column="6" Command="{Binding ChoosePrinterCommand}"/>
 
-            <Button x:Name="PrintBtn" Content="Drucken" Grid.Column="8" />
+            <Button Content="Drucken" Grid.Column="8" Command="{Binding PrintCommand}"/>
         </Grid>
 
         <controls:InteractiveFixedDocumentViewer x:Name="MainIFDV" Margin="0 12 0 0" RenderPageNumbers="{Binding CropHelper.PageNumbersEnabled, Mode=OneWayToSource}" PageDeleteRequestedCommand="{Binding DeleteRequestHandler}" RedoRequestedCommand="{Binding RedoRequestHandler}" UndoRequestedCommand="{Binding UndoRequestHandler}" PageSplitRequestedCommand="{Binding SplitPageRequestHandler}" Document="{Binding CropHelper.Document}" Background="{StaticResource LightPrimary}" />

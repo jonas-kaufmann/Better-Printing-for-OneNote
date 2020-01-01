@@ -1,14 +1,8 @@
 ﻿using Better_Printing_for_OneNote.AdditionalClasses;
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Text;
 using System.Windows;
 using System.Windows.Documents;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 namespace Better_Printing_for_OneNote.Models
@@ -26,6 +20,46 @@ namespace Better_Printing_for_OneNote.Models
             {
                 _document = value;
                 OnPropertyChanged("Document");
+            }
+        }
+
+        private List<Crop> _currentCropHeights;
+        private List<Crop> CurrentCropHeights
+        {
+            get
+            {
+                return _currentCropHeights;
+            }
+            set
+            {
+                if (value != null)
+                {
+                    _currentCropHeights = value;
+                    UpdatePages();
+                }
+                else
+                {
+                    Pages.Clear();
+                    RedoChangeList.Clear();
+                    UndoChangeList.Clear();
+                    _currentCropHeights = new List<Crop>();
+                    var positionY = 0;
+                    while (positionY < Height)
+                    {
+                        var page = CreateNewPage();
+                        page.CropShift = positionY;
+                        positionY += page.CropHeight;
+                        _currentCropHeights.Add(new Crop() { Value = page.CropHeight });
+                        Pages.Add(page);
+                        MaxCropHeight = page.MaxCropHeight;
+                    }
+
+                    // set the document
+                    var document = new FixedDocument();
+                    foreach (var page in Pages)
+                        document.Pages.Add(page.Page);
+                    Document = document;
+                }
             }
         }
 
@@ -94,49 +128,17 @@ namespace Better_Printing_for_OneNote.Models
 
         #endregion
 
-        private List<Crop> _currentCropHeights;
-        private List<Crop> CurrentCropHeights
-        {
-            get
-            {
-                return _currentCropHeights;
-            }
-            set
-            {
-                if (value != null)
-                {
-                    _currentCropHeights = value;
-                    UpdatePages();
-                }
-                else
-                {
-                    _currentCropHeights = new List<Crop>();
-                    var positionY = 0;
-                    while (positionY < Height)
-                    {
-                        var page = CreateNewPage();
-                        page.CropShift = positionY;
-                        positionY += page.CropHeight;
-                        _currentCropHeights.Add(new Crop() { Value = page.CropHeight });
-                        Pages.Add(page);
-                        MaxCropHeight = page.MaxCropHeight;
-                    }
-
-                    // set the document
-                    var document = new FixedDocument();
-                    foreach (var page in Pages)
-                        document.Pages.Add(page.Page);
-                    Document = document;
-                }
-            }
-        }
-
         private ObservableCollection<PageModel> Pages = new ObservableCollection<PageModel>();
         private List<List<Crop>> UndoChangeList = new List<List<Crop>>();
         private List<List<Crop>> RedoChangeList = new List<List<Crop>>();
         private int Height;
         private WriteableBitmap Image;
         private int MaxCropHeight;
+        private double DocumentHeight;
+        private double DocumentWidth;
+        private double ContentHeight;
+        private double ContentWidth;
+        private Thickness Padding;
 
         /// <summary>
         /// Initializes the first crops
@@ -149,18 +151,21 @@ namespace Better_Printing_for_OneNote.Models
 
             // register CollectionChanged EventHandler to update Sitenumbers
             Pages.CollectionChanged += (sender, e) => UpdatePageNumbers();
+        }
 
+        public void InitializePages()
+        {
             // set first crops (they are initialized in the property)
             CurrentCropHeights = null;
         }
-        
+
         /// <summary>
         /// Creates new PageModel and copies all needed values (Signature, PageNumbers)
         /// </summary>
         /// <returns>the page</returns>
         private PageModel CreateNewPage()
         {
-            var page = new PageModel(Image);
+            var page = new PageModel(Image, DocumentHeight, DocumentWidth, ContentHeight, ContentWidth, Padding);
             page.SignatureEnabled = SignatureEnabled;
             page.Signature = Signature;
             page.PageNumbersEnabled = PageNumbersEnabled;
@@ -325,6 +330,27 @@ namespace Better_Printing_for_OneNote.Models
             var pageCount = Pages.Count;
             for (int i = 0; i < pageCount; i++)
                 Pages[i].PageNumber = $"{i + 1}/{pageCount}";
+        }
+
+        /// <summary>
+        /// Updates the format of all pages
+        /// </summary>
+        /// <param name="documentHeight">the height of the whole page</param>
+        /// <param name="documentWidth">the width of the whole page</param>
+        /// <param name="contentHeight">the height of the content on the page (without the printers padding)</param>
+        /// <param name="contentWidth">the width of the content on the page (without the printers padding)</param>
+        /// <param name="padding">the printers padding</param>
+        public void UpdateFormat(double documentHeight, double documentWidth, double contentHeight, double contentWidth, Thickness padding)
+        {
+            if(DocumentHeight != documentHeight || DocumentWidth != documentWidth || contentHeight != ContentHeight || contentWidth != ContentWidth || Padding != padding)
+            {
+                DocumentHeight = documentHeight;
+                DocumentWidth = documentWidth;
+                ContentHeight = contentHeight;
+                ContentWidth = contentWidth;
+                Padding = padding;
+                CurrentCropHeights = null;
+            }
         }
     }
 

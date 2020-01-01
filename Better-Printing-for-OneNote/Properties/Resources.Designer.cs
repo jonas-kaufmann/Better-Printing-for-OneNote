@@ -61,7 +61,7 @@ namespace Better_Printing_for_OneNote.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Better Printing Dialog.
+        ///   Looks up a localized string similar to Better Printing.
         /// </summary>
         public static string ApplicationTitle {
             get {

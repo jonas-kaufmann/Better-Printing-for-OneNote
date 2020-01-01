@@ -9,19 +9,18 @@ namespace Better_Printing_for_OneNote.Models
 {
     class PageModel
     {
-        private const double DINA4_HEIGHT = 1122.519685;
-        private const double DINA4_WIDTH = 793.7007874;
-        private const double SIGNATURE_HEIGHT = 15.96;
-        private const double PAGENUMBER_HEIGHT = 15.96;
-
-        private const double DOCUMENT_HEIGHT = DINA4_HEIGHT;
-        private const double DOCUMENT_WIDTH = DINA4_WIDTH;
+        private const double SIGNATURE_HEIGHT = 0; // 15.96
+        private const double PAGENUMBER_HEIGHT = 0; // 15.96
 
         public PageContent Page { get; private set; } = new PageContent();
         private Border HeightBorder;
-
+        private FixedPage FixedPage;
+        private Grid Grid;
         public int MaxCropHeight { get; private set; }
         private double Scaling;
+        private TranslateTransform ShiftTransform = new TranslateTransform(0, 0);
+        private double DocumentHeight;
+        private Thickness Padding;
 
         private int _cropHeight;
         public int CropHeight
@@ -40,7 +39,6 @@ namespace Better_Printing_for_OneNote.Models
             }
         }
 
-        private TranslateTransform ShiftTransform = new TranslateTransform(0, 0);
         private int _cropShift = 0;
         public int CropShift
         {
@@ -142,30 +140,37 @@ namespace Better_Printing_for_OneNote.Models
         /// Creates a new Page (access the Page over the "Page" property to add it to a FixedDocument e.g.)
         /// </summary>
         /// <param name="image">the content image</param>
-        public PageModel(WriteableBitmap image)
+        /// <param name="contentHeight">the height of the content of the page (document height - padding)</param>
+        /// <param name="contentWidth">the width of the content of the page (document width - padding)</param>
+        /// <param name="documentHeight">the height of the page</param>
+        /// <param name="documentWidth">the width of the page</param>
+        /// <param name="padding">the padding of the page</param>
+        public PageModel(WriteableBitmap image, double documentHeight, double documentWidth, double contentHeight, double contentWidth, Thickness padding)
         {
-            var fixedPage = new FixedPage() { Width = DOCUMENT_WIDTH, Height = DOCUMENT_HEIGHT };
-            Page.Child = fixedPage;
+            FixedPage = new FixedPage() { Height = documentHeight, Width = documentWidth };
+            DocumentHeight = documentHeight;
+            Padding = padding;
+            Page.Child = FixedPage;
 
-            var grid = new Grid() {Width = DOCUMENT_WIDTH, Height = DOCUMENT_HEIGHT };
-            grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(SIGNATURE_HEIGHT) });
-            grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Star) });
-            grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(PAGENUMBER_HEIGHT) });
-            fixedPage.Children.Add(grid);
+            Grid = new Grid() { Height = contentHeight, Width = contentWidth, Margin = padding };
+            Grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(SIGNATURE_HEIGHT) });
+            Grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Star) });
+            Grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(PAGENUMBER_HEIGHT) });
+            FixedPage.Children.Add(Grid);
 
             SignatureTB = new TextBlock() { HorizontalAlignment = HorizontalAlignment.Center };
-            grid.Children.Add(SignatureTB);
+            Grid.Children.Add(SignatureTB);
 
             var border = new Border() { VerticalAlignment = VerticalAlignment.Top };
-            grid.Children.Add(border);
+            Grid.Children.Add(border);
             Grid.SetRow(border, 1);
 
             PageNumberTB = new TextBlock() { HorizontalAlignment = HorizontalAlignment.Right, Visibility = Visibility.Hidden };
-            grid.Children.Add(PageNumberTB);
+            Grid.Children.Add(PageNumberTB);
             Grid.SetRow(PageNumberTB, 2);
 
             HeightBorder = new Border();
-            Scaling = DOCUMENT_WIDTH / image.PixelWidth;
+            Scaling = contentWidth / image.PixelWidth;
             HeightBorder.LayoutTransform = new ScaleTransform(Scaling, Scaling);
             border.Child = HeightBorder;
 
@@ -176,7 +181,7 @@ namespace Better_Printing_for_OneNote.Models
             imageControl.RenderTransform = ShiftTransform;
             constBorder.Child = imageControl;
 
-            MaxCropHeight = (int)Math.Round((image.PixelWidth * (DOCUMENT_HEIGHT - SIGNATURE_HEIGHT - PAGENUMBER_HEIGHT)) / DOCUMENT_WIDTH);
+            MaxCropHeight = (int)Math.Round((image.PixelWidth * (contentHeight - SIGNATURE_HEIGHT - PAGENUMBER_HEIGHT)) / contentWidth);
             CropHeight = MaxCropHeight;
         }
 
@@ -187,10 +192,10 @@ namespace Better_Printing_for_OneNote.Models
         /// <returns>the height to split the image at</returns>
         public int CalculateSplitHeight(double splitAtPercentage)
         {
-            var splitHeight = (int)Math.Round((splitAtPercentage * DOCUMENT_HEIGHT - SIGNATURE_HEIGHT) / Scaling);
+            var splitHeight = (int)Math.Round((splitAtPercentage * DocumentHeight - SIGNATURE_HEIGHT - Padding.Top) / Scaling);
             if (splitHeight > MaxCropHeight) return MaxCropHeight;
             else if (splitHeight < 0) return 0;
-            else return (int)Math.Round((splitAtPercentage * DOCUMENT_HEIGHT - SIGNATURE_HEIGHT) / Scaling);
+            else return splitHeight;
         }
     }
 }
