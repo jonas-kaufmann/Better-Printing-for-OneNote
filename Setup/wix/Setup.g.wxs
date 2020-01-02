@@ -6,134 +6,142 @@
 </auto-generated>
 -->
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <Product Id="1db76552-1eee-41db-8628-68b26106d5b8" Name="BetterPrinting" Language="1033" Codepage="Windows-1252" Version="1.0.0" UpgradeCode="31577167-f5b1-4c08-a8e3-a896f11abb62" Manufacturer="jokau">
+  <Product Id="1db76552-1eee-41db-8628-68b26106d5b8" Name="Better-Printing-for-OneNote" Language="1033" Codepage="Windows-1252" Version="1.0.0" UpgradeCode="5aced91c-d226-483e-9865-f32d73b29eb2" Manufacturer="jokau">
     <Package InstallerVersion="200" Compressed="yes" Platform="x64" SummaryCodepage="Windows-1252" Languages="1033" />
-    <Media Id="1" Cabinet="BetterPrinting.cab" EmbedCab="yes" />
+    <Media Id="1" Cabinet="Better_Printing_for_OneNote.cab" EmbedCab="yes" />
 
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="ProgramFiles64Folder" Name="ProgramFiles64Folder">
-        <Directory Id="INSTALLDIR" Name="BetterPrinting">
+        <Directory Id="INSTALLDIR" Name="Better-Printing-for-OneNote">
 
-          <Component Id="Component.Better_Printing_for_OneNote.deps.json_3062066737" Guid="1db76552-1eee-41db-8628-68b2d563a8f2" Win64="yes">
-            <File Id="Better_Printing_for_OneNote.deps.json_3062066737" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\Better-Printing-for-OneNote.deps.json" />
+          <Component Id="Component.Better_Printing_for_OneNote_laptop_jonas_ubuntu.dll_1660069830" Guid="1db76552-1eee-41db-8628-68b27ebb2d9f" Win64="yes">
+            <File Id="Better_Printing_for_OneNote_laptop_jonas_ubuntu.dll_1660069830" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\Better-Printing-for-OneNote-laptop-jonas-ubuntu.dll" />
           </Component>
 
-          <Component Id="Component.Better_Printing_for_OneNote.dll_1599008865" Guid="1db76552-1eee-41db-8628-68b202adca9d" Win64="yes">
-            <File Id="Better_Printing_for_OneNote.dll_1599008865" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\Better-Printing-for-OneNote.dll" />
+          <Component Id="Component.Better_Printing_for_OneNote_laptop_jonas_ubuntu.pdb_151358392" Guid="1db76552-1eee-41db-8628-68b2c6f29b5d" Win64="yes">
+            <File Id="Better_Printing_for_OneNote_laptop_jonas_ubuntu.pdb_151358392" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\Better-Printing-for-OneNote-laptop-jonas-ubuntu.pdb" />
           </Component>
 
-          <Component Id="Component.Better_Printing_for_OneNote.exe_3853805477" Guid="1db76552-1eee-41db-8628-68b20e2458b3" Win64="yes">
-            <File Id="Better_Printing_for_OneNote.exe_3853805477" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\Better-Printing-for-OneNote.exe" />
+          <Component Id="Component.Better_Printing_for_OneNote.deps.json_1968211397" Guid="1db76552-1eee-41db-8628-68b27ee00e91" Win64="yes">
+            <File Id="Better_Printing_for_OneNote.deps.json_1968211397" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\Better-Printing-for-OneNote.deps.json" />
           </Component>
 
-          <Component Id="Component.Better_Printing_for_OneNote.pdb_3920448393" Guid="1db76552-1eee-41db-8628-68b2d5266598" Win64="yes">
-            <File Id="Better_Printing_for_OneNote.pdb_3920448393" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\Better-Printing-for-OneNote.pdb" />
+          <Component Id="Component.Better_Printing_for_OneNote.dll_1856194140" Guid="1db76552-1eee-41db-8628-68b2cd724c8f" Win64="yes">
+            <File Id="Better_Printing_for_OneNote.dll_1856194140" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\Better-Printing-for-OneNote.dll" />
           </Component>
 
-          <Component Id="Component.Better_Printing_for_OneNote.runtimeconfig.json_1968282545" Guid="1db76552-1eee-41db-8628-68b211666030" Win64="yes">
-            <File Id="Better_Printing_for_OneNote.runtimeconfig.json_1968282545" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\Better-Printing-for-OneNote.runtimeconfig.json" />
+          <Component Id="Component.Better_Printing_for_OneNote.exe_4113480430" Guid="1db76552-1eee-41db-8628-68b28bece42f" Win64="yes">
+            <File Id="Better_Printing_for_OneNote.exe_4113480430" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\Better-Printing-for-OneNote.exe" />
           </Component>
 
-          <Component Id="Component.Ghostscript.NET.dll_2012121273" Guid="1db76552-1eee-41db-8628-68b240b124b9" Win64="yes">
-            <File Id="Ghostscript.NET.dll_2012121273" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\Ghostscript.NET.dll" />
+          <Component Id="Component.Better_Printing_for_OneNote.pdb_1583753778" Guid="1db76552-1eee-41db-8628-68b24d063122" Win64="yes">
+            <File Id="Better_Printing_for_OneNote.pdb_1583753778" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\Better-Printing-for-OneNote.pdb" />
           </Component>
 
-          <Component Id="Component.Xceed.Wpf.AvalonDock.dll_1479173972" Guid="1db76552-1eee-41db-8628-68b2be34985d" Win64="yes">
-            <File Id="Xceed.Wpf.AvalonDock.dll_1479173972" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\Xceed.Wpf.AvalonDock.dll" />
+          <Component Id="Component.Better_Printing_for_OneNote.runtimeconfig.json_1350770421" Guid="1db76552-1eee-41db-8628-68b2dede0a06" Win64="yes">
+            <File Id="Better_Printing_for_OneNote.runtimeconfig.json_1350770421" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\Better-Printing-for-OneNote.runtimeconfig.json" />
           </Component>
 
-          <Component Id="Component.Xceed.Wpf.AvalonDock.Themes.Aero.dll_2115961086" Guid="1db76552-1eee-41db-8628-68b221040489" Win64="yes">
-            <File Id="Xceed.Wpf.AvalonDock.Themes.Aero.dll_2115961086" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\Xceed.Wpf.AvalonDock.Themes.Aero.dll" />
+          <Component Id="Component.Ghostscript.NET.dll_1664096312" Guid="1db76552-1eee-41db-8628-68b260539106" Win64="yes">
+            <File Id="Ghostscript.NET.dll_1664096312" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\Ghostscript.NET.dll" />
           </Component>
 
-          <Component Id="Component.Xceed.Wpf.AvalonDock.Themes.Metro.dll_1081971541" Guid="1db76552-1eee-41db-8628-68b243a54a7a" Win64="yes">
-            <File Id="Xceed.Wpf.AvalonDock.Themes.Metro.dll_1081971541" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\Xceed.Wpf.AvalonDock.Themes.Metro.dll" />
+          <Component Id="Component.Xceed.Wpf.AvalonDock.dll_4225476554" Guid="1db76552-1eee-41db-8628-68b24bb051e9" Win64="yes">
+            <File Id="Xceed.Wpf.AvalonDock.dll_4225476554" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\Xceed.Wpf.AvalonDock.dll" />
           </Component>
 
-          <Component Id="Component.Xceed.Wpf.AvalonDock.Themes.VS2010.dll_598702932" Guid="1db76552-1eee-41db-8628-68b24dc6ee1c" Win64="yes">
-            <File Id="Xceed.Wpf.AvalonDock.Themes.VS2010.dll_598702932" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\Xceed.Wpf.AvalonDock.Themes.VS2010.dll" />
+          <Component Id="Component.Xceed.Wpf.AvalonDock.Themes.Aero.dll_3055478964" Guid="1db76552-1eee-41db-8628-68b27cf62a5c" Win64="yes">
+            <File Id="Xceed.Wpf.AvalonDock.Themes.Aero.dll_3055478964" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\Xceed.Wpf.AvalonDock.Themes.Aero.dll" />
           </Component>
 
-          <Component Id="Component.Xceed.Wpf.Toolkit.dll_3225636869" Guid="1db76552-1eee-41db-8628-68b290eadd01" Win64="yes">
-            <File Id="Xceed.Wpf.Toolkit.dll_3225636869" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\Xceed.Wpf.Toolkit.dll" />
+          <Component Id="Component.Xceed.Wpf.AvalonDock.Themes.Metro.dll_2009794942" Guid="1db76552-1eee-41db-8628-68b27c0b54b8" Win64="yes">
+            <File Id="Xceed.Wpf.AvalonDock.Themes.Metro.dll_2009794942" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\Xceed.Wpf.AvalonDock.Themes.Metro.dll" />
+          </Component>
+
+          <Component Id="Component.Xceed.Wpf.AvalonDock.Themes.VS2010.dll_1797489179" Guid="1db76552-1eee-41db-8628-68b2e2ceb4cf" Win64="yes">
+            <File Id="Xceed.Wpf.AvalonDock.Themes.VS2010.dll_1797489179" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\Xceed.Wpf.AvalonDock.Themes.VS2010.dll" />
+          </Component>
+
+          <Component Id="Component.Xceed.Wpf.Toolkit.dll_4212801940" Guid="1db76552-1eee-41db-8628-68b25bf35b74" Win64="yes">
+            <File Id="Xceed.Wpf.Toolkit.dll_4212801940" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\Xceed.Wpf.Toolkit.dll" />
           </Component>
 
           <Directory Id="INSTALLDIR.de" Name="de">
 
-            <Component Id="Component.Xceed.Wpf.AvalonDock.resources.dll_1295597519" Guid="1db76552-1eee-41db-8628-68b2e5090d56" Win64="yes">
-              <File Id="Xceed.Wpf.AvalonDock.resources.dll_1295597519" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\de\Xceed.Wpf.AvalonDock.resources.dll" />
+            <Component Id="Component.Xceed.Wpf.AvalonDock.resources.dll_287867237" Guid="1db76552-1eee-41db-8628-68b203ecdd60" Win64="yes">
+              <File Id="Xceed.Wpf.AvalonDock.resources.dll_287867237" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\de\Xceed.Wpf.AvalonDock.resources.dll" />
             </Component>
 
           </Directory>
 
           <Directory Id="INSTALLDIR.es" Name="es">
 
-            <Component Id="Component.Xceed.Wpf.AvalonDock.resources.dll_1687880626" Guid="1db76552-1eee-41db-8628-68b2d8a91067" Win64="yes">
-              <File Id="Xceed.Wpf.AvalonDock.resources.dll_1687880626" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\es\Xceed.Wpf.AvalonDock.resources.dll" />
+            <Component Id="Component.Xceed.Wpf.AvalonDock.resources.dll_2058652123" Guid="1db76552-1eee-41db-8628-68b209884265" Win64="yes">
+              <File Id="Xceed.Wpf.AvalonDock.resources.dll_2058652123" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\es\Xceed.Wpf.AvalonDock.resources.dll" />
             </Component>
 
           </Directory>
 
           <Directory Id="INSTALLDIR.fr" Name="fr">
 
-            <Component Id="Component.Xceed.Wpf.AvalonDock.resources.dll_3031869443" Guid="1db76552-1eee-41db-8628-68b226bcac72" Win64="yes">
-              <File Id="Xceed.Wpf.AvalonDock.resources.dll_3031869443" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\fr\Xceed.Wpf.AvalonDock.resources.dll" />
+            <Component Id="Component.Xceed.Wpf.AvalonDock.resources.dll_4102457838" Guid="1db76552-1eee-41db-8628-68b299e3a304" Win64="yes">
+              <File Id="Xceed.Wpf.AvalonDock.resources.dll_4102457838" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\fr\Xceed.Wpf.AvalonDock.resources.dll" />
             </Component>
 
           </Directory>
 
           <Directory Id="INSTALLDIR.hu" Name="hu">
 
-            <Component Id="Component.Xceed.Wpf.AvalonDock.resources.dll_2040428166" Guid="1db76552-1eee-41db-8628-68b2d99cebbb" Win64="yes">
-              <File Id="Xceed.Wpf.AvalonDock.resources.dll_2040428166" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\hu\Xceed.Wpf.AvalonDock.resources.dll" />
+            <Component Id="Component.Xceed.Wpf.AvalonDock.resources.dll_2647653258" Guid="1db76552-1eee-41db-8628-68b2bdf88984" Win64="yes">
+              <File Id="Xceed.Wpf.AvalonDock.resources.dll_2647653258" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\hu\Xceed.Wpf.AvalonDock.resources.dll" />
             </Component>
 
           </Directory>
 
           <Directory Id="INSTALLDIR.it" Name="it">
 
-            <Component Id="Component.Xceed.Wpf.AvalonDock.resources.dll_893269004" Guid="1db76552-1eee-41db-8628-68b2d6be841a" Win64="yes">
-              <File Id="Xceed.Wpf.AvalonDock.resources.dll_893269004" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\it\Xceed.Wpf.AvalonDock.resources.dll" />
+            <Component Id="Component.Xceed.Wpf.AvalonDock.resources.dll_2620650022" Guid="1db76552-1eee-41db-8628-68b2691746cb" Win64="yes">
+              <File Id="Xceed.Wpf.AvalonDock.resources.dll_2620650022" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\it\Xceed.Wpf.AvalonDock.resources.dll" />
             </Component>
 
           </Directory>
 
           <Directory Id="INSTALLDIR.pt_BR" Name="pt-BR">
 
-            <Component Id="Component.Xceed.Wpf.AvalonDock.resources.dll_22941774" Guid="1db76552-1eee-41db-8628-68b21d5a4bc5" Win64="yes">
-              <File Id="Xceed.Wpf.AvalonDock.resources.dll_22941774" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\pt-BR\Xceed.Wpf.AvalonDock.resources.dll" />
+            <Component Id="Component.Xceed.Wpf.AvalonDock.resources.dll_1815788515" Guid="1db76552-1eee-41db-8628-68b2a0aca41b" Win64="yes">
+              <File Id="Xceed.Wpf.AvalonDock.resources.dll_1815788515" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\pt-BR\Xceed.Wpf.AvalonDock.resources.dll" />
             </Component>
 
           </Directory>
 
           <Directory Id="INSTALLDIR.ro" Name="ro">
 
-            <Component Id="Component.Xceed.Wpf.AvalonDock.resources.dll_1353064975" Guid="1db76552-1eee-41db-8628-68b255b94e24" Win64="yes">
-              <File Id="Xceed.Wpf.AvalonDock.resources.dll_1353064975" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\ro\Xceed.Wpf.AvalonDock.resources.dll" />
+            <Component Id="Component.Xceed.Wpf.AvalonDock.resources.dll_1891721689" Guid="1db76552-1eee-41db-8628-68b2803206de" Win64="yes">
+              <File Id="Xceed.Wpf.AvalonDock.resources.dll_1891721689" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\ro\Xceed.Wpf.AvalonDock.resources.dll" />
             </Component>
 
           </Directory>
 
           <Directory Id="INSTALLDIR.ru" Name="ru">
 
-            <Component Id="Component.Xceed.Wpf.AvalonDock.resources.dll_1756659704" Guid="1db76552-1eee-41db-8628-68b226819513" Win64="yes">
-              <File Id="Xceed.Wpf.AvalonDock.resources.dll_1756659704" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\ru\Xceed.Wpf.AvalonDock.resources.dll" />
+            <Component Id="Component.Xceed.Wpf.AvalonDock.resources.dll_298898571" Guid="1db76552-1eee-41db-8628-68b2bf54f978" Win64="yes">
+              <File Id="Xceed.Wpf.AvalonDock.resources.dll_298898571" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\ru\Xceed.Wpf.AvalonDock.resources.dll" />
             </Component>
 
           </Directory>
 
           <Directory Id="INSTALLDIR.sv" Name="sv">
 
-            <Component Id="Component.Xceed.Wpf.AvalonDock.resources.dll_2190223818" Guid="1db76552-1eee-41db-8628-68b2262f7407" Win64="yes">
-              <File Id="Xceed.Wpf.AvalonDock.resources.dll_2190223818" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\sv\Xceed.Wpf.AvalonDock.resources.dll" />
+            <Component Id="Component.Xceed.Wpf.AvalonDock.resources.dll_3611057436" Guid="1db76552-1eee-41db-8628-68b2d60518d2" Win64="yes">
+              <File Id="Xceed.Wpf.AvalonDock.resources.dll_3611057436" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\sv\Xceed.Wpf.AvalonDock.resources.dll" />
             </Component>
 
           </Directory>
 
           <Directory Id="INSTALLDIR.zh_Hans" Name="zh-Hans">
 
-            <Component Id="Component.Xceed.Wpf.AvalonDock.resources.dll_565414998" Guid="1db76552-1eee-41db-8628-68b25c29680b" Win64="yes">
-              <File Id="Xceed.Wpf.AvalonDock.resources.dll_565414998" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\zh-Hans\Xceed.Wpf.AvalonDock.resources.dll" />
+            <Component Id="Component.Xceed.Wpf.AvalonDock.resources.dll_841631833" Guid="1db76552-1eee-41db-8628-68b2311bbf40" Win64="yes">
+              <File Id="Xceed.Wpf.AvalonDock.resources.dll_841631833" Source="..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\zh-Hans\Xceed.Wpf.AvalonDock.resources.dll" />
             </Component>
 
           </Directory>
@@ -142,8 +150,8 @@
 
       <Directory Id="ProgramMenuFolder" Name="ProgramMenuFolder">
 
-        <Component Id="Component.BetterPrinting_" Guid="1db76552-1eee-41db-8628-68b2af099abd" Win64="yes">
-          <Shortcut Id="ProgramMenuFolder.BetterPrinting_" WorkingDirectory="INSTALLDIR" Target="[INSTALLDIR]Better-Printing-for-OneNote.exe" Name="BetterPrinting.lnk" />
+        <Component Id="Component.Better_Printing_for_OneNote_" Guid="1db76552-1eee-41db-8628-68b2d64364a0" Win64="yes">
+          <Shortcut Id="ProgramMenuFolder.Better_Printing_for_OneNote_" WorkingDirectory="INSTALLDIR" Target="[INSTALLDIR]Better-Printing-for-OneNote.exe" Name="Better-Printing-for-OneNote.lnk" />
 
           <CreateFolder />
 
@@ -171,10 +179,10 @@
     <CustomAction Id="CancelRequestHandler" BinaryKey="WixSharp_InitRuntime_Action_File" DllEntry="CancelRequestHandler" Return="check" Impersonate="no" Execute="deferred" />
 
     <Binary Id="WixSharp_InitRuntime_Action_File" SourceFile="publish\WixSharp.CA.dll" />
-    <Binary Id="WixSharp_UIText" SourceFile="publish\BetterPrinting.wxl" />
-    <Binary Id="WixSharp_LicenceFile" SourceFile="publish\BetterPrinting.licence.rtf" />
-    <Binary Id="WixUI_Bmp_Dialog" SourceFile="publish\BetterPrinting.dialog_bmp.png" />
-    <Binary Id="WixUI_Bmp_Banner" SourceFile="publish\BetterPrinting.dialog_banner.png" />
+    <Binary Id="WixSharp_UIText" SourceFile="publish\Better-Printing-for-OneNote.wxl" />
+    <Binary Id="WixSharp_LicenceFile" SourceFile="publish\Better-Printing-for-OneNote.licence.rtf" />
+    <Binary Id="WixUI_Bmp_Dialog" SourceFile="publish\Better-Printing-for-OneNote.dialog_bmp.png" />
+    <Binary Id="WixUI_Bmp_Banner" SourceFile="publish\Better-Printing-for-OneNote.dialog_banner.png" />
 
     <UIRef Id="WixUI_ErrorProgressText" />
 
@@ -184,28 +192,30 @@
     <Property Id="WixSharp_InstallDialogs" Value="WixSharp.UI, Version=1.14.2.0, Culture=neutral, PublicKeyToken=3775edd25acc43c2|WixSharp.UI.Forms.InstallDirDialog&#xA;WixSharp.UI, Version=1.14.2.0, Culture=neutral, PublicKeyToken=3775edd25acc43c2|WixSharp.UI.Forms.ProgressDialog&#xA;WixSharp.UI, Version=1.14.2.0, Culture=neutral, PublicKeyToken=3775edd25acc43c2|WixSharp.UI.Forms.ExitDialog" />
 
     <Feature Id="Complete" Title="Complete" Absent="allow" Level="1">
-      <ComponentRef Id="Component.Better_Printing_for_OneNote.deps.json_3062066737" />
-      <ComponentRef Id="Component.Better_Printing_for_OneNote.dll_1599008865" />
-      <ComponentRef Id="Component.Better_Printing_for_OneNote.exe_3853805477" />
-      <ComponentRef Id="Component.Better_Printing_for_OneNote.pdb_3920448393" />
-      <ComponentRef Id="Component.Better_Printing_for_OneNote.runtimeconfig.json_1968282545" />
-      <ComponentRef Id="Component.Ghostscript.NET.dll_2012121273" />
-      <ComponentRef Id="Component.Xceed.Wpf.AvalonDock.dll_1479173972" />
-      <ComponentRef Id="Component.Xceed.Wpf.AvalonDock.Themes.Aero.dll_2115961086" />
-      <ComponentRef Id="Component.Xceed.Wpf.AvalonDock.Themes.Metro.dll_1081971541" />
-      <ComponentRef Id="Component.Xceed.Wpf.AvalonDock.Themes.VS2010.dll_598702932" />
-      <ComponentRef Id="Component.Xceed.Wpf.Toolkit.dll_3225636869" />
-      <ComponentRef Id="Component.Xceed.Wpf.AvalonDock.resources.dll_1295597519" />
-      <ComponentRef Id="Component.Xceed.Wpf.AvalonDock.resources.dll_1687880626" />
-      <ComponentRef Id="Component.Xceed.Wpf.AvalonDock.resources.dll_3031869443" />
-      <ComponentRef Id="Component.Xceed.Wpf.AvalonDock.resources.dll_2040428166" />
-      <ComponentRef Id="Component.Xceed.Wpf.AvalonDock.resources.dll_893269004" />
-      <ComponentRef Id="Component.Xceed.Wpf.AvalonDock.resources.dll_22941774" />
-      <ComponentRef Id="Component.Xceed.Wpf.AvalonDock.resources.dll_1353064975" />
-      <ComponentRef Id="Component.Xceed.Wpf.AvalonDock.resources.dll_1756659704" />
-      <ComponentRef Id="Component.Xceed.Wpf.AvalonDock.resources.dll_2190223818" />
-      <ComponentRef Id="Component.Xceed.Wpf.AvalonDock.resources.dll_565414998" />
-      <ComponentRef Id="Component.BetterPrinting_" />
+      <ComponentRef Id="Component.Better_Printing_for_OneNote_laptop_jonas_ubuntu.dll_1660069830" />
+      <ComponentRef Id="Component.Better_Printing_for_OneNote_laptop_jonas_ubuntu.pdb_151358392" />
+      <ComponentRef Id="Component.Better_Printing_for_OneNote.deps.json_1968211397" />
+      <ComponentRef Id="Component.Better_Printing_for_OneNote.dll_1856194140" />
+      <ComponentRef Id="Component.Better_Printing_for_OneNote.exe_4113480430" />
+      <ComponentRef Id="Component.Better_Printing_for_OneNote.pdb_1583753778" />
+      <ComponentRef Id="Component.Better_Printing_for_OneNote.runtimeconfig.json_1350770421" />
+      <ComponentRef Id="Component.Ghostscript.NET.dll_1664096312" />
+      <ComponentRef Id="Component.Xceed.Wpf.AvalonDock.dll_4225476554" />
+      <ComponentRef Id="Component.Xceed.Wpf.AvalonDock.Themes.Aero.dll_3055478964" />
+      <ComponentRef Id="Component.Xceed.Wpf.AvalonDock.Themes.Metro.dll_2009794942" />
+      <ComponentRef Id="Component.Xceed.Wpf.AvalonDock.Themes.VS2010.dll_1797489179" />
+      <ComponentRef Id="Component.Xceed.Wpf.Toolkit.dll_4212801940" />
+      <ComponentRef Id="Component.Xceed.Wpf.AvalonDock.resources.dll_287867237" />
+      <ComponentRef Id="Component.Xceed.Wpf.AvalonDock.resources.dll_2058652123" />
+      <ComponentRef Id="Component.Xceed.Wpf.AvalonDock.resources.dll_4102457838" />
+      <ComponentRef Id="Component.Xceed.Wpf.AvalonDock.resources.dll_2647653258" />
+      <ComponentRef Id="Component.Xceed.Wpf.AvalonDock.resources.dll_2620650022" />
+      <ComponentRef Id="Component.Xceed.Wpf.AvalonDock.resources.dll_1815788515" />
+      <ComponentRef Id="Component.Xceed.Wpf.AvalonDock.resources.dll_1891721689" />
+      <ComponentRef Id="Component.Xceed.Wpf.AvalonDock.resources.dll_298898571" />
+      <ComponentRef Id="Component.Xceed.Wpf.AvalonDock.resources.dll_3611057436" />
+      <ComponentRef Id="Component.Xceed.Wpf.AvalonDock.resources.dll_841631833" />
+      <ComponentRef Id="Component.Better_Printing_for_OneNote_" />
       <ComponentRef Id="TARGETDIR" />
     </Feature>
 

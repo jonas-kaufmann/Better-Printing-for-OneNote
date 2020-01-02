@@ -61,7 +61,7 @@ namespace Better_Printing_for_OneNote.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Better Printing.
+        ///   Looks up a localized string similar to Better-Printing-for-OneNote.
         /// </summary>
         public static string ApplicationTitle {
             get {
@@ -70,7 +70,7 @@ namespace Better_Printing_for_OneNote.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Better-Printing.
+        ///   Looks up a localized string similar to Better-Printing-for-OneNote.
         /// </summary>
         public static string LocalFolderTitle {
             get {

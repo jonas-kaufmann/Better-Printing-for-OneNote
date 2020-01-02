@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Setup.GUIDs;
+using System;
 using WixSharp;
 using WixSharp.UI.Forms;
 
@@ -6,33 +7,43 @@ namespace Setup
 {
     class Program
     {
-        public const string ProductName = "BetterPrinting";
+        public const string PathToProject = "../../../Better-Printing-for-OneNote";
+        public const string PathToIcon = PathToProject + "/Resources/Icon.ico";
+        public const string ProjectPublishFolderProfileName = "FolderProfile";
+        public const string PathToUpgradeCodes = "../../GUIDs/UpgradeCodes.json";
+
+        public const string ProductName = "Better-Printing-for-OneNote";
         public const string ProgramExe = "Better-Printing-for-OneNote.exe";
 
 
-        // TODO before building the installer for an update:
-        // - run publish for all projects that are included in the setup
-        // - edit project.version
-        // - insert newly generated GUID for project.UpgradeCode
-        // Build setup by running build
-
+        // to build the installer simply run this file
         static int Main()
         {
             try
             {
+                var vsProject = new DotNetCoreProject(PathToProject);
+                vsProject.Publish(ProjectPublishFolderProfileName); // publish project
+
                 var project = new ManagedProject(ProductName,
                     new InstallDir($@"%ProgramFiles%\{ProductName}",
-                        new Files(@"..\Better-Printing-for-OneNote\bin\Release\netcoreapp3.1\publish\*")),
+                        new Files($"{PathToProject}/publish/*")),
+                    new IconFile(new Id("icon.ico"), PathToIcon), 
+                    new Property("ARPPRODUCTICON", "icon.ico"),
                     new Dir("%ProgramMenu%",
                         new ExeFileShortcut(ProductName, $"[INSTALLDIR]{ProgramExe}", ""))
                     )
                 {
                     GUID = new Guid("1DB76552-1EEE-41DB-8628-68B25106C5B8"),
                     Platform = Platform.x64,
-                    OutDir = @"publish\",
-                    Version = new Version("1.0.0"),
-                    UpgradeCode = new Guid("31577167-F5B1-4C08-A8E3-A896F11ABB62")
+                    OutDir = "../../publish",
+                    Name = ProductName
                 };
+
+                // set project version
+                project.Version = new Version(vsProject.ReadVersion());
+
+                // set upgrade code
+                project.UpgradeCode = new GUIDReaderWriter(PathToUpgradeCodes).GetGUIDForVersion(project.Version);
 
                 project.ManagedUI = new ManagedUI();
                 project.ManagedUI.InstallDialogs.Add<InstallDirDialog>()
@@ -44,6 +55,8 @@ namespace Setup
             catch (Exception e)
             {
                 Console.WriteLine(e.ToString());
+                Console.WriteLine("\nPress any key to continue ...");
+                Console.ReadKey();
                 return 1;
             }
 
