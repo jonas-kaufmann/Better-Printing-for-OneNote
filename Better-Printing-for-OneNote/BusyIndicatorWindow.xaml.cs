@@ -10,6 +10,7 @@ namespace Better_Printing_for_OneNote
     public partial class BusyIndicatorWindow : Window
     {
         private CancellationTokenSource CTS;
+        public bool Completed = false;
 
         public BusyIndicatorWindow(CancellationTokenSource cts)
         {
@@ -24,7 +25,7 @@ namespace Better_Printing_for_OneNote
 
         private void Window_Closing(object sender, CancelEventArgs e)
         {
-            if (!CTS.IsCancellationRequested)
+            if (!Completed)
             {
                 e.Cancel = true;
                 CTS.Cancel();

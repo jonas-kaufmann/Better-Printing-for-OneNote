@@ -21,7 +21,11 @@ namespace Better_Printing_for_OneNote.Views.Controls
         private static void Document_Changed(object sender, DependencyPropertyChangedEventArgs e)
         {
             if (sender is InteractiveFixedDocumentViewer ifdv && e.OldValue != e.NewValue)
+            {
+                ifdv.MainScrollViewer.Visibility = Visibility.Hidden; // to prevent visual bugs
                 ifdv.UpdateDocument();
+                ifdv.MainDPV.DocumentPaginator.GetPageCompleted += delegate { ifdv.MainScrollViewer.Visibility = Visibility.Visible; };
+            }
         }
 
         public delegate FixedDocument PageSplitRequestedEventHandler(object sender, int pageNr, double splitAtPercentage);

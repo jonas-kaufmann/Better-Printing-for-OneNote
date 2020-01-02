@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -67,53 +69,61 @@ namespace Better_Printing_for_OneNote
         {
             if (GhostscriptVersionInfo.IsGhostscriptInstalled)
             {
-                FileInfo fileInfo = new FileInfo(filePath);
-                var outputPath = Path.Combine(tempFolderPath, Path.GetFileNameWithoutExtension(fileInfo.Name));
-
-                try
+                if(!(filePath.Contains('ä') | filePath.Contains('ö') | filePath.Contains('ü') || filePath.Contains('µ') || filePath.Contains('²') || filePath.Contains('³') || filePath.Contains('%') || filePath.Contains('€') || filePath.Contains('°') || filePath.Contains('µ')))
                 {
-                    using (GhostscriptProcessor processor = new GhostscriptProcessor())
+                    FileInfo fileInfo = new FileInfo(filePath);
+                    var outputPath = Path.Combine(tempFolderPath, Path.GetFileNameWithoutExtension(fileInfo.Name));
+
+                    try
                     {
-                        List<string> switches = new List<string>();
-                        switches.Add("empty");
-                        switches.Add("-dSAFER");
-                        switches.Add("-sDEVICE=bmp16m");
-                        switches.Add($"-r{DPI}");
-                        switches.Add("-o");
-                        switches.Add($"\"{outputPath}_%d.bmp\"");
-                        switches.Add($"\"{filePath}\"");
-
-                        GeneralHelperClass.CreateDirectoryIfNotExists(tempFolderPath);
-                        var outputHandler = new GSOutputStdIO();
-                        processor.StartProcessing(switches.ToArray(), outputHandler);
-
-                        var paths = new List<string>();
-                        for (int i = 1; i <= outputHandler.Pages; i++)
-                            paths.Add($"{outputPath}_{i}.bmp");
-
-                        if (paths.Count < 1)
+                        using (GhostscriptProcessor processor = new GhostscriptProcessor())
                         {
-                            Trace.WriteLine($"\nPsToBmp conversion failed. Probably because there is no page in the document or the document is corrupted.");
-                            throw new ConversionFailedException($"Es kam zu einem Fehler bei der Konvertierung der PostScript Datei. Bitte mit anderer PostScript Datei erneut versuchen.");
-                        }
+                            List<string> switches = new List<string>();
+                            switches.Add("empty");
+                            switches.Add("-dSAFER");
+                            switches.Add("-sDEVICE=bmp16m");
+                            switches.Add($"-r{DPI}");
+                            switches.Add("-o");
+                            switches.Add($"\"{outputPath}_%d.bmp\"");
+                            switches.Add($"\"{filePath}\"");
 
-                        return paths;
+                            GeneralHelperClass.CreateDirectoryIfNotExists(tempFolderPath);
+                            var outputHandler = new GSOutputStdIO();
+                            processor.StartProcessing(switches.ToArray(), outputHandler);
+
+                            var paths = new List<string>();
+                            for (int i = 1; i <= outputHandler.Pages; i++)
+                                paths.Add($"{outputPath}_{i}.bmp");
+
+                            if (paths.Count < 1)
+                            {
+                                Trace.WriteLine($"\nPsToBmp conversion failed. Probably because there is no page in the document or the document is corrupted.");
+                                throw new ConversionFailedException($"Es kam zu einem Fehler bei der Konvertierung der PostScript Datei. Bitte mit anderer PostScript Datei erneut versuchen.");
+                            }
+
+                            return paths;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (ex is ConversionFailedException)
+                            throw ex;
+                        else
+                        {
+                            Trace.WriteLine($"\nPsToBmp conversion failed:\n {ex.ToString()}");
+                            throw new ConversionFailedException($"Es kam zu einem Fehler bei der Konvertierung der PostScript Datei. Bitte mit anderer PostScript Datei erneut versuchen.\n\nMehr Informationen sind in den Log-Dateien hinterlegt.");
+                        }
                     }
                 }
-                catch (Exception ex)
+                else
                 {
-                    if (ex is ConversionFailedException)
-                        throw ex;
-                    else
-                    {
-                        Trace.WriteLine($"\nPsToBmp conversion failed:\n {ex.ToString()}");
-                        throw new ConversionFailedException($"Es kam zu einem Fehler bei der Konvertierung der PostScript Datei. Bitte mit anderer PostScript Datei erneut versuchen.\n\nMehr Informationen sind in den Log-Dateien hinterlegt.");
-                    }
+                    Trace.WriteLine("\nGhostscript.Net does not support umlauts or other special characters in the filepath.");
+                    throw new ConversionFailedException("Umlaute oder andere spezielle Zeichen im Dateipfad werden nicht unterstützt.");
                 }
             }
             else
             {
-                Trace.WriteLine("\nApplication Shutdown: Ghostscript is not installed (64-bit needed)");
+                Trace.WriteLine("\nGhostscript is not installed (64-bit needed)");
                 throw new ConversionFailedException("Bitte installieren Sie Ghostscript. (Es wird die 64 - bit Version benötigt)");
             }
         }
