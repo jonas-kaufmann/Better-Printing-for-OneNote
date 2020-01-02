@@ -24,7 +24,6 @@ namespace Better_Printing_for_OneNote.Views.Controls
             {
                 ifdv.MainScrollViewer.Visibility = Visibility.Hidden; // to prevent visual bugs
                 ifdv.UpdateDocument();
-                ifdv.MainDPV.DocumentPaginator.GetPageCompleted += delegate { ifdv.MainScrollViewer.Visibility = Visibility.Visible; };
             }
         }
 
@@ -86,7 +85,11 @@ namespace Better_Printing_for_OneNote.Views.Controls
         private static object PageNumber_Coerce(DependencyObject d, object value)
         {
             int pageNumber = (int)value;
-            return ((InteractiveFixedDocumentViewer)d).CorrectPageNumber(pageNumber);
+            var ifdv = (InteractiveFixedDocumentViewer)d;
+            var correctPageNumber = ifdv.CorrectPageNumber(pageNumber);
+            if (correctPageNumber != ifdv.PageNumber)
+                ifdv.MainScrollViewer.Visibility = Visibility.Hidden; // to prevent visual bugs
+            return correctPageNumber;
         }
         private int CorrectPageNumber(int value)
         {
@@ -165,6 +168,7 @@ namespace Better_Printing_for_OneNote.Views.Controls
         public void UpdateDocument()
         {
             MainDPV.DocumentPaginator = Document.DocumentPaginator;
+            MainDPV.DocumentPaginator.GetPageCompleted += delegate { this.MainScrollViewer.Visibility = Visibility.Visible; };
             PageCount = Document.Pages.Count;
         }
         public void UpdateZoom()
