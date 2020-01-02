@@ -10,6 +10,7 @@ namespace Setup
         public const string PathToProject = "../../../Better-Printing-for-OneNote";
         public const string PathToIcon = PathToProject + "/Resources/Icon.ico";
         public const string ProjectPublishFolderProfileName = "FolderProfile";
+        public const string ProjectPublishFolder = PathToProject + "/bin/publish/*";
         public const string PathToUpgradeCodes = "../../GUIDs/UpgradeCodes.json";
 
         public const string ProductName = "Better-Printing-for-OneNote";
@@ -26,7 +27,7 @@ namespace Setup
 
                 var project = new ManagedProject(ProductName,
                     new InstallDir($@"%ProgramFiles%\{ProductName}",
-                        new Files($"{PathToProject}/publish/*")),
+                        new Files(ProjectPublishFolder)),
                     new IconFile(new Id("icon.ico"), PathToIcon), 
                     new Property("ARPPRODUCTICON", "icon.ico"),
                     new Dir("%ProgramMenu%",
@@ -35,7 +36,7 @@ namespace Setup
                 {
                     GUID = new Guid("1DB76552-1EEE-41DB-8628-68B25106C5B8"),
                     Platform = Platform.x64,
-                    OutDir = "../../publish",
+                    OutDir = "../publish",
                     Name = ProductName
                 };
 
