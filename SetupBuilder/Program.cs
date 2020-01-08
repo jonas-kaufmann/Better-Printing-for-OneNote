@@ -1,9 +1,9 @@
-﻿using Setup.GUIDs;
+﻿using SetupBuilder.GUIDs;
 using System;
 using WixSharp;
 using WixSharp.UI.Forms;
 
-namespace Setup
+namespace SetupBuilder
 {
     class Program
     {

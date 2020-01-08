@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Setup.GUIDs
+namespace SetupBuilder.GUIDs
 {
     public class GUIDModel
     {
