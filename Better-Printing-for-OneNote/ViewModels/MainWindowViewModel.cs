@@ -218,7 +218,7 @@ namespace Better_Printing_for_OneNote.ViewModels
         private void SearchFile()
         {
             OpenFileDialog fileDialog = new OpenFileDialog();
-            fileDialog.Filter = "PostScript Dateien (*.ps)|*.ps";
+            fileDialog.Filter = "PDF-Files|*.pdf|PostScript-Files|*.ps";
             if (fileDialog.ShowDialog() == true)
             {
                 FilePath = fileDialog.FileName;

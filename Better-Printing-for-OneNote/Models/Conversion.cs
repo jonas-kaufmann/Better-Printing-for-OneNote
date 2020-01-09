@@ -59,6 +59,8 @@ namespace Better_Printing_for_OneNote
                 throw new ConversionFailedException($"Die zu öffnende Postscript Datei ({filePath}) existiert nicht.");
         }
 
+        
+
         /// <summary>
         /// Converts a Postscript file to multiple Bitmap files and stores them in the Temp Directory (throws ConversionFailedException if something went wrong)
         /// </summary>
@@ -420,7 +422,9 @@ namespace Better_Printing_for_OneNote
 
             public override void StdOut(string output)
             {
-                if (output.Trim().Contains("LastPage")) Pages = output.Split("Page").Length - 2;
+                //if (output.Trim().Contains("LastPage")) Pages = output.Split("Page").Length - 2;
+                if (output.Trim().Contains("Page")) Pages++;
+
 
                 // output to log/trace
                 if (FirstOutput)
