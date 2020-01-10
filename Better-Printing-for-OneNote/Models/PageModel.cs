@@ -75,6 +75,7 @@ namespace Better_Printing_for_OneNote.Models
         public PageModel(WriteableBitmap image, double documentHeight, double documentWidth, double contentHeight, double contentWidth, Thickness padding, bool pageNumbersEnabled, bool signatureEnabled, string signature)
         {
             FixedPage = new FixedPage() { Height = documentHeight, Width = documentWidth };
+            RenderOptions.SetBitmapScalingMode(FixedPage, BitmapScalingMode.HighQuality);
             DocumentHeight = documentHeight;
             Padding = padding;
             Page.Child = FixedPage;

@@ -3,7 +3,7 @@ using System;
 using System.IO;
 using System.Linq;
 
-namespace Setup.GUIDs
+namespace SetupBuilder.GUIDs
 {
     public class GUIDReaderWriter
     {
