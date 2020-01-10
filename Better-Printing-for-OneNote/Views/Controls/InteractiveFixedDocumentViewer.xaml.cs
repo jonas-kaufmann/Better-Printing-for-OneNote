@@ -291,8 +291,8 @@ namespace Better_Printing_for_OneNote.Views.Controls
         // keyboard commands with ctrl
         public void OnApplication_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            // prevent blocking when typing into textbox
-            if (PageNumberTb.IsFocused)
+            // prevent wrong misbehavior when typing into textboxes
+            if (/*!MainScrollViewer.IsMouseOver ||*/ Keyboard.FocusedElement is TextBox)
                 return;
 
             e.Handled = true;
