@@ -1,12 +1,11 @@
 ﻿using Better_Printing_for_OneNote.AdditionalClasses;
+using Better_Printing_for_OneNote.Models;
 using Ghostscript.NET;
 using Ghostscript.NET.Processor;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -16,12 +15,12 @@ namespace Better_Printing_for_OneNote
 {
     class Conversion
     {
-        private const int DPI = 300; // 600
-        private const int ROWS_TO_CHECK = 30; // 30
-        private const int MAX_WRONG_PIXELS = 150; // 50
+        private const int DPI = 300;
+        private const int ROWS_TO_CHECK = 30;
+        private const double MAX_WRONG_PIXELS_PERCENTAGE = 1;
         private const double SECTION_TO_CHECK = 0.15;
-        private const int GS_CONVERSION_PROGRESS = 25;
-        private const int ARRAY_TO_FINAL_BITMAP_CONVERSION = 20;
+        private const double GS_CONVERSION_PROGRESS = 40;
+        private const double ARRAY_TO_FINAL_BITMAP_CONVERSION = 7.5;
 
         /// <summary>
         /// Converts a Postscript document with (multiple) pages to one Bitmap (removes the created files after conversion) (throws ConversionFailedException if something went wrong)
@@ -376,15 +375,16 @@ namespace Better_Printing_for_OneNote
             int rowIndex = rowSequence.Count - 1;
             bool sequenceFound = false;
             int supposedPositionY = 0;
+            var maxWrongBytes = Math.Round((MAX_WRONG_PIXELS_PERCENTAGE * stride) / 100);
             for (int y = height - 1; y >= (1 - SECTION_TO_CHECK) * height; y--)
             {
                 // check all bytes of one row
-                var wrongPixels = 0;
+                var wrongBytes = 0;
                 for (int b = 0; b < stride; b++)
                 {
                     if (rowSequence[rowIndex][b] != pixels[y * stride + b])
-                        wrongPixels++;
-                    if (wrongPixels > MAX_WRONG_PIXELS)
+                        wrongBytes++;
+                    if (wrongBytes > maxWrongBytes)
                         goto NotEqual;
                 }
 
@@ -443,7 +443,6 @@ namespace Better_Printing_for_OneNote
                 //if (output.Trim().Contains("LastPage")) Pages = output.Split("Page").Length - 2;
                 if (output.Trim().Contains("Page")) Pages++;
 
-
                 // output to log/trace
                 if (FirstOutput)
                 {
@@ -459,70 +458,6 @@ namespace Better_Printing_for_OneNote
             {
                 input = "";
             }
-        }
-    }
-
-    public class ProgressReporter : NotifyBase
-    {
-        private double _percentageCompleted = 0;
-        public double PercentageCompleted
-        {
-            get
-            {
-                return _percentageCompleted;
-            }
-            private set
-            {
-                if(_percentageCompleted != value)
-                {
-                    _percentageCompleted = value;
-                    OnPropertyChanged("PercentageCompleted");
-                }
-            }
-        }
-
-        private string _currentTaskDescription = "";
-        public string CurrentTaskDescription
-        {
-            get
-            {
-                return _currentTaskDescription;
-            }
-            private set
-            {
-                if (_currentTaskDescription != value)
-                {
-                    _currentTaskDescription = value;
-                    OnPropertyChanged("CurrentTaskDescription");
-                }
-            }
-        }
-
-        public ProgressReporter(){}
-
-        public void ReportProgress(double percentageCompleted, string currentTaskDescription)
-        {
-            GeneralHelperClass.ExecuteInUiThread(() =>
-            {
-                PercentageCompleted = percentageCompleted;
-                CurrentTaskDescription = currentTaskDescription;
-            });
-        }
-
-        public void ReportProgress(double percentageCompleted)
-        {
-            GeneralHelperClass.ExecuteInUiThread(() =>
-            {
-                PercentageCompleted = percentageCompleted;
-            });
-        }
-
-        public void ReportProgress(string currentTaskDescription)
-        {
-            GeneralHelperClass.ExecuteInUiThread(() =>
-            {
-                CurrentTaskDescription = currentTaskDescription;
-            });
         }
     }
 

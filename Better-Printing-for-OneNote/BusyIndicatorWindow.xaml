@@ -3,13 +3,11 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:Better_Printing_for_OneNote"
-        xmlns:toolkit="http://schemas.xceed.com/wpf/xaml/toolkit"
         xmlns:resx="clr-namespace:Better_Printing_for_OneNote.Properties"
         mc:Ignorable="d"
         Closing="Window_Closing"
         Title="{x:Static resx:Resources.ApplicationTitle}" SizeToContent="WidthAndHeight" ResizeMode="NoResize"  WindowStartupLocation="CenterOwner">
-    <Border Padding="10 0 10 0" Width="270" Height="130">
+    <Border Padding="10 0 10 0" Width="285" Height="130">
         <StackPanel VerticalAlignment="Center">
             <TextBlock HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"  Text="{Binding Reporter.CurrentTaskDescription, Mode=OneWay, FallbackValue=Beschreibung}"/>
             <ProgressBar Margin="0 10 0 0" x:Name="ProgessBar" Height="20" Value="{Binding Reporter.PercentageCompleted, Mode=OneWay, FallbackValue=20}"/>

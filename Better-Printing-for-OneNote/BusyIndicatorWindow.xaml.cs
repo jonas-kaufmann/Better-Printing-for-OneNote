@@ -1,4 +1,5 @@
 ﻿using Better_Printing_for_OneNote.AdditionalClasses;
+using Better_Printing_for_OneNote.Models;
 using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
