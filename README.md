@@ -16,8 +16,9 @@ When you try to print handwritten text that is larger than a single page of your
 
 ### Prerequisites
 
-- [.NET Core](https://dotnet.microsoft.com/download) runtime
-- [GhostScript](https://www.ghostscript.com/download.html) (version for working with PDFs)
+- Windows 10 64 bit
+- [.NET Core](https://dotnet.microsoft.com/download) x64 runtime
+- [GhostScript](https://www.ghostscript.com/download/gsdnld.html) x64 (version for working with PDFs and PostScript)
 
 ### Automation
 
