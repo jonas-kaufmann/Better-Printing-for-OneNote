@@ -16,10 +16,12 @@ namespace Better_Printing_for_OneNote
 {
     class Conversion
     {
-        private const int DPI = 600; // 300
+        private const int DPI = 400; // 300
         private const int ROWS_TO_CHECK = 30; // 30
         private const int MAX_WRONG_PIXELS = 150; // 50
         private const double SECTION_TO_CHECK = 0.15;
+        private const int GS_CONVERSION_PROGRESS = 25;
+        private const int ARRAY_TO_FINAL_BITMAP_CONVERSION = 20;
 
         /// <summary>
         /// Converts a Postscript document with (multiple) pages to one Bitmap (removes the created files after conversion) (throws ConversionFailedException if something went wrong)
@@ -28,13 +30,15 @@ namespace Better_Printing_for_OneNote
         /// <param name="tempFolder">Path to the temp folder (or another folder to store temporary files in)</param>
         /// <param name="ct">the cancellation token</param>
         /// <returns>the bitmap</returns>
-        public static WriteableBitmap ConvertPsToOneImage(string filePath, string tempFolder, CancellationToken ct)
+        public static WriteableBitmap ConvertPsToOneImage(string filePath, string tempFolder, CancellationToken ct, ProgressReporter reporter)
         {
             if (File.Exists(filePath))
             {
+                reporter.ReportProgress("Konvertiere Dokument zu Bitmaps");
                 var paths = PsToBmp(filePath, tempFolder);
+                reporter.ReportProgress(GS_CONVERSION_PROGRESS);
                 ct.ThrowIfCancellationRequested();
-                var bitmap = CombineImages(paths, ct);
+                var bitmap = CombineImages(paths, ct, reporter);
                 // run Task to clear the files
                 Task.Run(() =>
                 {
@@ -133,8 +137,10 @@ namespace Better_Printing_for_OneNote
         /// </summary>
         /// <param name="imagePaths">the paths to the images</param>
         /// <returns>the final combined bitmap</returns>
-        private static WriteableBitmap CombineImages(List<string> imagePaths, CancellationToken ct)
+        private static WriteableBitmap CombineImages(List<string> imagePaths, CancellationToken ct, ProgressReporter reporter)
         {
+            reporter.ReportProgress("Lade Bitmap 1");
+
             var previousImage = LoadBitmapIntoArray(imagePaths[0]); // first image
             var stride = previousImage.Stride;
             var height = previousImage.Height;
@@ -152,18 +158,21 @@ namespace Better_Printing_for_OneNote
             }
             catch (RowNotFoundException e)
             {
-                Trace.WriteLine($"\nCombining the images failed because \"{imagePaths[0]}\" has no not white row. Using the full image. Exception:\n {e.ToString()}");
+                Trace.WriteLine($"\nCombining the bitmaps failed because \"{imagePaths[0]}\" has no not white row. Using the full bitmap. Exception:\n {e.ToString()}");
             }
 
             ct.ThrowIfCancellationRequested();
 
             byte[] finalImageArray;
+            var reportPercentagePerBitmap = (100 - GS_CONVERSION_PROGRESS - ARRAY_TO_FINAL_BITMAP_CONVERSION) / imagePaths.Count;
             if (imagePaths.Count > 1)
             {
                 var finalImageList = new List<byte>();
                 // go through all images after the first
                 for (int i = 1; i < imagePaths.Count; i++)
                 {
+                    reporter.ReportProgress(reporter.PercentageCompleted + reportPercentagePerBitmap / 2, $"Lade Bitmap {i + 1}");
+
                     var image = LoadBitmapIntoArray(imagePaths[i]);
 
                     ct.ThrowIfCancellationRequested();
@@ -176,7 +185,7 @@ namespace Better_Printing_for_OneNote
                     }
                     catch (RowNotFoundException e)
                     {
-                        Trace.WriteLine($"\nCombining the images failed because \"{imagePaths[i]}\" has no not white row. Using the full image. Exception:\n {e.ToString()}");
+                        Trace.WriteLine($"\nCombining the bitmaps failed because \"{imagePaths[i]}\" has no not white row. Using the full bitmap. Exception:\n {e.ToString()}");
                     }
 
                     ct.ThrowIfCancellationRequested();
@@ -201,7 +210,7 @@ namespace Better_Printing_for_OneNote
                     }
                     catch (RowNotFoundException e)
                     {
-                        Trace.WriteLine($"\nCombining the images failed because \"{imagePaths[i - 1]}\" and \"{imagePaths[i]}\" have no equal row. Using the full image. Exception:\n {e.ToString()}");
+                        Trace.WriteLine($"\nCombining the bitmaps failed because \"{imagePaths[i - 1]}\" and \"{imagePaths[i]}\" have no equal row. Using the full bitmap. Exception:\n {e.ToString()}");
                         // cut off the white space under image and use that in case of no equal row
                         try
                         {
@@ -209,11 +218,12 @@ namespace Better_Printing_for_OneNote
                         }
                         catch (RowNotFoundException ex)
                         {
-                            Trace.WriteLine($"\nCombining the images failed because \"{imagePaths[i - 1]}\" has no not white row. Using the full image. Exception:\n {ex.ToString()}");
+                            Trace.WriteLine($"\nCombining the bitmaps failed because \"{imagePaths[i - 1]}\" has no not white row. Using the full bitmap. Exception:\n {ex.ToString()}");
                         }
                     }
 
                     ct.ThrowIfCancellationRequested();
+                    reporter.ReportProgress(reporter.PercentageCompleted + reportPercentagePerBitmap / 2, $"Kopiere Pixel von Bitmap {i} in die finale Bitmap");
 
                     // copy pixels from the previous to the final image
                     for (int j = topOffset1; j < bottomOffset1; j++)
@@ -225,6 +235,8 @@ namespace Better_Printing_for_OneNote
                     // copy pixels from the last image
                     if (i == imagePaths.Count - 1)
                     {
+                        reporter.ReportProgress(reporter.PercentageCompleted + reportPercentagePerBitmap / 2, $"Kopiere Pixel von Bitmap {i+1} in die finale Bitmap");
+
                         var bottomOffset = 0;
                         try
                         {
@@ -232,7 +244,7 @@ namespace Better_Printing_for_OneNote
                         }
                         catch (RowNotFoundException ex)
                         {
-                            Trace.WriteLine($"\nCombining the images failed because \"{imagePaths[i]}\" has no not white row. Using the full image. Exception:\n {ex.ToString()}");
+                            Trace.WriteLine($"\nCombining the bitmaps failed because \"{imagePaths[i]}\" has no not white row. Using the full bitmap. Exception:\n {ex.ToString()}");
                         }
 
                         ct.ThrowIfCancellationRequested();
@@ -243,6 +255,7 @@ namespace Better_Printing_for_OneNote
                 }
                 finalImageArray = finalImageList.ToArray();
                 finalImageList = null;
+                reporter.ReportProgress(reporter.PercentageCompleted + reportPercentagePerBitmap / 2);
             }
             else
             {
@@ -259,13 +272,18 @@ namespace Better_Printing_for_OneNote
 
                 ct.ThrowIfCancellationRequested();
 
+                reporter.ReportProgress(reporter.PercentageCompleted + reportPercentagePerBitmap / 2, "Kopiere Pixel in die finale Bitmap");
+
                 finalImageArray = new byte[bottomOffset - topOffset1];
                 for (int j = 0; j < bottomOffset - topOffset1; j++)
                     finalImageArray[j] = previousImage.Pixels[j + topOffset1];
+
+                reporter.ReportProgress(reporter.PercentageCompleted + reportPercentagePerBitmap / 2);
             }
             previousImage = null;
 
             ct.ThrowIfCancellationRequested();
+            reporter.ReportProgress("Erzeuge finale Bitmap");
 
             // rewrite bytes to Bitmap
             var heightFinal = finalImageArray.Length / stride;
@@ -437,6 +455,70 @@ namespace Better_Printing_for_OneNote
             {
                 input = "";
             }
+        }
+    }
+
+    public class ProgressReporter : NotifyBase
+    {
+        private double _percentageCompleted = 0;
+        public double PercentageCompleted
+        {
+            get
+            {
+                return _percentageCompleted;
+            }
+            private set
+            {
+                if(_percentageCompleted != value)
+                {
+                    _percentageCompleted = value;
+                    OnPropertyChanged("PercentageCompleted");
+                }
+            }
+        }
+
+        private string _currentTaskDescription = "";
+        public string CurrentTaskDescription
+        {
+            get
+            {
+                return _currentTaskDescription;
+            }
+            private set
+            {
+                if (_currentTaskDescription != value)
+                {
+                    _currentTaskDescription = value;
+                    OnPropertyChanged("CurrentTaskDescription");
+                }
+            }
+        }
+
+        public ProgressReporter(){}
+
+        public void ReportProgress(double percentageCompleted, string currentTaskDescription)
+        {
+            GeneralHelperClass.ExecuteInUiThread(() =>
+            {
+                PercentageCompleted = percentageCompleted;
+                CurrentTaskDescription = currentTaskDescription;
+            });
+        }
+
+        public void ReportProgress(double percentageCompleted)
+        {
+            GeneralHelperClass.ExecuteInUiThread(() =>
+            {
+                PercentageCompleted = percentageCompleted;
+            });
+        }
+
+        public void ReportProgress(string currentTaskDescription)
+        {
+            GeneralHelperClass.ExecuteInUiThread(() =>
+            {
+                CurrentTaskDescription = currentTaskDescription;
+            });
         }
     }
 

@@ -17,8 +17,6 @@ namespace Better_Printing_for_OneNote.ViewModels
 {
     class MainWindowViewModel : NotifyBase
     {
-        public event EventHandler BringWindowToFrontEvent;
-
         public string TEMP_FOLDER_PATH
         {
             get => GeneralHelperClass.FindResource("TempFolderPath");
@@ -65,19 +63,28 @@ namespace Better_Printing_for_OneNote.ViewModels
             set
             {
                 var cts = new CancellationTokenSource();
-                var busyDialog = new BusyIndicatorWindow(cts);
-                if(Window.IsInitialized)
+                var reporter = new ProgressReporter();
+                var busyDialog = new BusyIndicatorWindow(cts, reporter);
+                if (Window.IsInitialized)
                     busyDialog.Owner = Window;
 
                 _ = Task.Run(() =>
                 {
                     try
                     {
-                        var bitmap = Conversion.ConvertPsToOneImage(value, TEMP_FOLDER_PATH, cts.Token);
+                        var bitmap = Conversion.ConvertPsToOneImage(value, TEMP_FOLDER_PATH, cts.Token, reporter);
                         bitmap.Freeze();
                         GeneralHelperClass.ExecuteInUiThread(() =>
                         {
-                            var cropHelper = new CropHelper(bitmap);
+                            CropHelper cropHelper;
+                            if(CropHelper != null)
+                            {
+                                cropHelper = new CropHelper(bitmap, CropHelper.Signature, CropHelper.SignatureEnabled, CropHelper.PageNumbersEnabled);
+                            }
+                            else
+                            {
+                                cropHelper = new CropHelper(bitmap);
+                            }
                             UpdatePrintFormat(cropHelper); // set the format and initialize the first pages
                             CropHelper = cropHelper;
                             busyDialog.Completed = true;
@@ -88,12 +95,7 @@ namespace Better_Printing_for_OneNote.ViewModels
                     }
                     catch (ConversionFailedException e)
                     {
-                        GeneralHelperClass.ExecuteInUiThread(() =>
-                        {
-                            busyDialog.Completed = true;
-                            busyDialog.Close();
-                            MessageBox.Show(e.Message);
-                        });
+                        GeneralHelperClass.ExecuteInUiThread(() => busyDialog.SetError(e.Message));
                     }
                     catch (OperationCanceledException)
                     {
@@ -109,7 +111,7 @@ namespace Better_Printing_for_OneNote.ViewModels
             }
         }
 
-        private CropHelper _cropHelper;
+        private CropHelper _cropHelper = new CropHelper();
         public CropHelper CropHelper
         {
             get
@@ -153,16 +155,8 @@ namespace Better_Printing_for_OneNote.ViewModels
                 FilePath = argFilePath;
 
 #if DEBUG
-            FilePath = @"D:\Daten\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Zahlen.ps";
+            //FilePath = @"D:\Daten\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\corruptFile.ps";
 #endif
-
-
-            //might be unnecessary
-            /*Task.Run(() =>
-            {
-                Thread.Sleep(2000);
-                BringWindowToFrontEvent?.Invoke(this, EventArgs.Empty);
-            });*/
         }
 
         /// <summary>
@@ -184,7 +178,7 @@ namespace Better_Printing_for_OneNote.ViewModels
             UpdatePrintFormat(CropHelper);
             OnPropertyChanged("PrintDialog");
             if (print.HasValue && print.Value)
-                Task.Run(() => PrintDialog.PrintDocument(CropHelper.Document.DocumentPaginator, Properties.Resources.ApplicationTitle));
+                PrintDialog.PrintDocument(CropHelper.Document.DocumentPaginator, Properties.Resources.ApplicationTitle);
         }
 
         /// <summary>
