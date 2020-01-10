@@ -16,7 +16,7 @@ namespace Better_Printing_for_OneNote
 {
     class Conversion
     {
-        private const int DPI = 600; // 300
+        private const int DPI = 300; // 600
         private const int ROWS_TO_CHECK = 30; // 30
         private const int MAX_WRONG_PIXELS = 150; // 50
         private const double SECTION_TO_CHECK = 0.15;
