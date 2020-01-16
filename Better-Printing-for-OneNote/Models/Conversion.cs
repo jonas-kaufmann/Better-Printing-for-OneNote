@@ -16,8 +16,8 @@ namespace Better_Printing_for_OneNote
     {
         private const int DPI = 300;
         private const int ROWS_TO_CHECK = 30;
-        private const double MAX_WRONG_PIXELS_PERCENTAGE = 1;
-        private const double SECTION_TO_CHECK = 0.15;
+        private const double MAX_WRONG_PIXELS_PERCENTAGE = 8; // 1
+        private const double SECTION_TO_CHECK = 0.15; // 0.15
         private const double FILE_CONVERSION_PROGRESS = 40;
         private const double ARRAY_TO_FINAL_BITMAP_CONVERSION = 7.5;
 
@@ -67,7 +67,7 @@ namespace Better_Printing_for_OneNote
         /// </summary>
         /// <param name="imagePaths">the paths to the images</param>
         /// <returns>the final combined bitmap</returns>
-        private static WriteableBitmap CombineImages(List<string> imagePaths, CancellationToken ct, ProgressReporter reporter)
+        private static WriteableBitmap[] CombineImages(PPMImage[] rawImages, CancellationToken ct, ProgressReporter reporter)
         {
             reporter.ReportProgress("Loading Bitmap 1");
 
@@ -187,7 +187,7 @@ namespace Better_Printing_for_OneNote
             }
 
             ct.ThrowIfCancellationRequested();
-            reporter.ReportProgress("Erzeuge finale Bitmap");
+            reporter.ReportProgress("Generating final Bitmap");
 
             // rewrite bytes to Bitmap (split into more than one if array bigger than int.maxValue since WPF will choke on that
             long arraySizeOfBitmaps = finalImageArray.LongLength;
