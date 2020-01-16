@@ -73,7 +73,7 @@ namespace Better_Printing_for_OneNote.ViewModels
                 {
                     try
                     {
-                        var bitmap = Conversion.ConvertPsToOneImage(value, TEMP_FOLDER_PATH, cts.Token);
+                        var bitmap = Conversion.ConvertPDFToBitmaps(value, cts.Token)[0];
                         bitmap.Freeze();
                         GeneralHelperClass.ExecuteInUiThread(() =>
                         {
@@ -151,11 +151,6 @@ namespace Better_Printing_for_OneNote.ViewModels
 
             if (argFilePath != "")
                 FilePath = argFilePath;
-
-#if DEBUG
-            FilePath = @"D:\Daten\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Zahlen.ps";
-#endif
-
 
             //might be unnecessary
             /*Task.Run(() =>
