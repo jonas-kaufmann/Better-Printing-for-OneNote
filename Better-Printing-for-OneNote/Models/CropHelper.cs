@@ -131,13 +131,38 @@ namespace Better_Printing_for_OneNote.Models
         private Thickness Padding;
 
         /// <summary>
-        /// Initializes the first crops
+        /// Initializes an empty Crophelper just for the Signature or Pagenumbers
         /// </summary>
         /// <param name="image"></param>
+        public CropHelper() { }
+
+        /// <summary>
+        /// Initializes the first crops
+        /// </summary>
+        /// <param name="image">the document as bitmap</param>
         public CropHelper(WriteableBitmap image)
         {
             Image = image;
             Height = Image.PixelHeight;
+
+            // register CollectionChanged EventHandler to update Sitenumbers
+            Pages.CollectionChanged += (sender, e) => UpdatePageNumbers();
+        }
+
+        /// <summary>
+        /// Initializes the first crops (and sets signature etc.)
+        /// </summary>
+        /// <param name="image">the document as bitmap</param>
+        /// <param name="pageNumbersEnabled">page numbers enabled</param>
+        /// <param name="signature">the signature</param>
+        /// <param name="signatureEnabled">signature enabled</param>
+        public CropHelper(WriteableBitmap image, string signature, bool signatureEnabled, bool pageNumbersEnabled)
+        {
+            Image = image;
+            Height = Image.PixelHeight;
+            _signature = signature;
+            _signatureEnabled = signatureEnabled;
+            _pageNumbersEnabled = pageNumbersEnabled;
 
             // register CollectionChanged EventHandler to update Sitenumbers
             Pages.CollectionChanged += (sender, e) => UpdatePageNumbers();

@@ -34,5 +34,12 @@ In order to set it up, open the **PDF24 GUI** from start menu. Click on **Settin
 
 The finished configuration will look somewhat like this:
 
+```
+Output Directory:
+%temp%/Better-Printing-for-OneNote/Documents/
+Command: 
+"C:\Program Files\Better-Printing-for-OneNote\Better-Printing-for-OneNote.exe" "${file}"
+```
+
 ![PDF24_ConfigurationForAutomation.png](https://user-images.githubusercontent.com/14842772/72112750-cee00c00-333e-11ea-95bf-da4f186c84ba.png)
 

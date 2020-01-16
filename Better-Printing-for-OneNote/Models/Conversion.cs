@@ -1,4 +1,5 @@
-﻿using Better_Printing_for_OneNote.Models;
+﻿using Better_Printing_for_OneNote.AdditionalClasses;
+using Better_Printing_for_OneNote.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -13,10 +14,12 @@ namespace Better_Printing_for_OneNote
 {
     class Conversion
     {
-        private const int DPI = 300; // 600
-        private const int ROWS_TO_CHECK = 30; // 30
-        private const int MAX_WRONG_PIXELS = 150; // 50
+        private const int DPI = 300;
+        private const int ROWS_TO_CHECK = 30;
+        private const double MAX_WRONG_PIXELS_PERCENTAGE = 1;
         private const double SECTION_TO_CHECK = 0.15;
+        private const double FILE_CONVERSION_PROGRESS = 40;
+        private const double ARRAY_TO_FINAL_BITMAP_CONVERSION = 7.5;
 
         /// <summary>
         /// Converts a PDF document with (multiple) pages to one or multiple bitmaps if the document doesn't fit in a single one
@@ -24,10 +27,12 @@ namespace Better_Printing_for_OneNote
         /// <param name="filePath">Path to the Ps file</param>
         /// <param name="ct">the cancellation token</param>
         /// <exception cref="ConversionFailedException">thrown if something went wrong</exception>
-        public static WriteableBitmap[] ConvertPDFToBitmaps(string filePath, CancellationToken ct)
+        public static WriteableBitmap[] ConvertPDFToBitmaps(string filePath, CancellationToken ct, ProgressReporter reporter)
         {
             if (File.Exists(filePath))
             {
+                reporter.ReportProgress("Converting document to bitmaps");
+
                 int pageCount;
                 try
                 {
@@ -49,7 +54,9 @@ namespace Better_Printing_for_OneNote
 
                 ct.ThrowIfCancellationRequested();
 
-                return CombineImages(rawImages, ct);
+                reporter.ReportProgress(FILE_CONVERSION_PROGRESS);
+
+                return CombineImages(rawImages, ct, reporter);
             }
             else
                 throw new ConversionFailedException($"The file to be opened ({filePath}) doesn't exist.");
@@ -60,8 +67,10 @@ namespace Better_Printing_for_OneNote
         /// </summary>
         /// <param name="imagePaths">the paths to the images</param>
         /// <returns>the final combined bitmap</returns>
-        private static WriteableBitmap[] CombineImages(PPMImage[] rawImages, CancellationToken ct)
+        private static WriteableBitmap CombineImages(List<string> imagePaths, CancellationToken ct, ProgressReporter reporter)
         {
+            reporter.ReportProgress("Loading Bitmap 1");
+
             var previousImage = rawImages[0]; // first image
             int width = previousImage.Width;
             int stride = width * previousImage.BytesPerPixel;
@@ -85,12 +94,15 @@ namespace Better_Printing_for_OneNote
             ct.ThrowIfCancellationRequested();
 
             byte[] finalImageArray;
+            var reportPercentagePerBitmap = (100 - FILE_CONVERSION_PROGRESS - ARRAY_TO_FINAL_BITMAP_CONVERSION) / rawImages.Length;
             if (rawImages.Length > 1)
             {
                 var finalImageList = new List<byte>();
                 // go through all images after the first
                 for (int i = 1; i < rawImages.Length; i++)
                 {
+                    reporter.ReportProgress(reporter.PercentageCompleted + reportPercentagePerBitmap / 2, $"Loading Bitmap {i + 1}");
+
                     var image = rawImages[i];
 
                     ct.ThrowIfCancellationRequested();
@@ -134,6 +146,7 @@ namespace Better_Printing_for_OneNote
                     }
 
                     ct.ThrowIfCancellationRequested();
+                    reporter.ReportProgress(reporter.PercentageCompleted + reportPercentagePerBitmap / 2, $"Copying pixels from page {i + 1} into final Bitmap");
 
                     // copy pixels from the previous to the final image
                     for (int j = defaultTopOffset; j < bottomOffset1; j++)
@@ -145,6 +158,8 @@ namespace Better_Printing_for_OneNote
                     // copy pixels from the last image
                     if (i == rawImages.Length - 1)
                     {
+                        reporter.ReportProgress(reporter.PercentageCompleted + reportPercentagePerBitmap / 2, $"Copying pixels from page {i + 1} into final Bitmap");
+
                         var bottomOffset = defaultBottomOffset;
 
                         ct.ThrowIfCancellationRequested();
@@ -154,6 +169,7 @@ namespace Better_Printing_for_OneNote
                     }
                 }
                 finalImageArray = finalImageList.ToArray();
+                reporter.ReportProgress(reporter.PercentageCompleted + reportPercentagePerBitmap / 2);
             }
             else
             {
@@ -161,12 +177,17 @@ namespace Better_Printing_for_OneNote
 
                 ct.ThrowIfCancellationRequested();
 
+                reporter.ReportProgress(reporter.PercentageCompleted + reportPercentagePerBitmap / 2, "Copying pixels into final Bitmap");
+
                 finalImageArray = new byte[defaultBottomOffset - defaultTopOffset];
                 for (int j = 0; j < defaultBottomOffset - defaultTopOffset; j++)
                     finalImageArray[j] = previousImage.Pixels[j + defaultTopOffset];
+
+                reporter.ReportProgress(reporter.PercentageCompleted + reportPercentagePerBitmap / 2);
             }
 
             ct.ThrowIfCancellationRequested();
+            reporter.ReportProgress("Erzeuge finale Bitmap");
 
             // rewrite bytes to Bitmap (split into more than one if array bigger than int.maxValue since WPF will choke on that
             long arraySizeOfBitmaps = finalImageArray.LongLength;
@@ -228,15 +249,16 @@ namespace Better_Printing_for_OneNote
             bool sequenceFound = false;
             int supposedPositionY = 0;
             int stride = width * bytesPerPixel;
+            var maxWrongBytes = Math.Round((MAX_WRONG_PIXELS_PERCENTAGE * stride) / 100);
             for (int y = height - 1; y >= (1 - SECTION_TO_CHECK) * height; y--)
             {
                 // check all bytes of one row
-                var wrongPixels = 0;
+                var wrongBytes = 0;
                 for (int b = 0; b < stride; b++)
                 {
                     if (rowSequence[rowIndex][b] != pixels[y * stride + b])
-                        wrongPixels++;
-                    if (wrongPixels > MAX_WRONG_PIXELS)
+                        wrongBytes++;
+                    if (wrongBytes > maxWrongBytes)
                         goto NotEqual;
                 }
 
