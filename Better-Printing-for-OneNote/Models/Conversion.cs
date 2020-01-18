@@ -1,12 +1,10 @@
-﻿using Better_Printing_for_OneNote.AdditionalClasses;
-using Better_Printing_for_OneNote.Models;
+﻿using Better_Printing_for_OneNote.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -27,7 +25,7 @@ namespace Better_Printing_for_OneNote
         /// <param name="filePath">Path to the Ps file</param>
         /// <param name="ct">the cancellation token</param>
         /// <exception cref="ConversionFailedException">thrown if something went wrong</exception>
-        public static WriteableBitmap[] ConvertPDFToBitmaps(string filePath, CancellationToken ct, ProgressReporter reporter)
+        public static BitmapSource ConvertPDFToBitmaps(string filePath, CancellationToken ct, ProgressReporter reporter)
         {
             if (File.Exists(filePath))
             {
@@ -47,7 +45,7 @@ namespace Better_Printing_for_OneNote
 
                 PPMImage[] rawImages = new PPMImage[pageCount];
                 string pipeName = "BPfON";
-                Parallel.For(1, pageCount + 1, i =>
+                Parallel.For(1, pageCount + 1, new ParallelOptions() { CancellationToken = ct },i =>
                 {
                     rawImages[i - 1] = XPDF.GetPageAsPPM(filePath, i, DPI, false, false, pipeName + i);
                 });
@@ -67,7 +65,7 @@ namespace Better_Printing_for_OneNote
         /// </summary>
         /// <param name="imagePaths">the paths to the images</param>
         /// <returns>the final combined bitmap</returns>
-        private static WriteableBitmap[] CombineImages(PPMImage[] rawImages, CancellationToken ct, ProgressReporter reporter)
+        private static BitmapSource CombineImages(PPMImage[] rawImages, CancellationToken ct, ProgressReporter reporter)
         {
             reporter.ReportProgress("Loading Bitmap 1");
 
@@ -126,7 +124,9 @@ namespace Better_Printing_for_OneNote
                     {
                         var row = new byte[stride];
                         for (int j = 0; j < stride; j++)
+                        {
                             row[j] = image.Pixels[topOffset2 + j + c * stride];
+                        }
                         rowSequence.Add(row);
                     }
 
@@ -164,8 +164,19 @@ namespace Better_Printing_for_OneNote
 
                         ct.ThrowIfCancellationRequested();
 
+                        int counter = 0;
                         for (int j = topOffset2; j < bottomOffset; j++)
+                        {
+                            
+                            if (counter > 10000000)
+                            {
+                                ct.ThrowIfCancellationRequested();
+                                counter = 0;
+                            }
+                                counter++;
                             finalImageList.Add(image.Pixels[j]);
+                        }
+                            
                     }
                 }
                 finalImageArray = finalImageList.ToArray();
@@ -188,34 +199,7 @@ namespace Better_Printing_for_OneNote
 
             ct.ThrowIfCancellationRequested();
             reporter.ReportProgress("Generating final Bitmap");
-
-            // rewrite bytes to Bitmap (split into more than one if array bigger than int.maxValue since WPF will choke on that
-            long arraySizeOfBitmaps = finalImageArray.LongLength;
-            int bitmapCount = (int)(arraySizeOfBitmaps / int.MaxValue) + 1;
-            WriteableBitmap[] finalBitmaps = new WriteableBitmap[bitmapCount];
-            //long beginReadAt = 0;
-            //for (int i = 0; i < bitmapCount - 1; i++)
-            //{
-            //    int numberOfRows = int.MaxValue / stride;
-            //    int bytesToWrite = numberOfRows * stride;
-            //    WriteableBitmap bitmap = new WriteableBitmap(width, numberOfRows, DPI, DPI, pixelFormat, null);
-
-            //    (byte[])finalImageArray.GetValue(beginReadAt, beginReadAt + bytesToWrite)
-
-            //    bitmap.WritePixels(new Int32Rect(0, 0, width, numberOfRows), , stride, 0);
-            //    finalImages[i] = bitmap;
-
-            //    arraySizeOfBitmaps -= bytesToWrite;
-            //}
-
-
-            int numberOfRows = finalImageArray.Length / stride;
-            WriteableBitmap finalBitmap = new WriteableBitmap(width, numberOfRows, DPI, DPI, pixelFormat, null);
-            finalBitmap.WritePixels(new Int32Rect(0, 0, width, numberOfRows), finalImageArray, stride, 0);
-
-            finalBitmaps[0] = finalBitmap;
-
-            return finalBitmaps;
+            return BitmapSource.Create(width, (int)(finalImageArray.LongLength / stride), DPI, DPI, PixelFormats.Rgb24, null, finalImageArray, stride);
         }
 
         /// <summary>

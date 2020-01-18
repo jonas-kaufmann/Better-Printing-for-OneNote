@@ -1,16 +1,12 @@
 ﻿using System;
 using Better_Printing_for_OneNote.AdditionalClasses;
-using System.Windows.Shell;
 using Better_Printing_for_OneNote.Models;
 using Microsoft.Win32;
-using Better_Printing_for_OneNote.Views.Controls;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Threading;
-using System.Printing;
-using System.Diagnostics;
 using static Better_Printing_for_OneNote.Views.Controls.InteractiveFixedDocumentViewer;
 
 namespace Better_Printing_for_OneNote.ViewModels
@@ -72,18 +68,18 @@ namespace Better_Printing_for_OneNote.ViewModels
                 {
                     try
                     {
-                        var bitmap = Conversion.ConvertPDFToBitmaps(value, cts.Token, reporter)[0];
-                        bitmap.Freeze();
+                        BitmapSource bitmapSrc = Conversion.ConvertPDFToBitmaps(value, cts.Token, reporter);
+                        bitmapSrc.Freeze();
                         GeneralHelperClass.ExecuteInUiThread(() =>
                         {
                             CropHelper cropHelper;
                             if(CropHelper != null)
                             {
-                                cropHelper = new CropHelper(bitmap, CropHelper.Signature, CropHelper.SignatureEnabled, CropHelper.PageNumbersEnabled);
+                                cropHelper = new CropHelper(bitmapSrc, CropHelper.Signature, CropHelper.SignatureEnabled, CropHelper.PageNumbersEnabled);
                             }
                             else
                             {
-                                cropHelper = new CropHelper(bitmap);
+                                cropHelper = new CropHelper(bitmapSrc);
                             }
                             UpdatePrintFormat(cropHelper); // set the format and initialize the first pages
                             CropHelper = cropHelper;
@@ -105,6 +101,8 @@ namespace Better_Printing_for_OneNote.ViewModels
                             busyDialog.Close();
                         });
                     }
+
+                    GC.Collect();
                 });
 
                 busyDialog.ShowDialog();
@@ -209,7 +207,7 @@ namespace Better_Printing_for_OneNote.ViewModels
         private void SearchFile()
         {
             OpenFileDialog fileDialog = new OpenFileDialog();
-            fileDialog.Filter = "PDF-Files|*.pdf|PostScript-Files|*.ps";
+            fileDialog.Filter = "PDF-Files|*.pdf";
             if (fileDialog.ShowDialog() == true)
             {
                 FilePath = fileDialog.FileName;

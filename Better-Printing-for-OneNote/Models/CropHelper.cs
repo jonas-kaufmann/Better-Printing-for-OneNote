@@ -122,7 +122,8 @@ namespace Better_Printing_for_OneNote.Models
         private List<List<Crop>> UndoChangeList = new List<List<Crop>>();
         private List<List<Crop>> RedoChangeList = new List<List<Crop>>();
         private int Height;
-        private WriteableBitmap Image;
+        //private WriteableBitmap Image;
+        private BitmapSource Image;
         private int MaxCropHeight;
         private double DocumentHeight;
         private double DocumentWidth;
@@ -139,8 +140,7 @@ namespace Better_Printing_for_OneNote.Models
         /// <summary>
         /// Initializes the first crops
         /// </summary>
-        /// <param name="image">the document as bitmap</param>
-        public CropHelper(WriteableBitmap image)
+        public CropHelper(BitmapSource image)
         {
             Image = image;
             Height = Image.PixelHeight;
@@ -156,7 +156,7 @@ namespace Better_Printing_for_OneNote.Models
         /// <param name="pageNumbersEnabled">page numbers enabled</param>
         /// <param name="signature">the signature</param>
         /// <param name="signatureEnabled">signature enabled</param>
-        public CropHelper(WriteableBitmap image, string signature, bool signatureEnabled, bool pageNumbersEnabled)
+        public CropHelper(BitmapSource image, string signature, bool signatureEnabled, bool pageNumbersEnabled)
         {
             Image = image;
             Height = Image.PixelHeight;

@@ -72,7 +72,7 @@ namespace Better_Printing_for_OneNote.Models
         /// <param name="pageNumbersEnabled">page numbers enabled</param>
         /// <param name="signature">the signature</param>
         /// <param name="signatureEnabled">signature enabled</param>
-        public PageModel(WriteableBitmap image, double documentHeight, double documentWidth, double contentHeight, double contentWidth, Thickness padding, bool pageNumbersEnabled, bool signatureEnabled, string signature)
+        public PageModel(BitmapSource image, double documentHeight, double documentWidth, double contentHeight, double contentWidth, Thickness padding, bool pageNumbersEnabled, bool signatureEnabled, string signature)
         {
             FixedPage = new FixedPage() { Height = documentHeight, Width = documentWidth };
             RenderOptions.SetBitmapScalingMode(FixedPage, BitmapScalingMode.HighQuality);
