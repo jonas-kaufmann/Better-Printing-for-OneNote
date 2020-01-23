@@ -68,7 +68,7 @@ namespace Better_Printing_for_OneNote.ViewModels
                 {
                     try
                     {
-                        BitmapSource bitmapSrc = Conversion.ConvertPDFToBitmaps(value, cts.Token, reporter);
+                        BitmapSource bitmapSrc = Conversion.ConvertPDFToBitmaps(value, cts.Token, reporter)[0];
                         bitmapSrc.Freeze();
                         GeneralHelperClass.ExecuteInUiThread(() =>
                         {
