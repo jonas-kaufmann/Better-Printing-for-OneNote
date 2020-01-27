@@ -11,6 +11,9 @@ using System.Windows;
 using System.Threading;
 using System.Printing;
 using System.Diagnostics;
+using System.Windows.Threading;
+using System.Collections.Generic;
+using System.Windows.Documents;
 using static Better_Printing_for_OneNote.Views.Controls.InteractiveFixedDocumentViewer;
 
 namespace Better_Printing_for_OneNote.ViewModels
@@ -76,16 +79,10 @@ namespace Better_Printing_for_OneNote.ViewModels
                         bitmap.Freeze();
                         GeneralHelperClass.ExecuteInUiThread(() =>
                         {
-                            CropHelper cropHelper;
-                            if(CropHelper != null)
-                            {
-                                cropHelper = new CropHelper(bitmap, CropHelper.Signature, CropHelper.SignatureEnabled, CropHelper.PageNumbersEnabled);
-                            }
-                            else
-                            {
-                                cropHelper = new CropHelper(bitmap);
-                            }
+                            var cropHelper = new CropHelper(new BitmapSource[] { bitmap });
+
                             UpdatePrintFormat(cropHelper); // set the format and initialize the first pages
+                            cropHelper.InitializePages();
                             CropHelper = cropHelper;
                             busyDialog.Completed = true;
                             busyDialog.Close();
@@ -155,7 +152,9 @@ namespace Better_Printing_for_OneNote.ViewModels
                 FilePath = argFilePath;
 
 #if DEBUG
-            //FilePath = @"D:\Daten\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\corruptFile.ps";
+            FilePath = @"D:\Daten\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Normales Dokument\Diskrete Signale.pdf";
+            //FilePath = @"C:\Users\fabit\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Normales Dokument\Diskrete Signale.pdf";
+        //Print();
 #endif
         }
 

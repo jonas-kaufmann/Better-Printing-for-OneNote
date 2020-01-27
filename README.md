@@ -36,7 +36,7 @@ The finished configuration will look somewhat like this:
 
 ```
 Output Directory:
-%temp%/Better-Printing-for-OneNote/Documents/
+%temp%\Better-Printing-for-OneNote\Documents\
 Command: 
 "C:\Program Files\Better-Printing-for-OneNote\Better-Printing-for-OneNote.exe" "${file}"
 ```
