@@ -5,20 +5,18 @@ This project aims to deliver an improved printing experience for OneNote when pr
 When you try to print handwritten text that is larger than a single page of your printer, OneNote just cuts the pages where the bounds are. Often times, text gets split in half and also, if that happens, text is duplicated to the next page. To solve this you have to manually add margins into your handwriting, then look at the print preview again, add another margin, and so forth.
 
 ## Features
-
 - easily add page breaks and remove sections
 - automatic reversion of OneNote's weird page splitting (don't worry if it looks weird in OneNote, just print it)
-- work with PDF and PostScript files
 - add page numbers
 - add a signature
 - directly print from this application
 - what you see is what you get; if you select a printer to later print to, the page layout will be applied to the document viewer
+- work with any PDF
 
 ## Prerequisites
 
 - Windows 10 64 bit
 - [.NET Core](https://dotnet.microsoft.com/download) x64 runtime
-- [GhostScript](https://www.ghostscript.com/download/gsdnld.html) x64 (version for working with PDFs and PostScript)
 
 ## Automation
 

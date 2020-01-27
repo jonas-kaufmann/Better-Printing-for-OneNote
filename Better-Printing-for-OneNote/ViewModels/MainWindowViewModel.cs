@@ -1,9 +1,7 @@
 ﻿using System;
 using Better_Printing_for_OneNote.AdditionalClasses;
-using System.Windows.Shell;
 using Better_Printing_for_OneNote.Models;
 using Microsoft.Win32;
-using Better_Printing_for_OneNote.Views.Controls;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using System.Threading.Tasks;
@@ -75,11 +73,11 @@ namespace Better_Printing_for_OneNote.ViewModels
                 {
                     try
                     {
-                        var bitmap = Conversion.ConvertPsToOneImage(value, TEMP_FOLDER_PATH, cts.Token, reporter);
-                        bitmap.Freeze();
+                        BitmapSource bitmapSrc = Conversion.ConvertPDFToBitmaps(value, cts.Token, reporter)[0];
+                        bitmapSrc.Freeze();
                         GeneralHelperClass.ExecuteInUiThread(() =>
                         {
-                            var cropHelper = new CropHelper(new BitmapSource[] { bitmap });
+                            var cropHelper = new CropHelper(new BitmapSource[] { bitmapSrc });
 
                             UpdatePrintFormat(cropHelper); // set the format and initialize the first pages
                             cropHelper.InitializePages();
@@ -102,6 +100,8 @@ namespace Better_Printing_for_OneNote.ViewModels
                             busyDialog.Close();
                         });
                     }
+
+                    GC.Collect();
                 });
 
                 busyDialog.ShowDialog();
@@ -211,7 +211,7 @@ namespace Better_Printing_for_OneNote.ViewModels
         private void SearchFile()
         {
             OpenFileDialog fileDialog = new OpenFileDialog();
-            fileDialog.Filter = "PDF-Files|*.pdf|PostScript-Files|*.ps";
+            fileDialog.Filter = "PDF-Files|*.pdf";
             if (fileDialog.ShowDialog() == true)
             {
                 FilePath = fileDialog.FileName;

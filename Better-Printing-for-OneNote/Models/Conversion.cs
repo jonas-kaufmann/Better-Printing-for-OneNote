@@ -1,463 +1,226 @@
-﻿using Better_Printing_for_OneNote.AdditionalClasses;
-using Better_Printing_for_OneNote.Models;
-using Ghostscript.NET;
-using Ghostscript.NET.Processor;
+﻿using Better_Printing_for_OneNote.Models;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 namespace Better_Printing_for_OneNote
 {
     class Conversion
     {
-        private const int DPI = 300;
-        private const int ROWS_TO_CHECK = 30;
-        private const double MAX_WRONG_PIXELS_PERCENTAGE = 1;
-        private const double SECTION_TO_CHECK = 0.15;
-        private const double GS_CONVERSION_PROGRESS = 40;
-        private const double ARRAY_TO_FINAL_BITMAP_CONVERSION = 7.5;
+        private const int DPI = 600;
+        private const double PERCENTAGE_ROWS_FOR_MATCHING = 0.01;
+        private const double ROWS_TO_CHECK_PERCENTAGE = .05;
+        private const double MAX_WRONG_PIXELS_PERCENTAGE = 0.01;
 
         /// <summary>
-        /// Converts a Postscript document with (multiple) pages to one Bitmap (removes the created files after conversion) (throws ConversionFailedException if something went wrong)
+        /// Converts a PDF document with (multiple) pages to one or multiple bitmaps if the document doesn't fit in a single one
         /// </summary>
         /// <param name="filePath">Path to the Ps file</param>
-        /// <param name="tempFolder">Path to the temp folder (or another folder to store temporary files in)</param>
         /// <param name="ct">the cancellation token</param>
-        /// <returns>the bitmap</returns>
-        public static WriteableBitmap ConvertPsToOneImage(string filePath, string tempFolder, CancellationToken ct, ProgressReporter reporter)
+        /// <exception cref="ConversionFailedException">thrown if something went wrong</exception>
+        public static BitmapSource[] ConvertPDFToBitmaps(string filePath, CancellationToken ct, ProgressReporter reporter)
         {
             if (File.Exists(filePath))
             {
-                reporter.ReportProgress("Konvertiere Dokument zu Bitmaps");
-                var paths = PsToBmp(filePath, tempFolder);
-                reporter.ReportProgress(GS_CONVERSION_PROGRESS);
-                ct.ThrowIfCancellationRequested();
-                var bitmap = CombineImages(paths, ct, reporter);
-                // run Task to clear the files
-                Task.Run(() =>
-                {
-                    while (paths.Count > 0)
-                    {
-                        try
-                        {
-                            File.Delete(paths[0]);
-                            paths.RemoveAt(0);
-                        }
-                        catch (Exception e)
-                        {
-                            Trace.WriteLine($"Could not delete the file {paths[0]}. Trying again. Exception:\n{e.ToString()}");
-                            Thread.Sleep(500);
-                        }
-                    }
-                });
+                reporter.ReportProgress("Converting document to bitmaps");
 
-                return bitmap;
-            }
-            else
-                throw new ConversionFailedException($"Die zu öffnende Postscript Datei ({filePath}) existiert nicht.");
-        }
-
-        
-
-        /// <summary>
-        /// Converts a Postscript file to multiple Bitmap files and stores them in the Temp Directory (throws ConversionFailedException if something went wrong)
-        /// </summary>
-        /// <param name="filePath">Path to the Ps file</param>
-        /// <param name="tempFolderPath">Path to the temp folder (or another folder to store temporary files in)</param>
-        /// <returns>Paths to the converted files</returns>
-        private static List<string> PsToBmp(string filePath, string tempFolderPath)
-        {
-            if (GhostscriptVersionInfo.IsGhostscriptInstalled)
-            {
-                if(!(filePath.Contains('ä') | filePath.Contains('ö') | filePath.Contains('ü') || filePath.Contains('µ') || filePath.Contains('²') || filePath.Contains('³') || filePath.Contains('%') || filePath.Contains('€') || filePath.Contains('°') || filePath.Contains('µ')))
-                {
-                    FileInfo fileInfo = new FileInfo(filePath);
-                    var outputPath = Path.Combine(tempFolderPath, Path.GetFileNameWithoutExtension(fileInfo.Name));
-
-                    try
-                    {
-                        using (GhostscriptProcessor processor = new GhostscriptProcessor())
-                        {
-                            List<string> switches = new List<string>();
-                            switches.Add("empty");
-                            switches.Add("-dSAFER");
-                            switches.Add("-sDEVICE=bmp16m");
-                            switches.Add($"-r{DPI}");
-                            switches.Add("-o");
-                            switches.Add($"\"{outputPath}_%d.bmp\"");
-                            switches.Add($"\"{filePath}\"");
-
-                            GeneralHelperClass.CreateDirectoryIfNotExists(tempFolderPath);
-                            var outputHandler = new GSOutputStdIO();
-                            processor.StartProcessing(switches.ToArray(), outputHandler);
-
-                            var paths = new List<string>();
-                            for (int i = 1; i <= outputHandler.Pages; i++)
-                                paths.Add($"{outputPath}_{i}.bmp");
-
-                            if (paths.Count < 1)
-                            {
-                                Trace.WriteLine($"\nPsToBmp conversion failed. Probably because there is no page in the document or the document is corrupted.");
-                                throw new ConversionFailedException($"Es kam zu einem Fehler bei der Konvertierung der PostScript Datei. Bitte mit anderer PostScript Datei erneut versuchen.");
-                            }
-
-                            return paths;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        if (ex is ConversionFailedException)
-                            throw ex;
-                        else
-                        {
-                            Trace.WriteLine($"\nPsToBmp conversion failed:\n {ex.ToString()}");
-                            throw new ConversionFailedException($"Es kam zu einem Fehler bei der Konvertierung der PostScript Datei. Bitte mit anderer PostScript Datei erneut versuchen.\n\nMehr Informationen sind in den Log-Dateien hinterlegt.");
-                        }
-                    }
-                }
-                else
-                {
-                    Trace.WriteLine("\nGhostscript.Net does not support umlauts or other special characters in the filepath.");
-                    throw new ConversionFailedException("Umlaute oder andere spezielle Zeichen im Dateipfad werden nicht unterstützt.");
-                }
-            }
-            else
-            {
-                Trace.WriteLine("\nGhostscript is not installed (64-bit needed)");
-                throw new ConversionFailedException("Bitte installieren Sie Ghostscript. (Es wird die 64 - bit Version benötigt)");
-            }
-        }
-
-        /// <summary>
-        /// Combines multiple images to a big one by removing white rows at the top and bottom and removing duplicate rows
-        /// </summary>
-        /// <param name="imagePaths">the paths to the images</param>
-        /// <returns>the final combined bitmap</returns>
-        private static WriteableBitmap CombineImages(List<string> imagePaths, CancellationToken ct, ProgressReporter reporter)
-        {
-            reporter.ReportProgress("Lade Bitmap 1");
-
-            var previousImage = LoadBitmapIntoArray(imagePaths[0]); // first image
-            var stride = previousImage.Stride;
-            var height = previousImage.Height;
-            var width = previousImage.Width;
-            var format = previousImage.Format;
-            var palette = previousImage.Palette;
-
-            ct.ThrowIfCancellationRequested();
-
-            // find first not white row in the first image
-            int topOffset1 = 0;
-            try
-            {
-                topOffset1 = FirstNotWhiteRow(previousImage.Pixels, stride, previousImage.Height);
-            }
-            catch (RowNotFoundException e)
-            {
-                Trace.WriteLine($"\nCombining the bitmaps failed because \"{imagePaths[0]}\" has no not white row. Using the full bitmap. Exception:\n {e.ToString()}");
-            }
-
-            ct.ThrowIfCancellationRequested();
-
-            byte[] finalImageArray;
-            var reportPercentagePerBitmap = (100 - GS_CONVERSION_PROGRESS - ARRAY_TO_FINAL_BITMAP_CONVERSION) / imagePaths.Count;
-            if (imagePaths.Count > 1)
-            {
-                var finalImageList = new List<byte>();
-                // go through all images after the first
-                for (int i = 1; i < imagePaths.Count; i++)
-                {
-                    reporter.ReportProgress(reporter.PercentageCompleted + reportPercentagePerBitmap / 2, $"Lade Bitmap {i + 1}");
-
-                    var image = LoadBitmapIntoArray(imagePaths[i]);
-
-                    ct.ThrowIfCancellationRequested();
-
-                    // find offset to the first not white row in the image
-                    var topOffset2 = 0;
-                    try
-                    {
-                        topOffset2 = FirstNotWhiteRow(image.Pixels, stride, image.Height);
-                    }
-                    catch (RowNotFoundException e)
-                    {
-                        Trace.WriteLine($"\nCombining the bitmaps failed because \"{imagePaths[i]}\" has no not white row. Using the full bitmap. Exception:\n {e.ToString()}");
-                    }
-
-                    ct.ThrowIfCancellationRequested();
-
-                    // build the rowsequence after the first not white row (inclusive)
-                    var rowSequence = new List<byte[]>();
-                    for (int c = 0; c < ROWS_TO_CHECK; c++)
-                    {
-                        var row = new byte[stride];
-                        for (int j = 0; j < stride; j++)
-                            row[j] = image.Pixels[topOffset2 + j + c * stride];
-                        rowSequence.Add(row);
-                    }
-
-                    ct.ThrowIfCancellationRequested();
-
-                    // find equal row
-                    var bottomOffset1 = 0;
-                    try
-                    {
-                        bottomOffset1 = FindMatchingRowSequence(previousImage.Pixels, rowSequence, stride, previousImage.Height);
-                    }
-                    catch (RowNotFoundException e)
-                    {
-                        Trace.WriteLine($"\nCombining the bitmaps failed because \"{imagePaths[i - 1]}\" and \"{imagePaths[i]}\" have no equal row. Using the full bitmap. Exception:\n {e.ToString()}");
-                        // cut off the white space under image and use that in case of no equal row
-                        try
-                        {
-                            bottomOffset1 = LastNotWhiteRow(previousImage.Pixels, stride, previousImage.Height);
-                        }
-                        catch (RowNotFoundException ex)
-                        {
-                            Trace.WriteLine($"\nCombining the bitmaps failed because \"{imagePaths[i - 1]}\" has no not white row. Using the full bitmap. Exception:\n {ex.ToString()}");
-                        }
-                    }
-
-                    ct.ThrowIfCancellationRequested();
-                    reporter.ReportProgress(reporter.PercentageCompleted + reportPercentagePerBitmap / 2, $"Kopiere Pixel von Bitmap {i} in die finale Bitmap");
-
-                    // copy pixels from the previous to the final image
-                    for (int j = topOffset1; j < bottomOffset1; j++)
-                        finalImageList.Add(previousImage.Pixels[j]);
-
-                    previousImage = image;
-                    topOffset1 = topOffset2;
-
-                    // copy pixels from the last image
-                    if (i == imagePaths.Count - 1)
-                    {
-                        reporter.ReportProgress(reporter.PercentageCompleted + reportPercentagePerBitmap / 2, $"Kopiere Pixel von Bitmap {i+1} in die finale Bitmap");
-
-                        var bottomOffset = 0;
-                        try
-                        {
-                            bottomOffset = LastNotWhiteRow(image.Pixels, stride, image.Height);
-                        }
-                        catch (RowNotFoundException ex)
-                        {
-                            Trace.WriteLine($"\nCombining the bitmaps failed because \"{imagePaths[i]}\" has no not white row. Using the full bitmap. Exception:\n {ex.ToString()}");
-                        }
-
-                        ct.ThrowIfCancellationRequested();
-
-                        for (int j = topOffset2; j < bottomOffset; j++)
-                            finalImageList.Add(image.Pixels[j]);
-                    }
-                }
-                finalImageArray = finalImageList.ToArray();
-                finalImageList = null;
-                reporter.ReportProgress(reporter.PercentageCompleted + reportPercentagePerBitmap / 2);
-            }
-            else
-            {
-                // copy all pixels from the first except the white rows
-                var bottomOffset = 0;
+                // retrieve number of pages
+                int pageCount;
                 try
                 {
-                    bottomOffset = LastNotWhiteRow(previousImage.Pixels, stride, previousImage.Height);
+                    pageCount = XPDF.GetPageCount(filePath);
                 }
-                catch (RowNotFoundException ex)
+                catch
                 {
-                    Trace.WriteLine($"\nCombining the images failed because \"{imagePaths[0]}\" has no not white row. Using the full image. Exception:\n {ex.ToString()}");
+                    throw new ConversionFailedException("Could not read number of pages");
                 }
 
                 ct.ThrowIfCancellationRequested();
 
-                reporter.ReportProgress(reporter.PercentageCompleted + reportPercentagePerBitmap / 2, "Kopiere Pixel in die finale Bitmap");
+                reporter.ReportProgress("Converting first page ...");
 
-                finalImageArray = new byte[bottomOffset - topOffset1];
-                for (int j = 0; j < bottomOffset - topOffset1; j++)
-                    finalImageArray[j] = previousImage.Pixels[j + topOffset1];
+                // read first page
+                List<List<byte>> finalImages = new List<List<byte>>();
+                finalImages.Add(new List<byte>());
+                string pipeName = "BPfON";
+                PPMImage currentImage;
+                try
+                {
+                    currentImage = XPDF.GetPageAsPPM(filePath, 1, DPI, false, false, pipeName);
+                }
+                catch
+                {
+                    throw new ConversionFailedException("Page 1 couldn't be read");
+                }
+                int width = currentImage.Width;
+                int height = currentImage.Height;
+                int bytesPerPixel = currentImage.BytesPerPixel;
+                int stride = currentImage.Width * bytesPerPixel;
 
-                reporter.ReportProgress(reporter.PercentageCompleted + reportPercentagePerBitmap / 2);
+                ct.ThrowIfCancellationRequested();
+
+                // load next image asynchronously
+                PPMImage nextImage = null;
+                int nextFirstNonWhiteRow = 0;
+                int nextLastNonWhiteRow = 0;
+                Task task = null;
+                if (pageCount > 1)
+                    try
+                    {
+                        task = Task.Run(() => nextImage = XPDF.GetPageAsPPM(filePath, 2, DPI, false, false, pipeName));
+                    }
+                    catch
+                    {
+                        throw new ConversionFailedException("Page 2 couldn't be read");
+                    }
+
+                // Add first image without white borders to final list
+                int firstNonWhiteRow = FirstNonWhiteRow(currentImage.Pixels, width, height, bytesPerPixel);
+                ct.ThrowIfCancellationRequested();
+                int lastNonWhiteRow = LastNonWhiteRow(currentImage.Pixels, width, height, bytesPerPixel);
+                ct.ThrowIfCancellationRequested();
+                finalImages[0].AddRange(currentImage.Pixels[(firstNonWhiteRow * stride)..(lastNonWhiteRow * stride)]);
+
+                int numberRowsForMatching = (int)(height * PERCENTAGE_ROWS_FOR_MATCHING);
+                int currentFinalImageIndex = 0;
+                for (int i = 1; i < pageCount; i++)
+                {
+                    ct.ThrowIfCancellationRequested();
+
+                    if (task != null)
+                    {
+                        task.Wait();
+                        currentImage = nextImage;
+                        firstNonWhiteRow = nextFirstNonWhiteRow;
+                        lastNonWhiteRow = nextLastNonWhiteRow;
+                    }
+
+                    ct.ThrowIfCancellationRequested();
+
+                    // load next image asynchronously
+                    task = null;
+                    if (i < pageCount - 1)
+                        try
+                        {
+                            task = Task.Run(() => nextImage = XPDF.GetPageAsPPM(filePath, i + 2, DPI, false, false, pipeName));
+                        }
+                        catch
+                        {
+                            throw new ConversionFailedException($"Page {i + 2} couldn't be read");
+                        }
+
+                    ct.ThrowIfCancellationRequested();
+
+                    firstNonWhiteRow = FirstNonWhiteRow(currentImage.Pixels, width, height, bytesPerPixel);
+                    lastNonWhiteRow = LastNonWhiteRow(currentImage.Pixels, width, height, bytesPerPixel);
+
+                    try
+                    {
+                        int yOffset = FindMatchingRows(finalImages[currentFinalImageIndex], currentImage.Pixels[(stride * firstNonWhiteRow)..(stride * (firstNonWhiteRow + numberRowsForMatching))], (int)Math.Round(ROWS_TO_CHECK_PERCENTAGE * height), width, bytesPerPixel);
+                        finalImages[currentFinalImageIndex].RemoveRange(finalImages[currentFinalImageIndex].Count - yOffset * stride, yOffset * stride);
+                    }
+                    catch (RowNotFoundException) { }
+
+                    ct.ThrowIfCancellationRequested();
+
+                    // if new image doesn't fit in list, create a new one
+                    if ((long)finalImages[currentFinalImageIndex].Count + (lastNonWhiteRow * stride - firstNonWhiteRow * stride) > int.MaxValue / 2)
+                    {
+                        finalImages.Add(new List<byte>());
+                        currentFinalImageIndex++;
+                    }
+                    finalImages[currentFinalImageIndex].AddRange(currentImage.Pixels[(firstNonWhiteRow * stride)..(lastNonWhiteRow * stride)]);
+
+                    reporter.ReportProgress(i * 100 / pageCount, $"Processing page {i + 1}");
+                }
+
+                ct.ThrowIfCancellationRequested();
+
+                BitmapSource[] bitmapSources = new BitmapSource[finalImages.Count];
+                for (int i = 0; i < bitmapSources.Length; i++) {
+                    bitmapSources[i] = BitmapSource.Create(width, finalImages[i].Count / stride, DPI, DPI, PixelFormats.Rgb24, null, finalImages[i].ToArray(), stride);
+                }
+
+                return bitmapSources;
             }
-            previousImage = null;
-
-            ct.ThrowIfCancellationRequested();
-            reporter.ReportProgress("Erzeuge finale Bitmap");
-
-            // rewrite bytes to Bitmap
-            var heightFinal = finalImageArray.Length / stride;
-            var finalBitmap = new WriteableBitmap(width, heightFinal, DPI, DPI, format, palette);
-            finalBitmap.WritePixels(new Int32Rect(0, 0, width, heightFinal), finalImageArray, stride, 0);
-
-            return finalBitmap;
+            else
+                throw new ConversionFailedException($"The file to be opened ({filePath}) doesn't exist.");
         }
 
         /// <summary>
-        /// Loads a bitmap file from the harddrive and loads the data into an bytearray
+        /// Searches for the first non white row from the top (throws RowNotFoundException)
         /// </summary>
-        /// <param name="path">the path to the .bmp file</param>
-        /// <returns>the array and some information about the image</returns>
-        private static BitmapInformation LoadBitmapIntoArray(string path)
+        private static int FirstNonWhiteRow(byte[] pixels, int width, int height, int bytesPerPixel)
         {
-            // load the image
-            var bitmapImage = new BitmapImage();
-            bitmapImage.BeginInit();
-            bitmapImage.UriSource = new Uri(path);
-            bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-            bitmapImage.EndInit();
-
-            // write information to the output object
-            var output = new BitmapInformation() { Palette = bitmapImage.Palette, Format = bitmapImage.Format, Height = bitmapImage.PixelHeight, Width = bitmapImage.PixelWidth };
-
-            // copy pixels to the array
-            var bytesPerPixel = bitmapImage.Format.BitsPerPixel / 8; // BitsPerPixel: 32 -> BytesPerPixel: hier 4 (s, R, G, B)
-            output.Stride = bitmapImage.PixelWidth * bytesPerPixel;  // stride: Bytes in einer Reihe
-            output.Pixels = new byte[output.Stride * bitmapImage.PixelHeight];
-            bitmapImage.CopyPixels(output.Pixels, output.Stride, 0);
-
-            return output;
-        }
-
-        /// <summary>
-        /// Searches for the first not white row from the top (throws RowNotFoundException)
-        /// </summary>
-        /// <param name="pixels">the pixel array to search in</param>
-        /// <param name="stride">the bytes per row</param>
-        /// <param name="imageHeight">the pixel height of the pixels</param>
-        private static int FirstNotWhiteRow(byte[] pixels, int stride, int imageHeight)
-        {
+            int stride = width * bytesPerPixel;
             // find first not white row
-            for (int y = 0; y < imageHeight; y++)
+            for (int a = 0; a < (int)(ROWS_TO_CHECK_PERCENTAGE * height) * stride; a++)
             {
-                // check all bytes of one row
-                for (int b = 0; b < stride; b++)
-                {
-                    if (pixels[y * stride + b] != 255)
-                        return y * stride;
-                }
+                if (pixels[a] != 255)
+                    return (a / stride);
             }
-            throw new RowNotFoundException("Could not find a not white row.");
+            return 0;
         }
 
         /// <summary>
-        /// Searches for the first not white row from the bottom (throws RowNotFoundException)
+        /// Searches for the last non white row from the bottom (throws RowNotFoundException)
         /// </summary>
-        /// <param name="pixels">the pixel array to search in</param>
-        /// <param name="stride">the bytes per row</param>
-        /// <param name="imageHeight">the pixel height of the pixels</param>
-        private static int LastNotWhiteRow(byte[] pixels, int stride, int imageHeight)
+        private static int LastNonWhiteRow(byte[] pixels, int width, int height, int bytesPerPixel)
         {
+            int stride = width * bytesPerPixel;
             // find first not white row
-            for (int y = imageHeight - 1; y >= 0; y--)
+            for (int a = pixels.Length - 1; a > (int)((1 - ROWS_TO_CHECK_PERCENTAGE) * height) * stride; a--)
             {
-                // check all bytes of one row
-                for (int b = 0; b < stride; b++)
-                {
-                    if (pixels[y * stride + b] != 255)
-                        return y * stride;
-                }
+                if (pixels[a] != 255)
+                    return a / stride;
             }
-            throw new RowNotFoundException("Could not find a not white row.");
+
+            return height - 1;
         }
 
-        /// <summary>
-        /// Searches for the first matching rowsequence in the Pixelarray (throws RowNotFoundException)
-        /// </summary>
-        /// <param name="pixels">the pixel array to search in</param>
-        /// <param name="rowSequence">the rowsequence to search</param>
-        /// <param name="stride">the bytes per row</param>
-        /// <param name="height">the pixel height of the pixels</param>
-        /// <returns>the offset from the bottom (of the pixel array)</returns>
-        private static int FindMatchingRowSequence(byte[] pixels, List<byte[]> rowSequence, int stride, int height)
+        private static int FindMatchingRows(List<byte> searchImg, byte[] rowsToMatchAgainst, int numberRowsToCheckInSearchImg, int width, int bytesPerPixel)
         {
-            int rowIndex = rowSequence.Count - 1;
-            bool sequenceFound = false;
-            int supposedPositionY = 0;
-            var maxWrongBytes = Math.Round((MAX_WRONG_PIXELS_PERCENTAGE * stride) / 100);
-            for (int y = height - 1; y >= (1 - SECTION_TO_CHECK) * height; y--)
+            int stride = width * bytesPerPixel;
+            int numberRowsToMatch = rowsToMatchAgainst.Length / stride;
+            int maxDifferentPixels = (int)Math.Round(MAX_WRONG_PIXELS_PERCENTAGE * width * numberRowsToMatch);
+            int equalRowAtOffsetYBottom = numberRowsToMatch;
+            int yOffsetBoundary = searchImg.Count - stride * numberRowsToCheckInSearchImg;
+            for (int yOffset = searchImg.Count - stride * numberRowsToMatch; yOffset > yOffsetBoundary; yOffset -= stride)
             {
-                // check all bytes of one row
-                var wrongBytes = 0;
-                for (int b = 0; b < stride; b++)
+                int numberDifferentPixels = 0;
+
+                for (int a = 0; a < numberRowsToMatch * stride; a += bytesPerPixel)
                 {
-                    if (rowSequence[rowIndex][b] != pixels[y * stride + b])
-                        wrongBytes++;
-                    if (wrongBytes > maxWrongBytes)
-                        goto NotEqual;
+                    for (int i = 0; i < bytesPerPixel; i++)
+                    {
+                        if (searchImg[yOffset + a + i] != rowsToMatchAgainst[a + i])
+                        {
+                            numberDifferentPixels++;
+
+                            if (numberDifferentPixels > maxDifferentPixels)
+                            {
+                                equalRowAtOffsetYBottom++;
+                                goto StartAtNextRow;
+                            }
+
+                            break;
+                        }
+                    }
                 }
-
-                // row is a match 
-                rowIndex--;
-                if (rowIndex < 0)
-                    return y * stride;
-                if (!sequenceFound)
-                {
-                    supposedPositionY = y;
-                    sequenceFound = true;
-                }
-
-                goto End;
-
-            // row is no match
-            NotEqual:
-                if (sequenceFound)
-                {
-                    // reset the values if not the full sequence is matching
-                    sequenceFound = false;
-                    rowIndex = rowSequence.Count - 1;
-                    y = supposedPositionY;
-                }
-
-            End:;
-
+                return equalRowAtOffsetYBottom;
+            StartAtNextRow:;
             }
-            throw new RowNotFoundException("Could not find an equal row.");
-        }
 
-        class BitmapInformation
-        {
-            public System.Windows.Media.PixelFormat Format;
-            public BitmapPalette Palette;
-            public byte[] Pixels;
-            public int Stride;
-            public int Height;
-            public int Width;
+            throw new RowNotFoundException("No matching rows have been found");
         }
 
         class RowNotFoundException : Exception
         {
             public RowNotFoundException(string message) : base(message) { }
-        }
-
-        class GSOutputStdIO : GhostscriptStdIO
-        {
-            public GSOutputStdIO() : base(false, true, false) { }
-
-            private bool FirstOutput = true;
-            public int Pages;
-
-            public override void StdOut(string output)
-            {
-                //if (output.Trim().Contains("LastPage")) Pages = output.Split("Page").Length - 2;
-                if (output.Trim().Contains("Page")) Pages++;
-
-                // output to log/trace
-                if (FirstOutput)
-                {
-                    FirstOutput = false;
-                    Trace.Write($"\nGhostScript Protocoll:\n{output}");
-                }
-                else Trace.Write(output);
-            }
-
-            public override void StdError(string error) { }
-
-            public override void StdIn(out string input, int count)
-            {
-                input = "";
-            }
         }
     }
 
