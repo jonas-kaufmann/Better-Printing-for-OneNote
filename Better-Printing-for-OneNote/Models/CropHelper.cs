@@ -39,8 +39,6 @@ namespace Better_Printing_for_OneNote.Models
         private Thickness Padding;
         private BitmapSource[] Images;
 
-        public CropHelper() { }
-
         public CropHelper(BitmapSource[] images)
         {
             Images = images;

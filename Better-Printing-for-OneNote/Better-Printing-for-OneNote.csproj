@@ -29,10 +29,7 @@
     <PackageReference Include="Extended.Wpf.Toolkit" Version="3.7.0">
       <NoWarn>NU1701</NoWarn>
     </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\WpfCropableImageControl\WpfCropableImageControl\WpfCropableImageControl.csproj" />
+    <PackageReference Include="Thomi.WpfCropableImageControl" Version="1.0.4" />
   </ItemGroup>
 
   <ItemGroup>

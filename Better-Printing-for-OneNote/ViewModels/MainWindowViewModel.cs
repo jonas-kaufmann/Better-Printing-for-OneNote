@@ -73,11 +73,12 @@ namespace Better_Printing_for_OneNote.ViewModels
                 {
                     try
                     {
-                        BitmapSource bitmapSrc = Conversion.ConvertPDFToBitmaps(value, cts.Token, reporter)[0];
-                        bitmapSrc.Freeze();
+                        BitmapSource[] bitmaps = Conversion.ConvertPDFToBitmaps(value, cts.Token, reporter);
+                        foreach(var bitmap in bitmaps)
+                            bitmap.Freeze();
                         GeneralHelperClass.ExecuteInUiThread(() =>
                         {
-                            var cropHelper = new CropHelper(new BitmapSource[] { bitmapSrc });
+                            var cropHelper = new CropHelper(bitmaps);
 
                             UpdatePrintFormat(cropHelper); // set the format and initialize the first pages
                             cropHelper.InitializePages();
@@ -108,7 +109,7 @@ namespace Better_Printing_for_OneNote.ViewModels
             }
         }
 
-        private CropHelper _cropHelper = new CropHelper();
+        private CropHelper _cropHelper;
         public CropHelper CropHelper
         {
             get
