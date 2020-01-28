@@ -165,5 +165,16 @@ namespace Better_Printing_for_OneNote.Models
             else if (splitHeight < 0) return 0;
             else return splitHeight;
         }
+
+        public void AddUIElement(UIElement element)
+        {
+            Grid.Children.Add(element);
+        }
+
+        public void RemoveUIElement(UIElement element)
+        {
+            if (Grid.Children.Contains(element))
+                Grid.Children.Remove(element);
+        }
     }
 }

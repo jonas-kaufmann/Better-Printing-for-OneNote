@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Threading;
 using static Better_Printing_for_OneNote.Views.Controls.InteractiveFixedDocumentViewer;
+using Better_Printing_for_OneNote.Properties;
+using System.IO;
 
 namespace Better_Printing_for_OneNote.ViewModels
 {
@@ -73,7 +75,7 @@ namespace Better_Printing_for_OneNote.ViewModels
                         GeneralHelperClass.ExecuteInUiThread(() =>
                         {
                             CropHelper cropHelper;
-                            if(CropHelper != null)
+                            if (CropHelper != null)
                             {
                                 cropHelper = new CropHelper(bitmapSrc, CropHelper.Signature, CropHelper.SignatureEnabled, CropHelper.PageNumbersEnabled);
                             }
@@ -102,6 +104,7 @@ namespace Better_Printing_for_OneNote.ViewModels
                         });
                     }
 
+                    WindowTitle = $"{Resources.ApplicationTitle} - {Path.GetFileName(_filePath)}";
                     GC.Collect();
                 });
 
@@ -132,6 +135,22 @@ namespace Better_Printing_for_OneNote.ViewModels
             }
         }
 
+        #region window title
+        private string _windowTitle = Resources.ApplicationTitle;
+        public string WindowTitle
+        {
+            get => _windowTitle;
+            set
+            {
+                if (value != _windowTitle)
+                {
+                    _windowTitle = value;
+                    OnPropertyChanged(nameof(WindowTitle));
+                }
+            }
+        }
+        #endregion
+
         public PageSplitRequestedHandler SplitPageRequestHandler { get; set; }
         public UndoRequestedHandler UndoRequestHandler { get; set; }
         public RedoRequestedHandler RedoRequestHandler { get; set; }
@@ -151,6 +170,10 @@ namespace Better_Printing_for_OneNote.ViewModels
 
             if (argFilePath != "")
                 FilePath = argFilePath;
+
+#if DEBUG
+            FilePath = @"C:\Users\jokau\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Normales Dokument\Diskrete Signale.pdf";
+#endif
 
         }
 
@@ -176,29 +199,35 @@ namespace Better_Printing_for_OneNote.ViewModels
                 PrintDialog.PrintDocument(CropHelper.Document.DocumentPaginator, Properties.Resources.ApplicationTitle);
         }
 
+        private const double CmToPx = 96d / 2.54;
         /// <summary>
         /// Updates the format of the Crophelper with the values from the print dialog
         /// </summary>
         /// <param name="cropHelper">the crop helper to edit</param>
         private void UpdatePrintFormat(CropHelper cropHelper)
         {
-            var capabilities = PrintDialog.PrintQueue.GetPrintCapabilities(PrintDialog.PrintTicket);
-            var pageWidth = capabilities.OrientedPageMediaWidth;
-            var pageHeight = capabilities.OrientedPageMediaHeight;
-            var contentHeight = pageHeight;
-            var contentWidth = pageWidth;
-            double paddingX = 0; // padding at the left and right
-            double paddingY = 0; // padding at the bottom and top
-
-            if (capabilities != null)
+            if (PrintDialog.PrintQueue != null)
             {
-                contentHeight = capabilities.PageImageableArea.ExtentHeight;
-                contentWidth = capabilities.PageImageableArea.ExtentWidth;
-                paddingX = capabilities.PageImageableArea.OriginWidth;
-                paddingY = capabilities.PageImageableArea.OriginHeight;
-            }
+                var capabilities = PrintDialog.PrintQueue.GetPrintCapabilities(PrintDialog.PrintTicket);
+                var pageWidth = capabilities.OrientedPageMediaWidth;
+                var pageHeight = capabilities.OrientedPageMediaHeight;
+                var contentHeight = pageHeight;
+                var contentWidth = pageWidth;
+                double paddingX = 0; // padding at the left and right
+                double paddingY = 0; // padding at the bottom and top
 
-            cropHelper.UpdateFormat((double)pageHeight, (double)pageWidth, (double)contentHeight, (double)contentWidth, new Thickness(paddingX, paddingY, paddingX, paddingY));
+                if (capabilities != null)
+                {
+                    contentHeight = capabilities.PageImageableArea.ExtentHeight;
+                    contentWidth = capabilities.PageImageableArea.ExtentWidth;
+                    paddingX = capabilities.PageImageableArea.OriginWidth;
+                    paddingY = capabilities.PageImageableArea.OriginHeight;
+                }
+
+                cropHelper.UpdateFormat((double)pageHeight, (double)pageWidth, (double)contentHeight, (double)contentWidth, new Thickness(paddingX, paddingY, paddingX, paddingY));
+            }
+            // set to DIN A4 with no border
+            //else CropHelper.UpdateFormat(29.7 * CmToPx, 21 * CmToPx, 29.7 * CmToPx, 21 * CmToPx, new Thickness(0));
         }
 
         /// <summary>
@@ -209,9 +238,7 @@ namespace Better_Printing_for_OneNote.ViewModels
             OpenFileDialog fileDialog = new OpenFileDialog();
             fileDialog.Filter = "PDF-Files|*.pdf";
             if (fileDialog.ShowDialog() == true)
-            {
                 FilePath = fileDialog.FileName;
-            }
         }
     }
 }

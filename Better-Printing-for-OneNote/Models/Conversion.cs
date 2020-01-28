@@ -11,8 +11,8 @@ namespace Better_Printing_for_OneNote
 {
     class Conversion
     {
-        private const int DPI = 600;
-        private const double PERCENTAGE_ROWS_FOR_MATCHING = 0.01;
+        private const int DPI = 300;
+        private const double PERCENTAGE_ROWS_FOR_MATCHING = 0.02;
         private const double ROWS_TO_CHECK_PERCENTAGE = .05;
         private const double MAX_WRONG_PIXELS_PERCENTAGE = 0.01;
 
@@ -41,7 +41,7 @@ namespace Better_Printing_for_OneNote
 
                 ct.ThrowIfCancellationRequested();
 
-                reporter.ReportProgress("Converting first page ...");
+                reporter.ReportProgress($"Processing page 1 of {pageCount}");
 
                 // read first page
                 List<List<byte>> finalImages = new List<List<byte>>();
@@ -128,14 +128,14 @@ namespace Better_Printing_for_OneNote
                     ct.ThrowIfCancellationRequested();
 
                     // if new image doesn't fit in list, create a new one
-                    if ((long)finalImages[currentFinalImageIndex].Count + (lastNonWhiteRow * stride - firstNonWhiteRow * stride) > int.MaxValue / 2)
+                    if ((long)finalImages[currentFinalImageIndex].Count + (lastNonWhiteRow * stride - firstNonWhiteRow * stride) > int.MaxValue / 8)
                     {
                         finalImages.Add(new List<byte>());
                         currentFinalImageIndex++;
                     }
                     finalImages[currentFinalImageIndex].AddRange(currentImage.Pixels[(firstNonWhiteRow * stride)..(lastNonWhiteRow * stride)]);
 
-                    reporter.ReportProgress(i * 100 / pageCount, $"Processing page {i + 1}");
+                    reporter.ReportProgress(i * 100 / pageCount, $"Processing page {i + 1} of {pageCount}");
                 }
 
                 ct.ThrowIfCancellationRequested();
