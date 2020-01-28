@@ -46,7 +46,6 @@ namespace Better_Printing_for_OneNote.Models
 
         public void InitializePages()
         {
-            Pages.Clear();
             RedoChangeList.Clear();
             UndoChangeList.Clear();
 
@@ -256,7 +255,6 @@ namespace Better_Printing_for_OneNote.Models
         /// </summary>
         private void UpdatePages()
         {
-            // remove all pages
             Pages.Clear();
 
             // divide real crops and skips
@@ -309,7 +307,10 @@ namespace Better_Printing_for_OneNote.Models
                 ContentHeight = contentHeight;
                 ContentWidth = contentWidth;
                 Padding = padding;
-                InitializePages();
+                if (Pages.Count > 0)
+                    UpdatePages();
+                else
+                    InitializePages();
             }
         }
     }

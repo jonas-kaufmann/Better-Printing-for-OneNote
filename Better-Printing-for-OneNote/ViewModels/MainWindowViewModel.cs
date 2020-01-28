@@ -81,7 +81,6 @@ namespace Better_Printing_for_OneNote.ViewModels
                             var cropHelper = new CropHelper(bitmaps);
 
                             UpdatePrintFormat(cropHelper); // set the format and initialize the first pages
-                            cropHelper.InitializePages();
                             CropHelper = cropHelper;
                             busyDialog.Completed = true;
                             busyDialog.Close();
@@ -153,8 +152,8 @@ namespace Better_Printing_for_OneNote.ViewModels
                 FilePath = argFilePath;
 
 #if DEBUG
-            FilePath = @"D:\Daten\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Normales Dokument\Diskrete Signale.pdf";
-            //FilePath = @"C:\Users\fabit\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Normales Dokument\Diskrete Signale.pdf";
+            //FilePath = @"D:\Daten\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Normales Dokument\Diskrete Signale.pdf";
+            FilePath = @"C:\Users\fabit\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Normales Dokument\Diskrete Signale.pdf";
         //Print();
 #endif
         }

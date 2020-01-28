@@ -11,3 +11,5 @@
 
 # projects to ignore
 /ConversionTestApp
+/Better-Printing-for-OneNote/ProgressReporterWindow.xaml
+/Better-Printing-for-OneNote/ProgressReporterWindow.xaml.cs

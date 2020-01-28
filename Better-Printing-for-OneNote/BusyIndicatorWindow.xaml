@@ -7,11 +7,23 @@
         mc:Ignorable="d"
         Closing="Window_Closing"
         Title="{x:Static resx:Resources.ApplicationTitle}" SizeToContent="WidthAndHeight" ResizeMode="NoResize"  WindowStartupLocation="CenterOwner">
-    <Border Padding="10 0 10 0" Width="285" Height="130">
-        <StackPanel VerticalAlignment="Center">
-            <TextBlock HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"  Text="{Binding Reporter.CurrentTaskDescription, Mode=OneWay, FallbackValue=Beschreibung}"/>
-            <ProgressBar Margin="0 10 0 0" x:Name="ProgessBar" Height="20" Value="{Binding Reporter.PercentageCompleted, Mode=OneWay, FallbackValue=20}"/>
-            <Button x:Name="CancelBtn" Width="100" Height="25" Margin="0 15 0 0" Click="CancelBtn_Click" BorderBrush="DarkGray">Abbrechen</Button>
-        </StackPanel>
+    
+    <Border>
+        <Grid x:Name="Grid" Margin="10 10 10 10" MinWidth="230">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" MinHeight="30"/>
+                <RowDefinition Height="10"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="10"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Viewbox StretchDirection="DownOnly" VerticalAlignment="Center">
+                <TextBlock MaxWidth="300" TextAlignment="Center" TextWrapping="Wrap" FontSize="14" Text="{Binding Reporter.CurrentTaskDescription, FallbackValue=Beschreibung}"/>
+            </Viewbox>
+
+            <ProgressBar Grid.Row="2" x:Name="ProgessBar" Height="25" Value="{Binding Reporter.PercentageCompleted, Mode=OneWay, FallbackValue=30}"/>
+            <Button Grid.Row="4" x:Name="CancelBtn" Width="100" Height="25" Click="CancelBtn_Click" BorderBrush="DarkGray">Abbrechen</Button>
+        </Grid>
     </Border>
 </Window>

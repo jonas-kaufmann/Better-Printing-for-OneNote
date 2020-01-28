@@ -26,8 +26,6 @@ namespace Better_Printing_for_OneNote
         {
             if (File.Exists(filePath))
             {
-                reporter.ReportProgress("Converting document to bitmaps");
-
                 // retrieve number of pages
                 int pageCount;
                 try
@@ -41,7 +39,7 @@ namespace Better_Printing_for_OneNote
 
                 ct.ThrowIfCancellationRequested();
 
-                reporter.ReportProgress("Converting first page ...");
+                reporter.ReportProgress("Processing page 1");
 
                 // read first page
                 List<List<byte>> finalImages = new List<List<byte>>();
@@ -128,7 +126,7 @@ namespace Better_Printing_for_OneNote
                     ct.ThrowIfCancellationRequested();
 
                     // if new image doesn't fit in list, create a new one
-                    if ((long)finalImages[currentFinalImageIndex].Count + (lastNonWhiteRow * stride - firstNonWhiteRow * stride) > int.MaxValue / 2)
+                    if ((long)finalImages[currentFinalImageIndex].Count + (lastNonWhiteRow * stride - firstNonWhiteRow * stride) > int.MaxValue / 4)
                     {
                         finalImages.Add(new List<byte>());
                         currentFinalImageIndex++;
