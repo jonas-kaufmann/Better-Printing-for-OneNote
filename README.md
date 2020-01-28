@@ -34,10 +34,10 @@ The finished configuration will look somewhat like this:
 
 ```
 Output Directory:
-%temp%/Better-Printing-for-OneNote/Documents/
+%temp%\Better-Printing-for-OneNote\Documents\
 Command: 
 "C:\Program Files\Better-Printing-for-OneNote\Better-Printing-for-OneNote.exe" "${file}"
 ```
 
-![PDF24_ConfigurationForAutomation.png](https://user-images.githubusercontent.com/14842772/72112750-cee00c00-333e-11ea-95bf-da4f186c84ba.png)
+![PDF24_ConfigurationForAutomation.png](https://user-images.githubusercontent.com/4995833/73217604-899e4580-4158-11ea-8470-ee4674a41602.PNG)
 

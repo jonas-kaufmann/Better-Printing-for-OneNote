@@ -29,6 +29,7 @@
     <PackageReference Include="Extended.Wpf.Toolkit" Version="3.7.0">
       <NoWarn>NU1701</NoWarn>
     </PackageReference>
+    <PackageReference Include="Thomi.WpfCropableImageControl" Version="1.0.4" />
   </ItemGroup>
 
   <ItemGroup>
@@ -45,7 +46,6 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
-
   <ItemGroup>
     <None Update="Resources\pdfinfo.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -53,5 +53,11 @@
     <None Update="Resources\pdftoppm.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Update="Models\PageModel.xaml">
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
 </Project>

@@ -20,6 +20,9 @@
     <Page Update="BusyIndicatorWindow.xaml">
       <SubType>Designer</SubType>
     </Page>
+    <Page Update="Models\PageModel.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="MainWindow.xaml">
       <SubType>Designer</SubType>
     </Page>

@@ -7,20 +7,46 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Better-Printing-for-OneNote
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SetupBuilder", "SetupBuilder\SetupBuilder.csproj", "{C908EED5-27D6-434C-8D8B-0DC199044C32}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WpfCropableImageControl", "..\WpfCropableImageControl\WpfCropableImageControl\WpfCropableImageControl.csproj", "{EEFE6A72-1245-4212-B940-2498BABD1DBF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WpfCropableImageControlExample", "..\WpfCropableImageControl\WpfCropableImageControlExample\WpfCropableImageControlExample.csproj", "{87355E1D-BC49-402C-B5C7-387F4D0DE86B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
 		Debug|x64 = Debug|x64
+		Release|Any CPU = Release|Any CPU
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BD308634-4BC3-4741-B207-BFF25D6931AA}.Debug|Any CPU.ActiveCfg = Debug|x64
 		{BD308634-4BC3-4741-B207-BFF25D6931AA}.Debug|x64.ActiveCfg = Debug|x64
 		{BD308634-4BC3-4741-B207-BFF25D6931AA}.Debug|x64.Build.0 = Debug|x64
+		{BD308634-4BC3-4741-B207-BFF25D6931AA}.Release|Any CPU.ActiveCfg = Release|x64
 		{BD308634-4BC3-4741-B207-BFF25D6931AA}.Release|x64.ActiveCfg = Release|x64
 		{BD308634-4BC3-4741-B207-BFF25D6931AA}.Release|x64.Build.0 = Release|x64
+		{C908EED5-27D6-434C-8D8B-0DC199044C32}.Debug|Any CPU.ActiveCfg = Debug|x64
 		{C908EED5-27D6-434C-8D8B-0DC199044C32}.Debug|x64.ActiveCfg = Debug|x64
 		{C908EED5-27D6-434C-8D8B-0DC199044C32}.Debug|x64.Build.0 = Debug|x64
+		{C908EED5-27D6-434C-8D8B-0DC199044C32}.Release|Any CPU.ActiveCfg = Release|x64
 		{C908EED5-27D6-434C-8D8B-0DC199044C32}.Release|x64.ActiveCfg = Release|x64
 		{C908EED5-27D6-434C-8D8B-0DC199044C32}.Release|x64.Build.0 = Release|x64
+		{EEFE6A72-1245-4212-B940-2498BABD1DBF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EEFE6A72-1245-4212-B940-2498BABD1DBF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EEFE6A72-1245-4212-B940-2498BABD1DBF}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{EEFE6A72-1245-4212-B940-2498BABD1DBF}.Debug|x64.Build.0 = Debug|Any CPU
+		{EEFE6A72-1245-4212-B940-2498BABD1DBF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EEFE6A72-1245-4212-B940-2498BABD1DBF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EEFE6A72-1245-4212-B940-2498BABD1DBF}.Release|x64.ActiveCfg = Release|Any CPU
+		{EEFE6A72-1245-4212-B940-2498BABD1DBF}.Release|x64.Build.0 = Release|Any CPU
+		{87355E1D-BC49-402C-B5C7-387F4D0DE86B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87355E1D-BC49-402C-B5C7-387F4D0DE86B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87355E1D-BC49-402C-B5C7-387F4D0DE86B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{87355E1D-BC49-402C-B5C7-387F4D0DE86B}.Debug|x64.Build.0 = Debug|Any CPU
+		{87355E1D-BC49-402C-B5C7-387F4D0DE86B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87355E1D-BC49-402C-B5C7-387F4D0DE86B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{87355E1D-BC49-402C-B5C7-387F4D0DE86B}.Release|x64.ActiveCfg = Release|Any CPU
+		{87355E1D-BC49-402C-B5C7-387F4D0DE86B}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

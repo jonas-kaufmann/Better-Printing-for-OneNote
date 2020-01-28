@@ -7,6 +7,11 @@ using System.Windows.Media.Imaging;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Threading;
+using System.Printing;
+using System.Diagnostics;
+using System.Windows.Threading;
+using System.Collections.Generic;
+using System.Windows.Documents;
 using static Better_Printing_for_OneNote.Views.Controls.InteractiveFixedDocumentViewer;
 using Better_Printing_for_OneNote.Properties;
 using System.IO;
@@ -70,20 +75,15 @@ namespace Better_Printing_for_OneNote.ViewModels
                 {
                     try
                     {
-                        BitmapSource bitmapSrc = Conversion.ConvertPDFToBitmaps(value, cts.Token, reporter)[0];
-                        bitmapSrc.Freeze();
+                        BitmapSource[] bitmaps = Conversion.ConvertPDFToBitmaps(value, cts.Token, reporter);
+                        foreach(var bitmap in bitmaps)
+                            bitmap.Freeze();
                         GeneralHelperClass.ExecuteInUiThread(() =>
                         {
-                            CropHelper cropHelper;
-                            if (CropHelper != null)
-                            {
-                                cropHelper = new CropHelper(bitmapSrc, CropHelper.Signature, CropHelper.SignatureEnabled, CropHelper.PageNumbersEnabled);
-                            }
-                            else
-                            {
-                                cropHelper = new CropHelper(bitmapSrc);
-                            }
+                            var cropHelper = new CropHelper(bitmaps);
+
                             UpdatePrintFormat(cropHelper); // set the format and initialize the first pages
+                            cropHelper.InitializePages();
                             CropHelper = cropHelper;
                             busyDialog.Completed = true;
                             busyDialog.Close();
@@ -112,7 +112,7 @@ namespace Better_Printing_for_OneNote.ViewModels
             }
         }
 
-        private CropHelper _cropHelper = new CropHelper();
+        private CropHelper _cropHelper;
         public CropHelper CropHelper
         {
             get
@@ -206,28 +206,23 @@ namespace Better_Printing_for_OneNote.ViewModels
         /// <param name="cropHelper">the crop helper to edit</param>
         private void UpdatePrintFormat(CropHelper cropHelper)
         {
-            if (PrintDialog.PrintQueue != null)
+            var capabilities = PrintDialog.PrintQueue.GetPrintCapabilities(PrintDialog.PrintTicket);
+            var pageWidth = capabilities.OrientedPageMediaWidth;
+            var pageHeight = capabilities.OrientedPageMediaHeight;
+            var contentHeight = pageHeight;
+            var contentWidth = pageWidth;
+            double paddingX = 0; // padding at the left and right
+            double paddingY = 0; // padding at the bottom and top
+
+            if (capabilities != null)
             {
-                var capabilities = PrintDialog.PrintQueue.GetPrintCapabilities(PrintDialog.PrintTicket);
-                var pageWidth = capabilities.OrientedPageMediaWidth;
-                var pageHeight = capabilities.OrientedPageMediaHeight;
-                var contentHeight = pageHeight;
-                var contentWidth = pageWidth;
-                double paddingX = 0; // padding at the left and right
-                double paddingY = 0; // padding at the bottom and top
-
-                if (capabilities != null)
-                {
-                    contentHeight = capabilities.PageImageableArea.ExtentHeight;
-                    contentWidth = capabilities.PageImageableArea.ExtentWidth;
-                    paddingX = capabilities.PageImageableArea.OriginWidth;
-                    paddingY = capabilities.PageImageableArea.OriginHeight;
-                }
-
-                cropHelper.UpdateFormat((double)pageHeight, (double)pageWidth, (double)contentHeight, (double)contentWidth, new Thickness(paddingX, paddingY, paddingX, paddingY));
+                contentHeight = capabilities.PageImageableArea.ExtentHeight;
+                contentWidth = capabilities.PageImageableArea.ExtentWidth;
+                paddingX = capabilities.PageImageableArea.OriginWidth;
+                paddingY = capabilities.PageImageableArea.OriginHeight;
             }
-            // set to DIN A4 with no border
-            //else CropHelper.UpdateFormat(29.7 * CmToPx, 21 * CmToPx, 29.7 * CmToPx, 21 * CmToPx, new Thickness(0));
+
+            cropHelper.UpdateFormat((double)pageHeight, (double)pageWidth, (double)contentHeight, (double)contentWidth, new Thickness(paddingX, paddingY, paddingX, paddingY));
         }
 
         /// <summary>
