@@ -13,6 +13,8 @@ using System.Windows.Threading;
 using System.Collections.Generic;
 using System.Windows.Documents;
 using static Better_Printing_for_OneNote.Views.Controls.InteractiveFixedDocumentViewer;
+using Better_Printing_for_OneNote.Properties;
+using System.IO;
 
 namespace Better_Printing_for_OneNote.ViewModels
 {
@@ -101,6 +103,7 @@ namespace Better_Printing_for_OneNote.ViewModels
                         });
                     }
 
+                    WindowTitle = $"{Resources.ApplicationTitle} - {Path.GetFileName(_filePath)}";
                     GC.Collect();
                 });
 
@@ -131,6 +134,22 @@ namespace Better_Printing_for_OneNote.ViewModels
             }
         }
 
+        #region window title
+        private string _windowTitle = Resources.ApplicationTitle;
+        public string WindowTitle
+        {
+            get => _windowTitle;
+            set
+            {
+                if (value != _windowTitle)
+                {
+                    _windowTitle = value;
+                    OnPropertyChanged(nameof(WindowTitle));
+                }
+            }
+        }
+        #endregion
+
         public PageSplitRequestedHandler SplitPageRequestHandler { get; set; }
         public UndoRequestedHandler UndoRequestHandler { get; set; }
         public RedoRequestedHandler RedoRequestHandler { get; set; }
@@ -156,6 +175,7 @@ namespace Better_Printing_for_OneNote.ViewModels
             FilePath = @"C:\Users\fabit\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Normales Dokument\Diskrete Signale.pdf";
         //Print();
 #endif
+
         }
 
         /// <summary>
@@ -180,6 +200,7 @@ namespace Better_Printing_for_OneNote.ViewModels
                 PrintDialog.PrintDocument(CropHelper.Document.DocumentPaginator, Properties.Resources.ApplicationTitle);
         }
 
+        private const double CmToPx = 96d / 2.54;
         /// <summary>
         /// Updates the format of the Crophelper with the values from the print dialog
         /// </summary>
@@ -213,9 +234,7 @@ namespace Better_Printing_for_OneNote.ViewModels
             OpenFileDialog fileDialog = new OpenFileDialog();
             fileDialog.Filter = "PDF-Files|*.pdf";
             if (fileDialog.ShowDialog() == true)
-            {
                 FilePath = fileDialog.FileName;
-            }
         }
     }
 }

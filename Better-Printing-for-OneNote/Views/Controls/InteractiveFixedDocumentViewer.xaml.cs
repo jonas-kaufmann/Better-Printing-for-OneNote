@@ -1,7 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -79,7 +78,11 @@ namespace Better_Printing_for_OneNote.Views.Controls
         public int PageNumber
         {
             get => (int)GetValue(PageNumberProperty);
-            set => SetValue(PageNumberProperty, value);
+            set
+            {
+                SetValue(PageNumberProperty, value);
+                EditAreaRect.Visibility = Visibility.Collapsed;
+            }
         }
         public static DependencyProperty PageNumberProperty = DependencyProperty.Register(nameof(PageNumber), typeof(int), typeof(InteractiveFixedDocumentViewer), new PropertyMetadata(0, null, PageNumber_Coerce));
         private static object PageNumber_Coerce(DependencyObject d, object value)
@@ -155,6 +158,41 @@ namespace Better_Printing_for_OneNote.Views.Controls
         public delegate void PageDeleteRequestedHandler(object sender, int pageIndex);
         public static readonly DependencyProperty PageDeleteRequestedCommandProperty = DependencyProperty.Register(nameof(PageDeleteRequestedCommand), typeof(PageDeleteRequestedHandler), typeof(InteractiveFixedDocumentViewer));
         #endregion
+
+        #region delete area command
+        public AreaDeleteRequestedHandler AreaDeleteRequestedCommand
+        {
+            get => (AreaDeleteRequestedHandler)GetValue(AreaDeleteRequestedCommandProperty);
+            set => SetValue(AreaDeleteRequestedCommandProperty, value);
+        }
+
+        public delegate void AreaDeleteRequestedHandler(object sender, int pageIndex, double percentageDeleteStart, double percentageDeleteEnd);
+        public static readonly DependencyProperty AreaDeleteRequestedCommandProperty = DependencyProperty.Register(nameof(AreaDeleteRequestedCommand), typeof(AreaDeleteRequestedHandler), typeof(InteractiveFixedDocumentViewer));
+        #endregion
+        #region add control to document command
+        public AddControlToDocRequestedHandler AddControlToDocRequestedCommand
+        {
+            get => (AddControlToDocRequestedHandler)GetValue(AddControlToDocRequestedCommandProperty);
+            set => SetValue(AddControlToDocRequestedCommandProperty, value);
+        }
+
+        public delegate void AddControlToDocRequestedHandler(object sender, UIElement control);
+        public static readonly DependencyProperty AddControlToDocRequestedCommandProperty = DependencyProperty.Register(nameof(AddControlToDocRequestedCommand), typeof(AddControlToDocRequestedHandler), typeof(InteractiveFixedDocumentViewer));
+        #endregion
+
+        #region page split tool
+        public bool IsPageSplitToolSelected
+        {
+            get => (bool)GetValue(IsPageSplitToolSelectedProperty);
+            set => SetValue(IsPageSplitToolSelectedProperty, value);
+        }
+        public static DependencyProperty IsPageSplitToolSelectedProperty = DependencyProperty.Register(nameof(IsPageSplitToolSelected), typeof(bool), typeof(InteractiveFixedDocumentViewer), new PropertyMetadata(true, IsPageSplitToolSelected_ChangedCallback));
+        private static void IsPageSplitToolSelected_ChangedCallback(DependencyObject sender, DependencyPropertyChangedEventArgs e) => ((InteractiveFixedDocumentViewer)sender).IsPageSplitToolSelected_Changed();
+        private void IsPageSplitToolSelected_Changed()
+        {
+            PagesGrid.Cursor = IsPageSplitToolSelected ? Cursors.Arrow : Cursors.IBeam;
+        }
+        #endregion
         #endregion
 
         public InteractiveFixedDocumentViewer()
@@ -178,7 +216,7 @@ namespace Better_Printing_for_OneNote.Views.Controls
 
             PageSplitLine.Visibility = Visibility.Collapsed; // otherwise would block resizing of grid
 
-            MainDPV.LayoutTransform = new ScaleTransform(Zoom, Zoom);
+            MainDPVGrid.LayoutTransform = new ScaleTransform(Zoom, Zoom);
             PagesGrid.UpdateLayout();
 
             #region keep currently focused point in place
@@ -200,7 +238,7 @@ namespace Better_Printing_for_OneNote.Views.Controls
         #region pagesplitting line
         public void UpdateSplittingLine()
         {
-            if (MainDPV.IsMouseOver)
+            if (IsPageSplitToolSelected && MainDPV.IsMouseOver)
             {
                 var pos = Mouse.GetPosition(PagesGrid);
 
@@ -220,22 +258,45 @@ namespace Better_Printing_for_OneNote.Views.Controls
                 PageSplitLine.Visibility = Visibility.Collapsed;
         }
 
-        // trigger pagesplit request at current mouse position
+        private void MainDPV_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (IsPageSplitToolSelected)
+            {
+                EditAreaRect.Width = MainDPV.ActualWidth;
+                EditAreaRect.Height = 0;
+                lastMousePos = e.GetPosition(MainDPV);
+                EditAreaRect.Margin = new Thickness(0, lastMousePos.Y, 0, 0);
+                EditAreaRect.Visibility = Visibility.Visible;
+                PageSplitLine.Visibility = Visibility.Collapsed;
+            }
+        }
+
         private void MainDPV_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            if (PageSplitRequestedCommand != null && sender is DocumentPageView dPV)
+            if (IsPageSplitToolSelected)
             {
-                PageSplitLine.Visibility = Visibility.Collapsed; // prevent visual glitches
+                // insert page break
+                if ((EditAreaRect.Visibility != Visibility.Visible || (EditAreaRect.Visibility == Visibility.Visible && EditAreaRect.Height <= 1)) && PageSplitRequestedCommand != null && sender is DocumentPageView dPV)
+                {
+                    // prevent visual glitches
+                    PageSplitLine.Visibility = Visibility.Collapsed;
+                    EditAreaRect.Visibility = Visibility.Collapsed;
 
-                int pageIndex = MainDPV.PageNumber;
-                if (pageIndex < 0)
-                    return;
+                    int pageIndex = MainDPV.PageNumber;
+                    if (pageIndex < 0)
+                        return;
 
-                var pos = e.GetPosition(dPV);
-                double splitAtPercentage = pos.Y / dPV.ActualHeight;
-                e.Handled = true;
+                    var pos = e.GetPosition(dPV);
+                    double splitAtPercentage = pos.Y / dPV.ActualHeight;
+                    e.Handled = true;
 
-                PageSplitRequestedCommand(this, pageIndex, splitAtPercentage);
+                    PageSplitRequestedCommand(this, pageIndex, splitAtPercentage);
+                }
+            }
+            else
+            {
+                RichTextBox rtb = new RichTextBox { AcceptsReturn = true, MinWidth = 100, MinHeight = 100, Background = Brushes.White, BorderThickness = new Thickness(0) };
+                AddControlToDocRequestedCommand?.Invoke(this, rtb);
             }
         }
         #endregion
@@ -256,6 +317,20 @@ namespace Better_Printing_for_OneNote.Views.Controls
 
                 lastMousePos = currentMousePos;
             }
+            else if (IsPageSplitToolSelected && Mouse.LeftButton == MouseButtonState.Pressed)
+            {
+                double y = e.GetPosition(MainDPV).Y;
+                if (y < lastMousePos.Y)
+                {
+                    EditAreaRect.Margin = new Thickness(0, y, 0, 0);
+                    EditAreaRect.Height = lastMousePos.Y - y;
+                }
+                else
+                    EditAreaRect.Height = y - EditAreaRect.Margin.Top;
+
+                UpdateSplittingLine();
+
+            }
             else
                 UpdateSplittingLine();
 
@@ -266,6 +341,7 @@ namespace Better_Printing_for_OneNote.Views.Controls
         private void PagesGrid_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
             lastMousePos = e.GetPosition(MainScrollViewer);
+            EditAreaRect.Visibility = Visibility.Collapsed;
             moveViewByMouse = true;
 
             e.Handled = true;
@@ -288,11 +364,11 @@ namespace Better_Printing_for_OneNote.Views.Controls
             }
         }
 
-        // keyboard commands with ctrl
+        // keyboard commands
         public void OnApplication_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             // prevent wrong misbehavior when typing into textboxes
-            if (/*!MainScrollViewer.IsMouseOver ||*/ Keyboard.FocusedElement is TextBox)
+            if (Keyboard.FocusedElement is TextBox || Keyboard.FocusedElement is RichTextBox)
                 return;
 
             e.Handled = true;
@@ -314,13 +390,24 @@ namespace Better_Printing_for_OneNote.Views.Controls
                 PageNumber += 1;
             else if (e.Key == Key.Left)
                 PageNumber -= 1;
-            else if ((e.Key == Key.Delete || e.Key == Key.Back) && PageDeleteRequestedCommand != null)
-                PageDeleteRequestedCommand(this, MainDPV.PageNumber);
+            else if (e.Key == Key.Delete || e.Key == Key.Back)
+            {
+                if (EditAreaRect.Visibility == Visibility.Visible && EditAreaRect.Height != 0)
+                {
+                    AreaDeleteRequestedCommand?.Invoke(this, MainDPV.PageNumber, EditAreaRect.Margin.Top / MainDPV.ActualHeight, (EditAreaRect.Margin.Top + EditAreaRect.Height) / MainDPV.ActualHeight);
+                    EditAreaRect.Visibility = Visibility.Collapsed;
+                }
+                else
+                {
+                    EditAreaRect.Visibility = Visibility.Collapsed;
+                    PageDeleteRequestedCommand?.Invoke(this, MainDPV.PageNumber);
+                }
+            }
             else
                 e.Handled = false;
         }
 
-        // set page when user presses return
+        // TextBox for page number: apply on Enter
         private void PageNumberTb_PreviewKeyUp(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)

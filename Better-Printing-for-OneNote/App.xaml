@@ -12,6 +12,7 @@
             <!-- theme colors -->
             <SolidColorBrush x:Key="DarkPrimary" Color="#222" />
             <SolidColorBrush x:Key="LightPrimary" Color="White" />
+            <SolidColorBrush x:Key="DarkPrimarySelectionBrush" Color="#222" Opacity="0.2" />
 
             <Style TargetType="Button">
                 <Setter Property="Padding" Value="4 0 4 0" />
