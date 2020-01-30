@@ -26,8 +26,6 @@ namespace Better_Printing_for_OneNote
         {
             if (File.Exists(filePath))
             {
-                reporter.ReportProgress("Converting document to bitmaps");
-
                 // retrieve number of pages
                 int pageCount;
                 try

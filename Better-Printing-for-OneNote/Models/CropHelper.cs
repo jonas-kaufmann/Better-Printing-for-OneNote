@@ -49,7 +49,6 @@ namespace Better_Printing_for_OneNote.Models
 
         public void InitializePages()
         {
-            Pages.Clear();
             RedoChangeList.Clear();
             UndoChangeList.Clear();
 
@@ -100,13 +99,7 @@ namespace Better_Printing_for_OneNote.Models
         {
             if (UndoChangeList.Count > 0)
             {
-                if (UndoChangeList[UndoChangeList.Count - 1] is SignatureAdded signatureAdded)
-                {
-                    CurrentSignatures.Remove(signatureAdded);
-                    RedoChangeList.Add(signatureAdded);
-                    UpdatePages();
-                }
-                else if (UndoChangeList[UndoChangeList.Count - 1] is CropsAndSkips cropsAndSkips)
+                if (UndoChangeList[UndoChangeList.Count - 1] is CropsAndSkips cropsAndSkips)
                 {
                     RedoChangeList.Add(new CropsAndSkips(CurrentCropHeights));
                     CurrentCropHeights = cropsAndSkips.Crops;
@@ -121,13 +114,7 @@ namespace Better_Printing_for_OneNote.Models
         {
             if (RedoChangeList.Count > 0)
             {
-                if (RedoChangeList[RedoChangeList.Count - 1] is SignatureAdded signatureAdded)
-                {
-                    CurrentSignatures.Add(signatureAdded);
-                    UndoChangeList.Add(signatureAdded);
-                    UpdatePages();
-                }
-                else if (RedoChangeList[RedoChangeList.Count - 1] is CropsAndSkips cropsAndSkips)
+                if (RedoChangeList[RedoChangeList.Count - 1] is CropsAndSkips cropsAndSkips)
                 {
                     UndoChangeList.Add(new CropsAndSkips(CurrentCropHeights));
                     CurrentCropHeights = cropsAndSkips.Crops;
@@ -328,7 +315,6 @@ namespace Better_Printing_for_OneNote.Models
                 if (string.IsNullOrWhiteSpace(signature.Text.Text))
                 {
                     CurrentSignatures.RemoveAt(i);
-                    UndoChangeList.Remove(signature);
                     i--;
                     continue;
                 }
@@ -354,7 +340,6 @@ namespace Better_Printing_for_OneNote.Models
 
             BindableText bindableText = new BindableText();
             SignatureAdded signatureAdded = new SignatureAdded(bindableText, x, y);
-            UndoChangeList.Add(signatureAdded);
             CurrentSignatures.Add(signatureAdded);
 
             foreach (var page in Pages)
@@ -394,7 +379,10 @@ namespace Better_Printing_for_OneNote.Models
                 ContentHeight = contentHeight;
                 ContentWidth = contentWidth;
                 Padding = padding;
-                InitializePages();
+                if (Pages.Count > 0)
+                    UpdatePages();
+                else
+                    InitializePages();
             }
         }
     }
