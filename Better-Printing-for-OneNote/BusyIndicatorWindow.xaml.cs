@@ -46,13 +46,20 @@ namespace Better_Printing_for_OneNote
             Reporter.ReportProgress(100, errorMesagge);
             ProgessBar.Foreground = ErrorBrush;
             Completed = true;
-            CancelBtn.IsEnabled = false;
+            CancelBtn.IsEnabled = true;
+            CancelBtn.Content = "OK";
         }
 
         private void CancelBtn_Click(object sender, RoutedEventArgs e)
         {
-            CTS.Cancel();
-            CancelBtn.IsEnabled = false;
+            if (Completed)
+                Close();
+            else
+            {
+
+                CTS.Cancel();
+                CancelBtn.IsEnabled = false;
+            }
         }
 
         private void Window_Closing(object sender, CancelEventArgs e)

@@ -71,7 +71,7 @@ namespace Better_Printing_for_OneNote.ViewModels
                     try
                     {
                         BitmapSource[] bitmaps = Conversion.ConvertPDFToBitmaps(value, cts.Token, reporter);
-                        foreach(var bitmap in bitmaps)
+                        foreach (var bitmap in bitmaps)
                             bitmap.Freeze();
                         GeneralHelperClass.ExecuteInUiThread(() =>
                         {
@@ -170,7 +170,7 @@ namespace Better_Printing_for_OneNote.ViewModels
 #if DEBUG
             //FilePath = @"D:\Daten\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Normales Dokument\Diskrete Signale.pdf";
             FilePath = @"C:\Users\fabit\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Normales Dokument\Diskrete Signale.pdf";
-        //Print();
+            //Print();
 #endif
 
         }
@@ -194,7 +194,7 @@ namespace Better_Printing_for_OneNote.ViewModels
             UpdatePrintFormat(CropHelper);
             OnPropertyChanged("PrintDialog");
             if (print.HasValue && print.Value)
-                PrintDialog.PrintDocument(CropHelper.Document.DocumentPaginator, Properties.Resources.ApplicationTitle);
+                PrintDialog.PrintDocument(CropHelper.Document.DocumentPaginator, Path.GetFileName(FilePath));
         }
 
         private const double CmToPx = 96d / 2.54;
@@ -204,23 +204,32 @@ namespace Better_Printing_for_OneNote.ViewModels
         /// <param name="cropHelper">the crop helper to edit</param>
         private void UpdatePrintFormat(CropHelper cropHelper)
         {
-            var capabilities = PrintDialog.PrintQueue.GetPrintCapabilities(PrintDialog.PrintTicket);
-            var pageWidth = capabilities.OrientedPageMediaWidth;
-            var pageHeight = capabilities.OrientedPageMediaHeight;
-            var contentHeight = pageHeight;
-            var contentWidth = pageWidth;
+            double pageWidth;
+            double pageHeight;
+            double contentHeight;
+            double contentWidth;
             double paddingX = 0; // padding at the left and right
             double paddingY = 0; // padding at the bottom and top
 
-            if (capabilities != null)
+            if (PrintDialog == null || PrintDialog.PrintTicket == null || PrintDialog.PrintQueue == null)
             {
+                pageWidth = 21 * CmToPx;
+                pageHeight = 29.7 * CmToPx;
+                contentWidth = pageWidth;
+                contentHeight = pageHeight;
+            }
+            else
+            {
+                var capabilities = PrintDialog.PrintQueue.GetPrintCapabilities(PrintDialog.PrintTicket);
+                pageWidth = capabilities.OrientedPageMediaWidth.Value;
+                pageHeight = capabilities.OrientedPageMediaHeight.Value;
                 contentHeight = capabilities.PageImageableArea.ExtentHeight;
                 contentWidth = capabilities.PageImageableArea.ExtentWidth;
                 paddingX = capabilities.PageImageableArea.OriginWidth;
                 paddingY = capabilities.PageImageableArea.OriginHeight;
             }
 
-            cropHelper.UpdateFormat((double)pageHeight, (double)pageWidth, (double)contentHeight, (double)contentWidth, new Thickness(paddingX, paddingY, paddingX, paddingY));
+            cropHelper.UpdateFormat(pageHeight, pageWidth, contentHeight, contentWidth, new Thickness(paddingX, paddingY, paddingX, paddingY));
         }
 
         /// <summary>
