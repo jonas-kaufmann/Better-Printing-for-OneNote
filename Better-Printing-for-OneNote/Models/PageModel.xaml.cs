@@ -1,15 +1,8 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
-using System.Reflection;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Documents;
-using System.Windows.Markup;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using WpfCropableImageControl;
 
@@ -32,7 +25,7 @@ namespace Better_Printing_for_OneNote.Models
             }
             private set
             {
-                if(_bigImageHeight != value)
+                if (_bigImageHeight != value)
                     _bigImageHeight = value;
             }
         }
@@ -255,6 +248,9 @@ namespace Better_Printing_for_OneNote.Models
             else if (splitHeight < 0) return 0;
             else return splitHeight;
         }
+
+        public void AddUIElement(UIElement uielement) => Page.Child.Children.Add(uielement);
+        public void RemoveUIElement(UIElement uielement) => Page.Child.Children.Remove(uielement);
 
         public event PropertyChangedEventHandler PropertyChanged;
         protected virtual void OnPropertyChanged(string propertyName)

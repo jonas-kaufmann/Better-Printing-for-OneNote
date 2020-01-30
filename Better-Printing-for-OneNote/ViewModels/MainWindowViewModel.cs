@@ -7,11 +7,6 @@ using System.Windows.Media.Imaging;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Threading;
-using System.Printing;
-using System.Diagnostics;
-using System.Windows.Threading;
-using System.Collections.Generic;
-using System.Windows.Documents;
 using static Better_Printing_for_OneNote.Views.Controls.InteractiveFixedDocumentViewer;
 using Better_Printing_for_OneNote.Properties;
 using System.IO;
@@ -155,6 +150,7 @@ namespace Better_Printing_for_OneNote.ViewModels
         public UndoRequestedHandler UndoRequestHandler { get; set; }
         public RedoRequestedHandler RedoRequestHandler { get; set; }
         public PageDeleteRequestedHandler DeleteRequestHandler { get; set; }
+        public AddSignatureRequestedHandler AddControlToDocRequestHandler { get; set; }
 
         private Window Window;
 
@@ -165,6 +161,7 @@ namespace Better_Printing_for_OneNote.ViewModels
             UndoRequestHandler = (sender) => CropHelper.UndoChange();
             RedoRequestHandler = (sender) => CropHelper.RedoChange();
             DeleteRequestHandler = (sender, pageIndex) => CropHelper.SkipPage(pageIndex);
+            AddControlToDocRequestHandler = (sender, x, y) => CropHelper.AddSignatureTb(x, y);
 
             Window = window;
 

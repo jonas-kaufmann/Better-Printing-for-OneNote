@@ -2,8 +2,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
+using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -27,9 +29,10 @@ namespace Better_Printing_for_OneNote.Models
         }
 
         private List<Crop> CurrentCropHeights;
+        private List<SignatureAdded> CurrentSignatures = new List<SignatureAdded>();
         private ObservableCollection<PageModel> Pages = new ObservableCollection<PageModel>();
-        private List<List<Crop>> UndoChangeList = new List<List<Crop>>();
-        private List<List<Crop>> RedoChangeList = new List<List<Crop>>();
+        private List<DocumentChange> UndoChangeList = new List<DocumentChange>();
+        private List<DocumentChange> RedoChangeList = new List<DocumentChange>();
 
         private int MaxCropHeight;
         private double DocumentHeight;
@@ -97,11 +100,20 @@ namespace Better_Printing_for_OneNote.Models
         {
             if (UndoChangeList.Count > 0)
             {
-                var lastChange = UndoChangeList[UndoChangeList.Count - 1];
-                RedoChangeList.Add(CurrentCropHeights);
+                if (UndoChangeList[UndoChangeList.Count - 1] is SignatureAdded signatureAdded)
+                {
+                    CurrentSignatures.Remove(signatureAdded);
+                    RedoChangeList.Add(signatureAdded);
+                    UpdatePages();
+                }
+                else if (UndoChangeList[UndoChangeList.Count - 1] is CropsAndSkips cropsAndSkips)
+                {
+                    RedoChangeList.Add(new CropsAndSkips(CurrentCropHeights));
+                    CurrentCropHeights = cropsAndSkips.Crops;
+                    UpdatePages();
+                }
+
                 UndoChangeList.RemoveAt(UndoChangeList.Count - 1);
-                CurrentCropHeights = lastChange;
-                UpdatePages();
             }
         }
 
@@ -109,11 +121,20 @@ namespace Better_Printing_for_OneNote.Models
         {
             if (RedoChangeList.Count > 0)
             {
-                var lastChange = RedoChangeList[RedoChangeList.Count - 1];
-                UndoChangeList.Add(CurrentCropHeights);
+                if (RedoChangeList[RedoChangeList.Count - 1] is SignatureAdded signatureAdded)
+                {
+                    CurrentSignatures.Add(signatureAdded);
+                    UndoChangeList.Add(signatureAdded);
+                    UpdatePages();
+                }
+                else if (RedoChangeList[RedoChangeList.Count - 1] is CropsAndSkips cropsAndSkips)
+                {
+                    UndoChangeList.Add(new CropsAndSkips(CurrentCropHeights));
+                    CurrentCropHeights = cropsAndSkips.Crops;
+                    UpdatePages();
+                }
+
                 RedoChangeList.RemoveAt(RedoChangeList.Count - 1);
-                CurrentCropHeights = lastChange;
-                UpdatePages();
             }
         }
 
@@ -144,7 +165,7 @@ namespace Better_Printing_for_OneNote.Models
                     cropIndex++;
                 }
 
-                UndoChangeList.Add(CurrentCropHeights);
+                UndoChangeList.Add(new CropsAndSkips(CurrentCropHeights));
                 CurrentCropHeights = newCropHeights;
                 UpdatePages();
             }
@@ -202,7 +223,7 @@ namespace Better_Printing_for_OneNote.Models
                     cropIndex++;
                 }
 
-                UndoChangeList.Add(CurrentCropHeights);
+                UndoChangeList.Add(new CropsAndSkips(CurrentCropHeights));
                 CurrentCropHeights = newCropHeights;
                 UpdatePages();
             }
@@ -245,7 +266,7 @@ namespace Better_Printing_for_OneNote.Models
                     }
                 }
 
-                UndoChangeList.Add(CurrentCropHeights);
+                UndoChangeList.Add(new CropsAndSkips(CurrentCropHeights));
                 CurrentCropHeights = newCropHeights;
                 UpdatePages();
             }
@@ -256,6 +277,13 @@ namespace Better_Printing_for_OneNote.Models
         /// </summary>
         private void UpdatePages()
         {
+            // remove all UIElements from all pages
+            foreach (var pageModel in Pages)
+            {
+                FixedPage fp = pageModel.Page.Child;
+                fp.Children.Clear();
+            }
+
             // remove all pages
             Pages.Clear();
 
@@ -290,6 +318,63 @@ namespace Better_Printing_for_OneNote.Models
             foreach (var page in Pages)
                 document.Pages.Add(page.Page);
             Document = document;
+
+            // readd signatures
+            for (int i = 0; i < CurrentSignatures.Count; i++)
+            {
+                var signature = CurrentSignatures[i];
+
+                // remove signatures with empty or only whitespace text
+                if (string.IsNullOrWhiteSpace(signature.Text.Text))
+                {
+                    CurrentSignatures.RemoveAt(i);
+                    UndoChangeList.Remove(signature);
+                    i--;
+                    continue;
+                }
+
+                foreach (var page in Pages)
+                {
+                    TextBox tb = CreateSignatureTextBox(signature.Text, new Thickness(signature.X, signature.Y, 0, 0));
+                    page.AddUIElement(tb);
+                    page.Page.Child.UpdateLayout();
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// Add an editable TextBox to all pages of the document
+        /// </summary>
+        public void AddSignatureTb(double x, double y)
+        {
+            // approximately center textbox on coordinates
+            x -= 2;
+            y -= 8;
+
+            BindableText bindableText = new BindableText();
+            SignatureAdded signatureAdded = new SignatureAdded(bindableText, x, y);
+            UndoChangeList.Add(signatureAdded);
+            CurrentSignatures.Add(signatureAdded);
+
+            foreach (var page in Pages)
+            {
+                TextBox tb = CreateSignatureTextBox(bindableText, new Thickness(x, y, 0, 0));
+                page.AddUIElement(tb);
+            }
+        }
+
+        private TextBox CreateSignatureTextBox(BindableText text, Thickness margin)
+        {
+            TextBox tb = new TextBox { AcceptsReturn = true, Background = Brushes.White, BorderThickness = new Thickness(0), Margin = margin };
+            tb.Background = Brushes.Transparent;
+            Binding binding = new Binding(nameof(text.Text));
+            binding.Mode = BindingMode.TwoWay;
+            binding.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+            binding.Source = text;
+            tb.SetBinding(TextBox.TextProperty, binding);
+
+            return tb;
         }
 
         /// <summary>
@@ -314,10 +399,52 @@ namespace Better_Printing_for_OneNote.Models
         }
     }
 
+    class DocumentChange { }
+
+    class CropsAndSkips : DocumentChange
+    {
+        public List<Crop> Crops { get; set; }
+
+        public CropsAndSkips(List<Crop> crops)
+        {
+            Crops = crops;
+        }
+    }
+
     class Crop
     {
-        public int Value;
+        public int Value { get; set; }
     }
 
     class Skip : Crop { }
+
+    class SignatureAdded : DocumentChange
+    {
+        public BindableText Text { get; set; }
+        public double X { get; set; }
+        public double Y { get; set; }
+
+        public SignatureAdded(BindableText text, double x, double y)
+        {
+            Text = text;
+            X = x;
+            Y = y;
+        }
+    }
+
+    class BindableText : NotifyBase
+    {
+        private string text = string.Empty;
+        public string Text
+        {
+            get => text; set
+            {
+                if (value != text)
+                {
+                    text = value;
+                    OnPropertyChanged(nameof(Text));
+                }
+            }
+        }
+    }
 }

@@ -169,15 +169,15 @@ namespace Better_Printing_for_OneNote.Views.Controls
         public delegate void AreaDeleteRequestedHandler(object sender, int pageIndex, double percentageDeleteStart, double percentageDeleteEnd);
         public static readonly DependencyProperty AreaDeleteRequestedCommandProperty = DependencyProperty.Register(nameof(AreaDeleteRequestedCommand), typeof(AreaDeleteRequestedHandler), typeof(InteractiveFixedDocumentViewer));
         #endregion
-        #region add control to document command
-        public AddControlToDocRequestedHandler AddControlToDocRequestedCommand
+        #region add signature to document command
+        public AddSignatureRequestedHandler AddSignatureRequestedCommand
         {
-            get => (AddControlToDocRequestedHandler)GetValue(AddControlToDocRequestedCommandProperty);
-            set => SetValue(AddControlToDocRequestedCommandProperty, value);
+            get => (AddSignatureRequestedHandler)GetValue(AddSignatureRequestedCommandProperty);
+            set => SetValue(AddSignatureRequestedCommandProperty, value);
         }
 
-        public delegate void AddControlToDocRequestedHandler(object sender, UIElement control);
-        public static readonly DependencyProperty AddControlToDocRequestedCommandProperty = DependencyProperty.Register(nameof(AddControlToDocRequestedCommand), typeof(AddControlToDocRequestedHandler), typeof(InteractiveFixedDocumentViewer));
+        public delegate void AddSignatureRequestedHandler(object sender, double x, double y);
+        public static readonly DependencyProperty AddSignatureRequestedCommandProperty = DependencyProperty.Register(nameof(AddSignatureRequestedCommand), typeof(AddSignatureRequestedHandler), typeof(InteractiveFixedDocumentViewer));
         #endregion
 
         #region page split tool
@@ -295,8 +295,13 @@ namespace Better_Printing_for_OneNote.Views.Controls
             }
             else
             {
-                RichTextBox rtb = new RichTextBox { AcceptsReturn = true, MinWidth = 100, MinHeight = 100, Background = Brushes.White, BorderThickness = new Thickness(0) };
-                AddControlToDocRequestedCommand?.Invoke(this, rtb);
+                if (!(Keyboard.FocusedElement is TextBox) && AddSignatureRequestedCommand != null)
+                {
+                    var mousePos = e.GetPosition(MainDPV);
+                    AddSignatureRequestedCommand(this, mousePos.X, mousePos.Y);
+                    var pageChildren = Document.Pages[PageNumber].Child.Children;
+                    pageChildren[pageChildren.Count - 1].Focus();
+                }
             }
         }
         #endregion
@@ -368,7 +373,7 @@ namespace Better_Printing_for_OneNote.Views.Controls
         public void OnApplication_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             // prevent wrong misbehavior when typing into textboxes
-            if (Keyboard.FocusedElement is TextBox || Keyboard.FocusedElement is RichTextBox)
+            if (Keyboard.FocusedElement is TextBox)
                 return;
 
             e.Handled = true;
