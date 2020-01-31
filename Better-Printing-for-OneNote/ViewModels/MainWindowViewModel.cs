@@ -62,49 +62,7 @@ namespace Better_Printing_for_OneNote.ViewModels
             }
             set
             {
-                var cts = new CancellationTokenSource();
-                var reporter = new ProgressReporter();
-                var busyDialog = new BusyIndicatorWindow(cts, reporter);
-                if (Window.IsInitialized)
-                    busyDialog.Owner = Window;
-
-                _ = Task.Run(() =>
-                {
-                    try
-                    {
-                        BitmapSource[] bitmaps = Conversion.ConvertPDFToBitmaps(value, cts.Token, reporter);
-                        foreach (var bitmap in bitmaps)
-                            bitmap.Freeze();
-                        GeneralHelperClass.ExecuteInUiThread(() =>
-                        {
-                            var cropHelper = new CropHelper(bitmaps);
-
-                            UpdatePrintFormat(cropHelper); // set the format and initialize the first pages
-                            CropHelper = cropHelper;
-                            busyDialog.Completed = true;
-                            busyDialog.Close();
-                            _filePath = value;
-                            OnPropertyChanged("FilePath");
-                        });
-                    }
-                    catch (ConversionFailedException e)
-                    {
-                        GeneralHelperClass.ExecuteInUiThread(() => busyDialog.SetError(e.Message));
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        GeneralHelperClass.ExecuteInUiThread(() =>
-                        {
-                            busyDialog.Completed = true;
-                            busyDialog.Close();
-                        });
-                    }
-
-                    WindowTitle = $"{Resources.ApplicationTitle} - {Path.GetFileName(_filePath)}";
-                    GC.Collect();
-                });
-
-                busyDialog.ShowDialog();
+                ProcessNewFilePath(value);
             }
         }
 
@@ -179,9 +137,54 @@ namespace Better_Printing_for_OneNote.ViewModels
 
         }
 
-        /// <summary>
-        /// Open the print dialog without printing
-        /// </summary>
+        private void ProcessNewFilePath(string filePath)
+        {
+            var cts = new CancellationTokenSource();
+            var reporter = new ProgressReporter();
+            var busyDialog = new BusyIndicatorWindow(cts, reporter);
+            if (Window.IsInitialized)
+                busyDialog.Owner = Window;
+
+            _ = Task.Run(() =>
+            {
+                try
+                {
+                    BitmapSource[] bitmaps = Conversion.ConvertPDFToBitmaps(filePath, cts.Token, reporter);
+                    foreach (var bitmap in bitmaps)
+                        bitmap.Freeze();
+                    GeneralHelperClass.ExecuteInUiThread(() =>
+                    {
+                        var cropHelper = new CropHelper(bitmaps);
+                        UpdatePrintFormat(cropHelper); // set the format and initialize the first pages
+                        CropHelper = cropHelper;
+                        busyDialog.Completed = true;
+                        busyDialog.Close();
+                        _filePath = filePath;
+                        OnPropertyChanged("FilePath");
+
+                        WindowTitle = $"{Resources.ApplicationTitle} - {Path.GetFileName(_filePath)}";
+                    });
+                }
+                catch (ConversionFailedException e)
+                {
+                    GeneralHelperClass.ExecuteInUiThread(() => busyDialog.SetError(e.Message));
+                }
+                catch (OperationCanceledException)
+                {
+                    GeneralHelperClass.ExecuteInUiThread(() =>
+                    {
+                        busyDialog.Completed = true;
+                        busyDialog.Close();
+                    });
+                }
+
+                GC.Collect();
+            });
+
+            busyDialog.ShowDialog();
+        }
+
+
         private void ChoosePrinter()
         {
             PrintDialog.ShowDialog();
@@ -189,9 +192,6 @@ namespace Better_Printing_for_OneNote.ViewModels
             OnPropertyChanged("PrintDialog");
         }
 
-        /// <summary>
-        /// Open the print dialog with printing
-        /// </summary>
         private void Print()
         {
             var print = PrintDialog.ShowDialog();
@@ -205,7 +205,6 @@ namespace Better_Printing_for_OneNote.ViewModels
         /// <summary>
         /// Updates the format of the Crophelper with the values from the print dialog
         /// </summary>
-        /// <param name="cropHelper">the crop helper to edit</param>
         private void UpdatePrintFormat(CropHelper cropHelper)
         {
             double pageWidth;
@@ -236,9 +235,6 @@ namespace Better_Printing_for_OneNote.ViewModels
             cropHelper.UpdateFormat(pageHeight, pageWidth, contentHeight, contentWidth, new Thickness(paddingX, paddingY, paddingX, paddingY));
         }
 
-        /// <summary>
-        /// Open dialog to search for a ps file
-        /// </summary>
         private void SearchFile()
         {
             OpenFileDialog fileDialog = new OpenFileDialog();

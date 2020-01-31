@@ -3,7 +3,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -136,6 +135,23 @@ namespace Better_Printing_for_OneNote.Models
                 CurrentCropsAndSkips = newCropsAndSkips;
                 UpdatePages();
             }
+        }
+
+        public void MergePages(int from, int to)
+        {
+            var newCropsAndSkips = CurrentCropsAndSkips.Copy();
+
+            var newCropHeight = CurrentCropsAndSkips.Crops[from];
+            for (int i = to; i>from; i--)
+            {
+                newCropHeight += CurrentCropsAndSkips.Crops[i];
+                newCropsAndSkips.Crops.RemoveAt(i);
+            }
+            newCropsAndSkips.Crops[from] = newCropHeight;
+
+            UndoChangeList.Add(CurrentCropsAndSkips);
+            CurrentCropsAndSkips = newCropsAndSkips;
+            UpdatePages();
         }
 
         /// <param name="percentage">the vertical position percentage relative to the page (with margin)</param>
