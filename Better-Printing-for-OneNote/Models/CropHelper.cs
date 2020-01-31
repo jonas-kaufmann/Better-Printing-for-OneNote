@@ -1,4 +1,5 @@
 ﻿using Better_Printing_for_OneNote.AdditionalClasses;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -9,6 +10,7 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using WpfCropableImageControl;
 
 namespace Better_Printing_for_OneNote.Models
 {
@@ -28,15 +30,15 @@ namespace Better_Printing_for_OneNote.Models
             }
         }
 
-        private List<Crop> CurrentCropHeights;
+        private CropsAndSkips CurrentCropsAndSkips;
         private List<SignatureAdded> CurrentSignatures = new List<SignatureAdded>();
         private ObservableCollection<PageModel> Pages = new ObservableCollection<PageModel>();
         private List<DocumentChange> UndoChangeList = new List<DocumentChange>();
         private List<DocumentChange> RedoChangeList = new List<DocumentChange>();
 
         private int MaxCropHeight;
-        private double DocumentHeight;
-        private double DocumentWidth;
+        private double PageHeight;
+        private double PageWidth;
         private double ContentHeight;
         private double ContentWidth;
         private Thickness Padding;
@@ -58,7 +60,7 @@ namespace Better_Printing_for_OneNote.Models
                 bigImageHeight += b.PixelHeight;
 
 
-            CurrentCropHeights = new List<Crop>();
+            CurrentCropsAndSkips = new CropsAndSkips(new List<int>(), new List<Skip>());
             var positionY = 0;
             var first = true;
             while (positionY + MaxCropHeight < bigImageHeight)
@@ -66,7 +68,7 @@ namespace Better_Printing_for_OneNote.Models
                 var page = CreateNewPage(null);
                 page.CropShift = positionY;
                 positionY += page.CropHeight;
-                CurrentCropHeights.Add(new Crop() { Value = page.CropHeight });
+                CurrentCropsAndSkips.Crops.Add(page.CropHeight);
                 Pages.Add(page);
                 if (first)
                 {
@@ -79,7 +81,7 @@ namespace Better_Printing_for_OneNote.Models
             var lastPage = CreateNewPage(null);
             lastPage.CropShift = positionY;
             lastPage.CropHeight = bigImageHeight - positionY;
-            CurrentCropHeights.Add(new Crop() { Value = bigImageHeight - positionY });
+            CurrentCropsAndSkips.Crops.Add(bigImageHeight - positionY);
             Pages.Add(lastPage);
 
 
@@ -89,20 +91,14 @@ namespace Better_Printing_for_OneNote.Models
             Document = document;
         }
 
-        private PageModel CreateNewPage(ArrayList skips)
-        {
-            var page = new PageModel(Images, skips, DocumentHeight, DocumentWidth, ContentHeight, ContentWidth, Padding);
-            return page;
-        }
-
         public void UndoChange()
         {
             if (UndoChangeList.Count > 0)
             {
                 if (UndoChangeList[UndoChangeList.Count - 1] is CropsAndSkips cropsAndSkips)
                 {
-                    RedoChangeList.Add(new CropsAndSkips(CurrentCropHeights));
-                    CurrentCropHeights = cropsAndSkips.Crops;
+                    RedoChangeList.Add(CurrentCropsAndSkips);
+                    CurrentCropsAndSkips = cropsAndSkips;
                     UpdatePages();
                 }
 
@@ -116,8 +112,8 @@ namespace Better_Printing_for_OneNote.Models
             {
                 if (RedoChangeList[RedoChangeList.Count - 1] is CropsAndSkips cropsAndSkips)
                 {
-                    UndoChangeList.Add(new CropsAndSkips(CurrentCropHeights));
-                    CurrentCropHeights = cropsAndSkips.Crops;
+                    UndoChangeList.Add(CurrentCropsAndSkips);
+                    CurrentCropsAndSkips = cropsAndSkips;
                     UpdatePages();
                 }
 
@@ -125,143 +121,83 @@ namespace Better_Printing_for_OneNote.Models
             }
         }
 
-        /// <summary>
-        /// Skips the desired page (all other pages remain the same) (if there is more than one page left)
-        /// </summary>
-        /// <param name="pageToSkip">the page to skip</param>
         public void SkipPage(int pageToSkip)
         {
             if (Pages.Count > 1)
             {
-                var newCropHeights = new List<Crop>();
-                var page = 0;
-                var cropIndex = 0;
+                var newCropsAndSkips = CurrentCropsAndSkips.Copy();
 
-                while (cropIndex < CurrentCropHeights.Count)
-                {
-                    if (CurrentCropHeights[cropIndex].GetType() == typeof(Skip))
-                        newCropHeights.Add(CurrentCropHeights[cropIndex]);
-                    else
-                    {
-                        if (page == pageToSkip)
-                            newCropHeights.Add(new Skip() { Value = CurrentCropHeights[cropIndex].Value });
-                        else
-                            newCropHeights.Add(CurrentCropHeights[cropIndex]);
-                        page++;
-                    }
-                    cropIndex++;
-                }
+                newCropsAndSkips.Crops.RemoveAt(pageToSkip);
+                var skipStart = CalculatePixelPosY_WholeImage(0, pageToSkip);
+                var skipEnd = CalculatePixelPosY_WholeImage(CurrentCropsAndSkips.Crops[pageToSkip], pageToSkip);
+                newCropsAndSkips.InsertSkip(new Skip() { SkipType = SkipType.Y, SkipStart = skipStart, SkipEnd = skipEnd });
 
-                UndoChangeList.Add(new CropsAndSkips(CurrentCropHeights));
-                CurrentCropHeights = newCropHeights;
+                UndoChangeList.Add(CurrentCropsAndSkips);
+                CurrentCropsAndSkips = newCropsAndSkips;
                 UpdatePages();
             }
+        }
+
+        /// <param name="percentage">the vertical position percentage relative to the page (with margin)</param>
+        public void SplitPageAt(int pageToEdit, double percentage)
+        {
+            var splitAt = Pages[pageToEdit].CalculatePixelPosY(percentage);
+
+            if (splitAt != Pages[pageToEdit].CropHeight)
+            {
+                var newCropsAndSkips = CurrentCropsAndSkips.Copy();
+
+                if (newCropsAndSkips.Crops.Count - 1 > pageToEdit)
+                    newCropsAndSkips.Crops[pageToEdit + 1] = CurrentCropsAndSkips.Crops[pageToEdit + 1] + (CurrentCropsAndSkips.Crops[pageToEdit] - splitAt);
+                else
+                    newCropsAndSkips.Crops.Add(CurrentCropsAndSkips.Crops[pageToEdit] - splitAt);
+                newCropsAndSkips.Crops[pageToEdit] = splitAt;
+
+                UndoChangeList.Add(CurrentCropsAndSkips);
+                CurrentCropsAndSkips = newCropsAndSkips;
+                UpdatePages();
+            }
+        }
+
+        public void DeleteArea(int pageToEdit, double _start, double _end)
+        {
+            var start = CalculatePixelPosY_WholeImage(_start, pageToEdit);
+            var end = CalculatePixelPosY_WholeImage(_end, pageToEdit);
+
+            var newCropsAndSkips = CurrentCropsAndSkips.Copy();
+            newCropsAndSkips.Crops[pageToEdit] = newCropsAndSkips.Crops[pageToEdit] - (Pages[pageToEdit].CalculatePixelPosY(_end) - Pages[pageToEdit].CalculatePixelPosY(_start));
+            newCropsAndSkips.InsertSkip(new Skip() { SkipType = SkipType.Y, SkipStart = start, SkipEnd = end });
+
+            UndoChangeList.Add(CurrentCropsAndSkips);
+            CurrentCropsAndSkips = newCropsAndSkips;
+            UpdatePages();
         }
 
         /// <summary>
-        /// Splits the desired page at the desired crop height
+        /// calculates the vertical pixel position relative to the whole image (with skips)
         /// </summary>
-        /// <param name="pageToEdit">the page to edit</param>
-        /// <param name="splitAtPercentage">the position of the split relative to the whole Page (FixedContent) in percent</param>
-        public void SplitPageAt_Reset(int pageToEdit, double splitAtPercentage)
+        /// <param name="percentage">the vertical position percentage relative to the page (with margin)</param>
+        public int CalculatePixelPosY_WholeImage(double percentage, int page)
         {
-            var cropHeight = Pages[pageToEdit].CalculateSplitHeight(splitAtPercentage);
-            if (cropHeight != Pages[pageToEdit].CropHeight)
-            {
-                // addopt all Siteheights before the page to edit, reset all pages after the edited page (maintains Skips)
-                var imageHeight = Pages[0].BigImageHeight;
-                var cropIndex = 0;
-                var pageIndex = 0;
-                var newCropHeights = new List<Crop>();
-                while (imageHeight > 0)
-                {
-                    if (cropIndex < CurrentCropHeights.Count && CurrentCropHeights[cropIndex].GetType() == typeof(Skip))
-                    {
-                        newCropHeights.Add(CurrentCropHeights[cropIndex]);
-                        imageHeight -= CurrentCropHeights[cropIndex].Value;
-                    }
-                    else
-                    {
-                        if (pageIndex < pageToEdit)
-                        {
-                            newCropHeights.Add(CurrentCropHeights[cropIndex]);
-                            imageHeight -= CurrentCropHeights[cropIndex].Value;
-                        }
-                        else if (pageIndex > pageToEdit)
-                        {
-                            if (imageHeight < MaxCropHeight)
-                            {
-                                newCropHeights.Add(new Crop() { Value = imageHeight });
-                                imageHeight = 0;
-                            }
-                            else
-                            {
-                                newCropHeights.Add(new Crop() { Value = MaxCropHeight });
-                                imageHeight -= MaxCropHeight;
-                            }
-                        }
-                        else
-                        {
-                            newCropHeights.Add(new Crop() { Value = cropHeight });
-                            imageHeight -= cropHeight;
-                        }
-                        pageIndex++;
-                    }
-                    cropIndex++;
-                }
+            // add the page heights before the page
+            var posY = 0;
+            for (int i = 0; i < page; i++)
+                posY += Pages[i].CropHeight;
 
-                UndoChangeList.Add(new CropsAndSkips(CurrentCropHeights));
-                CurrentCropHeights = newCropHeights;
-                UpdatePages();
+            posY += Pages[page].CalculatePixelPosY(percentage);
+
+            // add the skipped area before the page to get the actual height
+            if (CurrentCropsAndSkips.Skips != null)
+            {
+                var relevantSkipHeight = 0;
+                foreach (Skip s in CurrentCropsAndSkips.Skips)
+                    if (s.SkipStart <= posY + relevantSkipHeight)
+                        relevantSkipHeight += s.SkipHeight;
+                posY += relevantSkipHeight;
             }
+            return posY;
         }
 
-        public void SplitPageAt(int pageToEdit, double splitAtPercentage)
-        {
-            var cropHeight = Pages[pageToEdit].CalculateSplitHeight(splitAtPercentage);
-
-            if (cropHeight != Pages[pageToEdit].CropHeight)
-            {
-                var newCropHeights = new List<Crop>();
-                var pageIndex = 0;
-                var overflowHeight = 0;
-                for (int cropIndex = 0; cropIndex < CurrentCropHeights.Count; cropIndex++)
-                {
-                    var crop = CurrentCropHeights[cropIndex];
-                    if (crop.GetType() == typeof(Skip))
-                        newCropHeights.Add(crop);
-                    else
-                    {
-                        if (pageIndex == pageToEdit)
-                        {
-                            overflowHeight = crop.Value - cropHeight;
-
-                            newCropHeights.Add(new Crop() { Value = cropHeight });
-                            if (Pages.Count < pageToEdit + 2)
-                                // no page after the page to edit
-                                newCropHeights.Add(new Crop() { Value = overflowHeight });
-                        }
-                        else
-                        {
-                            if (pageIndex == pageToEdit + 1)
-                                // the page after the page to edit
-                                newCropHeights.Add(new Crop() { Value = crop.Value + overflowHeight });
-                            else
-                                newCropHeights.Add(crop);
-                        }
-                        pageIndex++;
-                    }
-                }
-
-                UndoChangeList.Add(new CropsAndSkips(CurrentCropHeights));
-                CurrentCropHeights = newCropHeights;
-                UpdatePages();
-            }
-        }
-
-        /// <summary>
-        /// Updates the pages with the "CurrentCropHeights"
-        /// </summary>
         private void UpdatePages()
         {
             // remove all UIElements from all pages
@@ -274,29 +210,15 @@ namespace Better_Printing_for_OneNote.Models
             // remove all pages
             Pages.Clear();
 
-            // divide real crops and skips
-            var skips = new List<WpfCropableImageControl.Skip>();
-            var crops = new List<Crop>();
-            var positionY = 0;
-            foreach (var crop in CurrentCropHeights)
-            {
-                if (crop.GetType() == typeof(Skip))
-                    skips.Add(new WpfCropableImageControl.Skip() { SkipType = WpfCropableImageControl.SkipType.Y, SkipStart = positionY, SkipEnd = positionY + crop.Value });
-                else
-                    crops.Add(crop);
-
-                positionY += crop.Value;
-            }
-            var skipsArrayList = new ArrayList(skips);
-
-            // process pages/real crops
-            var shift = 0;
-            foreach (var crop in crops)
+            // process crops n skips
+            var skipsArrayList = new ArrayList(CurrentCropsAndSkips.Skips);
+            var shiftY = 0;
+            foreach (var cropHeight in CurrentCropsAndSkips.Crops)
             {
                 var page = CreateNewPage(skipsArrayList);
-                page.CropShift = shift;
-                page.CropHeight = crop.Value;
-                shift += crop.Value;
+                page.CropShift = shiftY;
+                page.CropHeight = cropHeight;
+                shiftY += cropHeight;
                 Pages.Add(page);
             }
 
@@ -306,7 +228,7 @@ namespace Better_Printing_for_OneNote.Models
                 document.Pages.Add(page.Page);
             Document = document;
 
-            // readd signatures
+            // read signatures
             for (int i = 0; i < CurrentSignatures.Count; i++)
             {
                 var signature = CurrentSignatures[i];
@@ -327,7 +249,6 @@ namespace Better_Printing_for_OneNote.Models
                 }
             }
         }
-
 
         /// <summary>
         /// Add an editable TextBox to all pages of the document
@@ -362,20 +283,12 @@ namespace Better_Printing_for_OneNote.Models
             return tb;
         }
 
-        /// <summary>
-        /// Updates the format of all pages
-        /// </summary>
-        /// <param name="documentHeight">the height of the whole page</param>
-        /// <param name="documentWidth">the width of the whole page</param>
-        /// <param name="contentHeight">the height of the content on the page (without the printers padding)</param>
-        /// <param name="contentWidth">the width of the content on the page (without the printers padding)</param>
-        /// <param name="padding">the printers padding</param>
-        public void UpdateFormat(double documentHeight, double documentWidth, double contentHeight, double contentWidth, Thickness padding)
+        public void UpdateFormat(double pageHeight, double pageWidth, double contentHeight, double contentWidth, Thickness padding)
         {
-            if (DocumentHeight != documentHeight || DocumentWidth != documentWidth || contentHeight != ContentHeight || contentWidth != ContentWidth || Padding != padding)
+            if (PageHeight != pageHeight || PageWidth != pageWidth || contentHeight != ContentHeight || contentWidth != ContentWidth || Padding != padding)
             {
-                DocumentHeight = documentHeight;
-                DocumentWidth = documentWidth;
+                PageHeight = pageHeight;
+                PageWidth = pageWidth;
                 ContentHeight = contentHeight;
                 ContentWidth = contentWidth;
                 Padding = padding;
@@ -385,26 +298,74 @@ namespace Better_Printing_for_OneNote.Models
                     InitializePages();
             }
         }
+
+        private PageModel CreateNewPage(ArrayList skips)
+        {
+            return new PageModel(Images, skips, PageHeight, PageWidth, ContentHeight, ContentWidth, Padding);
+        }
     }
 
     class DocumentChange { }
 
     class CropsAndSkips : DocumentChange
     {
-        public List<Crop> Crops { get; set; }
+        public List<int> Crops { get; set; }
+        private List<Skip> _skips;
+        public ReadOnlyCollection<Skip> Skips
+        {
+            get
+            {
+                return new ReadOnlyCollection<Skip>(_skips);
+            }
+        }
 
-        public CropsAndSkips(List<Crop> crops)
+        public CropsAndSkips(List<int> crops, List<Skip> skips)
         {
             Crops = crops;
+            _skips = skips;
+        }
+
+        public void InsertSkip(Skip skip)
+        {
+            for (int i = 0; i < Skips.Count; i++)
+            {
+                if (skip.SkipEnd < Skips[i].SkipStart)
+                {
+                    // right position for the skip
+                    _skips.Insert(i, skip);
+                    return;
+                }
+                else
+                {
+                    if ((skip.SkipStart <= Skips[i].SkipStart && skip.SkipEnd >= Skips[i].SkipEnd)
+                        || (skip.SkipStart >= Skips[i].SkipStart && skip.SkipEnd >= Skips[i].SkipEnd && skip.SkipStart <= Skips[i].SkipEnd)
+                        || (skip.SkipEnd <= Skips[i].SkipEnd))
+                    {
+                        // skips are overlapping
+                        skip.SkipStart = Math.Min(skip.SkipStart, Skips[i].SkipStart);
+                        skip.SkipEnd = Math.Max(skip.SkipEnd, Skips[i].SkipEnd);
+                        _skips.RemoveAt(i);
+                        i--;
+                    }
+                }
+            }
+
+            _skips.Add(skip);
+        }
+
+        public CropsAndSkips Copy()
+        {
+            var crops = new List<int>();
+            foreach (var c in Crops)
+                crops.Add(c);
+
+            var skips = new List<Skip>();
+            foreach (var s in Skips)
+                skips.Add(s);
+
+            return new CropsAndSkips(crops, skips);
         }
     }
-
-    class Crop
-    {
-        public int Value { get; set; }
-    }
-
-    class Skip : Crop { }
 
     class SignatureAdded : DocumentChange
     {
@@ -425,7 +386,8 @@ namespace Better_Printing_for_OneNote.Models
         private string text = string.Empty;
         public string Text
         {
-            get => text; set
+            get => text;
+            set
             {
                 if (value != text)
                 {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
@@ -173,18 +174,19 @@ namespace Better_Printing_for_OneNote.Models
         public void AddUIElement(UIElement uielement) => Page.Child.Children.Add(uielement);
         public void RemoveUIElement(UIElement uielement) => Page.Child.Children.Remove(uielement);
 
-        /// <param name="splitAtPercentage">the relative position to the whole page (in percent)</param>
-        /// <returns>the actual pixel height to split the image at</returns>
-        public int CalculateSplitHeight(double splitAtPercentage)
+        /// <summary>
+        /// Calculates the vertical pixel position relative to the page
+        /// </summary>
+        /// <param name="percentage">the vertical position percentage relative to the page (with margin)</param>
+        public int CalculatePixelPosY(double percentage)
         {
             double scalingY = CropableImage.ActualCropHeight / ContentHeight;
             double scalingX = CropableImage.ActualCropWidth / ContentWidth;
-            double scaling = Math.Max(scalingX, scalingY);
+            var pageY = (int)Math.Round((percentage * PageHeight - ContentPadding.Top) * Math.Max(scalingX, scalingY));
 
-            var splitHeight = (int)Math.Round((splitAtPercentage * PageHeight - ContentPadding.Top) * scaling);
-            if (splitHeight > CropHeight) return CropHeight;
-            else if (splitHeight < 0) return 0;
-            else return splitHeight;
+            if (pageY > CropHeight) return CropHeight;
+            else if (pageY < 0) return 0;
+            else return pageY;
         }
     }
 }

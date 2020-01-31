@@ -10,6 +10,8 @@ using System.Threading;
 using static Better_Printing_for_OneNote.Views.Controls.InteractiveFixedDocumentViewer;
 using Better_Printing_for_OneNote.Properties;
 using System.IO;
+using WpfCropableImageControl;
+using System.Collections.Generic;
 
 namespace Better_Printing_for_OneNote.ViewModels
 {
@@ -150,6 +152,7 @@ namespace Better_Printing_for_OneNote.ViewModels
         public RedoRequestedHandler RedoRequestHandler { get; set; }
         public PageDeleteRequestedHandler DeleteRequestHandler { get; set; }
         public AddSignatureRequestedHandler AddControlToDocRequestHandler { get; set; }
+        public AreaDeleteRequestedHandler AreaDeleteRequestedHandler { get; set; }
 
         private Window Window;
 
@@ -161,6 +164,7 @@ namespace Better_Printing_for_OneNote.ViewModels
             RedoRequestHandler = (sender) => CropHelper.RedoChange();
             DeleteRequestHandler = (sender, pageIndex) => CropHelper.SkipPage(pageIndex);
             AddControlToDocRequestHandler = (sender, x, y) => CropHelper.AddSignatureTb(x, y);
+            AreaDeleteRequestedHandler = (sender, x, y, z) => CropHelper.DeleteArea(x, y, z);
 
             Window = window;
 
