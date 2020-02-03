@@ -142,7 +142,7 @@ namespace Better_Printing_for_OneNote.Models
             var newCropsAndSkips = CurrentCropsAndSkips.Copy();
 
             var newCropHeight = CurrentCropsAndSkips.Crops[from];
-            for (int i = to; i>from; i--)
+            for (int i = to; i > from; i--)
             {
                 newCropHeight += CurrentCropsAndSkips.Crops[i];
                 newCropsAndSkips.Crops.RemoveAt(i);
@@ -212,6 +212,11 @@ namespace Better_Printing_for_OneNote.Models
                 posY += relevantSkipHeight;
             }
             return posY;
+        }
+
+        public double GetOptimalHeight(int pageIndex)
+        {
+            return Pages[pageIndex].CalculateOptimalCropHeight();
         }
 
         private void UpdatePages()

@@ -16,6 +16,6 @@
             <Button Content="Drucken" Command="{Binding PrintCommand}" Margin="4 0 0 0"/>
         </StackPanel>
 
-        <controls:InteractiveFixedDocumentViewer x:Name="MainIFDV" Margin="0 12 0 0" RenderPageNumbers="{Binding CropHelper.PageNumbersEnabled, Mode=TwoWay}" PageDeleteRequestedCommand="{Binding DeleteRequestHandler}" RedoRequestedCommand="{Binding RedoRequestHandler}" AreaDeleteRequestedCommand="{Binding AreaDeleteRequestedHandler}"  UndoRequestedCommand="{Binding UndoRequestHandler}" PageSplitRequestedCommand="{Binding SplitPageRequestHandler}" AddSignatureRequestedCommand="{Binding AddControlToDocRequestHandler}" Document="{Binding CropHelper.Document}" Background="{StaticResource LightPrimary}" />
+        <controls:InteractiveFixedDocumentViewer x:Name="MainIFDV" Margin="0 12 0 0" RenderPageNumbers="{Binding CropHelper.PageNumbersEnabled, Mode=TwoWay}" OptimalHeightRequestedCommand="{Binding OptimalHeightRequestedHandler}" PageDeleteRequestedCommand="{Binding DeleteRequestHandler}" RedoRequestedCommand="{Binding RedoRequestHandler}" AreaDeleteRequestedCommand="{Binding AreaDeleteRequestedHandler}"  UndoRequestedCommand="{Binding UndoRequestHandler}" PageSplitRequestedCommand="{Binding SplitPageRequestHandler}" AddSignatureRequestedCommand="{Binding AddControlToDocRequestHandler}" Document="{Binding CropHelper.Document}" Background="{StaticResource LightPrimary}" />
     </DockPanel>
 </Window>

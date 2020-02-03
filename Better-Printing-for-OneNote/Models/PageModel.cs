@@ -16,6 +16,7 @@ namespace Better_Printing_for_OneNote.Models
         public PageContent Page { get; private set; }
         private CropableImage CropableImage;
         public int MaxCropHeight { get; private set; }
+        public int OptimalCropHeight { get; private set; } // relative to page
 
         private int _bigImageHeight;
         public int BigImageHeight
@@ -187,6 +188,16 @@ namespace Better_Printing_for_OneNote.Models
             if (pageY > CropHeight) return CropHeight;
             else if (pageY < 0) return 0;
             else return pageY;
+        }
+
+        /// <summary>
+        /// Calculates the optimal crop height (with the MaxCropHeight) relative to the page
+        /// </summary>
+        public double CalculateOptimalCropHeight()
+        {
+            double scalingY = ContentHeight / CropableImage.ActualCropHeight;
+            double scalingX = ContentWidth / CropableImage.ActualCropWidth;
+            return MaxCropHeight * Math.Min(scalingX, scalingY);
         }
     }
 }
