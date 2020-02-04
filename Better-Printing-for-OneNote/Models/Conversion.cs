@@ -137,6 +137,7 @@ namespace Better_Printing_for_OneNote
                 }
 
                 ct.ThrowIfCancellationRequested();
+                reporter.ReportProgress("Copying bitmaps into final arrays");
 
                 BitmapSource[] bitmapSources = new BitmapSource[finalImages.Count];
                 for (int i = 0; i < bitmapSources.Length; i++) {

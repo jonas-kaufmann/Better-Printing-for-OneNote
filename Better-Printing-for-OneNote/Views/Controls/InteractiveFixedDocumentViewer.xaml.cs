@@ -21,9 +21,9 @@ namespace Better_Printing_for_OneNote.Views.Controls
         {
             if (sender is InteractiveFixedDocumentViewer ifdv && e.OldValue != e.NewValue)
             {
-                ifdv._optimalHeight = ifdv.OptimalHeightRequestedCommand?.Invoke(ifdv, ifdv.PageNumber);
                 ifdv.MainScrollViewer.Visibility = Visibility.Hidden; // to prevent visual bugs
                 ifdv.UpdateDocument();
+                ifdv._optimalHeight = ifdv.OptimalHeightRequestedCommand?.Invoke(ifdv, ifdv.PageNumber);
             } 
         }
 
@@ -258,12 +258,13 @@ namespace Better_Printing_for_OneNote.Views.Controls
         {
             if (IsPageSplitToolSelected && MainDPV.IsMouseOver)
             {
-                var pos = Mouse.GetPosition(PagesGrid);
+                var posOutsideDocument = Mouse.GetPosition(PagesGrid);
+                var posInsideDocument = Mouse.GetPosition(MainDPVGrid);
 
                 PageSplitLine.X2 = PagesGrid.ActualWidth;
-                PageSplitLine.Margin = new Thickness(0, pos.Y, 0, 0);
+                PageSplitLine.Margin = new Thickness(0, posOutsideDocument.Y, 0, 0);
 
-                if (_optimalHeight.HasValue && pos.Y > _optimalHeight.Value)
+                if (_optimalHeight.HasValue && posInsideDocument.Y > _optimalHeight.Value)
                     PageSplitLine.Stroke = Brushes.Red;
                 else
                     PageSplitLine.Stroke = Brushes.Black;

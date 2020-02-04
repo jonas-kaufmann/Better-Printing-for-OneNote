@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.IO.Pipes;
 using System.Text;
 
@@ -64,12 +65,14 @@ namespace Better_Printing_for_OneNote.Models
 
             using (NamedPipeServerStream pipeServer = new NamedPipeServerStream(pipename, PipeDirection.In))
             {
+                string absolutePathToPPM = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\" + PDFTOPPMPath;
+
                 Process p = new Process
                 {
                     StartInfo = new ProcessStartInfo
                     {
                         FileName = "cmd",
-                        Arguments = $"/C {PDFTOPPMPath} -f {page} -l {page} -r {dpi} -aa {(antiAliasing ? "yes" : "no")} -aaVector {(vectorAntiAliasing ? "yes" : "no")} \"{filePath}\" - > \\\\.\\pipe\\{pipename}",
+                        Arguments = $"/C (\"{absolutePathToPPM}\" -f {page} -l {page} -r {dpi} -aa {(antiAliasing ? "yes" : "no")} -aaVector {(vectorAntiAliasing ? "yes" : "no")} \"{filePath}\" -) > \"\\\\.\\pipe\\{pipename}\"",
                         CreateNoWindow = true,
                         UseShellExecute = false
                     }
