@@ -9,13 +9,21 @@
         Title="{Binding WindowTitle}" MinWidth="800" MinHeight="600">
 
     <DockPanel>
-        <StackPanel DockPanel.Dock="Top" Margin="12 12 12 0" Orientation="Horizontal">
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="Open File" Command="{Binding SearchFileCommand}" />
+            <MenuItem Header="Printer" Command="{Binding ChoosePrinterCommand}" />
+            <MenuItem Header="Paper Size" Command="{Binding ChoosePrinterCommand}" />
+            <MenuItem Header="Settings" IsEnabled="False" />
+            <MenuItem Header="Third Party Notices" Command="{Binding ShowThirdPartyNotices}" />
+        </Menu>
+        
+        <!--<StackPanel DockPanel.Dock="Top" Margin="12 12 12 0" Orientation="Horizontal">
             <Button Content="Datei auswählen" Command="{Binding SearchFileCommand}" />
             <toolkit:WatermarkTextBox Watermark="Drucker" Width="230" Text="{Binding PrintDialog.PrintQueue.Name}" IsReadOnly="True" Focusable="False" Margin="16 0 0 0"/>
             <Button Content="Auswählen" Command="{Binding ChoosePrinterCommand}" Margin="4 0 0 0"/>
             <Button Content="Drucken" Command="{Binding PrintCommand}" Margin="4 0 0 0"/>
-        </StackPanel>
+        </StackPanel>-->
 
-        <controls:InteractiveFixedDocumentViewer x:Name="MainIFDV" Margin="0 12 0 0" RenderPageNumbers="{Binding CropHelper.PageNumbersEnabled, Mode=TwoWay}" PageDeleteRequestedCommand="{Binding DeleteRequestHandler}" RedoRequestedCommand="{Binding RedoRequestHandler}" UndoRequestedCommand="{Binding UndoRequestHandler}" PageSplitRequestedCommand="{Binding SplitPageRequestHandler}" AddSignatureRequestedCommand="{Binding AddControlToDocRequestHandler}" Document="{Binding CropHelper.Document}" Background="{StaticResource LightPrimary}" />
+        <controls:InteractiveFixedDocumentViewer x:Name="MainIFDV" RenderPageNumbers="{Binding CropHelper.PageNumbersEnabled, Mode=TwoWay}" PageDeleteRequestedCommand="{Binding DeleteRequestHandler}" RedoRequestedCommand="{Binding RedoRequestHandler}" UndoRequestedCommand="{Binding UndoRequestHandler}" PageSplitRequestedCommand="{Binding SplitPageRequestHandler}" AddSignatureRequestedCommand="{Binding AddControlToDocRequestHandler}" Document="{Binding CropHelper.Document}" Background="{StaticResource LightPrimary}" />
     </DockPanel>
 </Window>

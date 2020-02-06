@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:converters="clr-namespace:Better_Printing_for_OneNote.Views.Converters"
              xmlns:controls="clr-namespace:Better_Printing_for_OneNote.Views.Controls"
+             xmlns:vg="clr-namespace:Better_Printing_for_OneNote.Views.Controls.VectorGraphics"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
 
@@ -22,48 +23,6 @@
             <Style TargetType="TextBlock">
                 <Setter Property="FontSize" Value="16" />
             </Style>
-            <Style TargetType="ToggleButton" x:Key="BlackAndWhiteToggleButton">
-                <Setter Property="Foreground" Value="{StaticResource LightPrimary}" />
-                <Setter Property="FontSize" Value="16" />
-
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="{x:Type ToggleButton}">
-                            <Border HorizontalAlignment="Center" VerticalAlignment="Center" x:Name="border" Padding="4,0,4,0" Background="{StaticResource DarkPrimary}" BorderBrush="{StaticResource LightPrimary}" BorderThickness="1" SnapsToDevicePixels="True">
-                                <ContentPresenter x:Name="contentPresenter" Margin="0 0 0 4" />
-                            </Border>
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsChecked" Value="true">
-                                    <Setter Property="Background" TargetName="border" Value="{StaticResource LightPrimary}"/>
-                                    <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource DarkPrimary}"/>
-                                    <Setter Property="Foreground" Value="{StaticResource DarkPrimary}" />
-                                </Trigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-            <Style TargetType="ToggleButton" x:Key="UnicodeIconToggleButton">
-                <Setter Property="Foreground" Value="{StaticResource LightPrimary}" />
-                <Setter Property="FontSize" Value="28" />
-
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="{x:Type ToggleButton}">
-                            <Border HorizontalAlignment="Center" VerticalAlignment="Center" x:Name="border" Padding="4,0,4,0" Background="{StaticResource DarkPrimary}" BorderBrush="{StaticResource LightPrimary}" BorderThickness="1" SnapsToDevicePixels="True">
-                                <ContentPresenter x:Name="contentPresenter" Margin="0 -7 0 -5"/>
-                            </Border>
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsChecked" Value="true">
-                                    <Setter Property="Background" TargetName="border" Value="{StaticResource LightPrimary}"/>
-                                    <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource DarkPrimary}"/>
-                                    <Setter Property="Foreground" Value="{StaticResource DarkPrimary}" />
-                                </Trigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
         </ResourceDictionary>
     </UserControl.Resources>
 
@@ -76,11 +35,21 @@
 
         <Border Padding="0 8 0 8" Background="{StaticResource DarkPrimary}">
             <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
-                <ToggleButton Content="✄" ToolTip="cut out areas or add page breaks" VerticalAlignment="Center" VerticalContentAlignment="Center" Style="{StaticResource UnicodeIconToggleButton}" IsChecked="{Binding IsPageSplitToolSelected, FallbackValue=true}" />
-                <ToggleButton Content="🖎" ToolTip="add signatures" VerticalAlignment="Center" VerticalContentAlignment="Center" Style="{StaticResource UnicodeIconToggleButton}" IsChecked="{Binding IsPageSplitToolSelected, Converter={StaticResource InverseBoolConverter}}" Margin="4 0 0 0" />
+                <vg:VectorGraphicToggleButton ToolTip="cut out areas or add page breaks" VerticalAlignment="Center" VerticalContentAlignment="Center" IsChecked="{Binding IsPageSplitToolSelected, FallbackValue=true}">
+                    <vg:VectorGraphicToggleButton.VectorGraphic>
+                        <vg:CropVectorGraphic />
+                    </vg:VectorGraphicToggleButton.VectorGraphic>
+                </vg:VectorGraphicToggleButton>
+                
+                <vg:VectorGraphicToggleButton ToolTip="add signatures" VerticalAlignment="Center" VerticalContentAlignment="Center" IsChecked="{Binding IsPageSplitToolSelected, Converter={StaticResource InverseBoolConverter}}" Margin="4 0 0 0">
+                    <vg:VectorGraphicToggleButton.VectorGraphic>
+                        <vg:EditVectorGraphic />
+                    </vg:VectorGraphicToggleButton.VectorGraphic>
+                </vg:VectorGraphicToggleButton>
+                
                 <controls:IntValueTextBox x:Name="PageNumberTb" PreviewKeyUp="PageNumberTb_PreviewKeyUp" Text="{Binding PageNumber, Converter={StaticResource Add1Converter}}" Width="36" HorizontalContentAlignment="Center" Margin="16 0 0 0" VerticalAlignment="Center" VerticalContentAlignment="Center" />
                 <TextBlock Text="{Binding PageCount, StringFormat=' / {0}', FallbackValue=' / 0'}" Foreground="White" VerticalAlignment="Center"/>
-                <ToggleButton IsChecked="{Binding RenderPageNumbers}" x:Name="PageNumbersInDocBtn" Content="Page Numbers" Margin="16 0 0 0" VerticalAlignment="Center" VerticalContentAlignment="Center" Style="{StaticResource BlackAndWhiteToggleButton}" />
+                <ToggleButton IsChecked="{Binding RenderPageNumbers}" x:Name="PageNumbersInDocBtn" Content="Page Numbers" Margin="16 0 0 0" VerticalAlignment="Center" VerticalContentAlignment="Center" />
 
             </StackPanel>
         </Border>

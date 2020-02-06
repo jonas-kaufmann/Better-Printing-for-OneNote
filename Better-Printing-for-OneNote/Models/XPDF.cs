@@ -8,8 +8,8 @@ namespace Better_Printing_for_OneNote.Models
 {
     public static class XPDF
     {
-        private const string PDFINFOPATH = "Resources\\pdfinfo.exe";
-        private const string PDFTOPPMPath = "Resources\\pdftoppm.exe";
+        private const string PDFINFOPATH = "Xpdf\\bin\\pdfinfo.exe";
+        private const string PDFTOPPMPath = "Xpdf\\bin\\pdftoppm.exe";
 
         public static int GetPageCount(string filePath)
         {

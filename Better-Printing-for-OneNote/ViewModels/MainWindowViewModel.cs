@@ -10,6 +10,8 @@ using System.Threading;
 using static Better_Printing_for_OneNote.Views.Controls.InteractiveFixedDocumentViewer;
 using Better_Printing_for_OneNote.Properties;
 using System.IO;
+using System.Windows.Input;
+using Better_Printing_for_OneNote.Views.Windows;
 
 namespace Better_Printing_for_OneNote.ViewModels
 {
@@ -50,6 +52,8 @@ namespace Better_Printing_for_OneNote.ViewModels
                 return _printCommand ?? (_printCommand = new RelayCommand(c => Print()));
             }
         }
+
+        public ICommand ShowThirdPartyNotices { get; } = new RelayCommand(c => new ThirdPartyNoticesWindow { Notices = ThirdPartyNotices.Notices }.ShowDialog());
 
         private string _filePath;
         public string FilePath
@@ -169,7 +173,7 @@ namespace Better_Printing_for_OneNote.ViewModels
 
 #if DEBUG
             //FilePath = @"D:\Daten\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Normales Dokument\Diskrete Signale.pdf";
-            FilePath = @"C:\Users\fabit\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Normales Dokument\Diskrete Signale.pdf";
+            FilePath = @"C:\Users\jokau\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Normales Dokument\Diskrete Signale.pdf";
             //Print();
 #endif
 
@@ -229,7 +233,8 @@ namespace Better_Printing_for_OneNote.ViewModels
                 paddingY = capabilities.PageImageableArea.OriginHeight;
             }
 
-            cropHelper.UpdateFormat(pageHeight, pageWidth, contentHeight, contentWidth, new Thickness(paddingX, paddingY, paddingX, paddingY));
+            if (CropHelper != null)
+                cropHelper.UpdateFormat(pageHeight, pageWidth, contentHeight, contentWidth, new Thickness(paddingX, paddingY, paddingX, paddingY));
         }
 
         /// <summary>

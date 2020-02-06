@@ -2,6 +2,7 @@
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <_LastSelectedProfileId>C:\Users\jokau\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Kaufi\Better-Printing-for-OneNote\Better-Printing-for-OneNote\Properties\PublishProfiles\FolderProfile.pubxml</_LastSelectedProfileId>
+    <ShowAllFiles>false</ShowAllFiles>
   </PropertyGroup>
   <ItemGroup>
     <ApplicationDefinition Update="App.xaml">
@@ -15,6 +16,12 @@
     <Compile Update="Views\Controls\InteractiveFixedDocumentViewer.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\Controls\VectorGraphics\VectorGraphicToggleButton.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Windows\ThirdPartyNoticesWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Page Update="BusyIndicatorWindow.xaml">
@@ -24,6 +31,21 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Controls\InteractiveFixedDocumentViewer.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Controls\VectorGraphics\VectorGraphicToggleButton.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Controls\VectorGraphics\PrinterVectorGraphic.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Controls\VectorGraphics\EditVectorGraphic.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Controls\VectorGraphics\CropVectorGraphic.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Windows\ThirdPartyNoticesWindow.xaml">
       <SubType>Designer</SubType>
     </Page>
   </ItemGroup>

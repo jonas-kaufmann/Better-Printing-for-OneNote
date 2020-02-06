@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -381,8 +380,6 @@ namespace Better_Printing_for_OneNote.Models
                 Padding = padding;
                 if (Pages.Count > 0)
                     UpdatePages();
-                else
-                    InitializePages();
             }
         }
     }

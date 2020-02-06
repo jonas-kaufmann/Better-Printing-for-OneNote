@@ -38,6 +38,12 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Update="Views\Controls\VectorGraphics\PrinterVectorGraphic.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Controls\VectorGraphics\EditVectorGraphic.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>
@@ -47,11 +53,34 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Update="Resources\pdfinfo.exe">
+    <None Update="ThirdPartyNotices\Extended WPF Toolkit - License.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Resources\pdftoppm.exe">
+    <None Update="ThirdPartyNotices\Json.NET - License.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="ThirdPartyNotices\WiX Toolset - License.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="ThirdPartyNotices\WixSharp - License.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="ThirdPartyNotices\WPF Cropable Image Control - License.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Xpdf\bin\pdfinfo.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Xpdf\bin\pdftoppm.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Views\Controls\VectorGraphics\PrinterVectorGraphic.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Controls\VectorGraphics\EditVectorGraphic.xaml">
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
 </Project>
