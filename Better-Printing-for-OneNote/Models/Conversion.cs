@@ -12,9 +12,9 @@ namespace Better_Printing_for_OneNote
     class Conversion
     {
         private const int DPI = 300;
-        private const double PERCENTAGE_ROWS_FOR_MATCHING = 0.02;
+        private const double PERCENTAGE_ROWS_FOR_MATCHING = .02;
         private const double ROWS_TO_CHECK_PERCENTAGE = .05;
-        private const double MAX_WRONG_PIXELS_PERCENTAGE = 0.01;
+        private const double MAX_WRONG_PIXELS_PERCENTAGE = .01;
 
         /// <summary>
         /// Converts a PDF document with (multiple) pages to one or multiple bitmaps if the document doesn't fit in a single one
@@ -137,6 +137,7 @@ namespace Better_Printing_for_OneNote
                 }
 
                 ct.ThrowIfCancellationRequested();
+                reporter.ReportProgress("Copying bitmaps into final arrays");
 
                 BitmapSource[] bitmapSources = new BitmapSource[finalImages.Count];
                 for (int i = 0; i < bitmapSources.Length; i++) {

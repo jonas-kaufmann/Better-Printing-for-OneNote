@@ -23,10 +23,23 @@ namespace Better_Printing_for_OneNote.Views.Controls
             {
                 ifdv.MainScrollViewer.Visibility = Visibility.Hidden; // to prevent visual bugs
                 ifdv.UpdateDocument();
-            }
+                ifdv._optimalHeight = ifdv.OptimalHeightRequestedCommand?.Invoke(ifdv, ifdv.PageNumber);
+            } 
         }
 
         public delegate FixedDocument PageSplitRequestedEventHandler(object sender, int pageNr, double splitAtPercentage);
+
+        #region optimal height command
+
+        public OptimalHeightRequestedHandler OptimalHeightRequestedCommand
+        {
+            get => (OptimalHeightRequestedHandler)GetValue(OptimalHeightRequestedCommandProperty);
+            set => SetValue(OptimalHeightRequestedCommandProperty, value);
+        }
+
+        public delegate double OptimalHeightRequestedHandler(object sender, int pageIndex);
+        public static readonly DependencyProperty OptimalHeightRequestedCommandProperty = DependencyProperty.Register(nameof(OptimalHeightRequestedCommand), typeof(OptimalHeightRequestedHandler), typeof(InteractiveFixedDocumentViewer));
+        #endregion
 
         #region zoom properties
         public double MinZoom { get; set; } = 0.4;
@@ -90,8 +103,12 @@ namespace Better_Printing_for_OneNote.Views.Controls
             int pageNumber = (int)value;
             var ifdv = (InteractiveFixedDocumentViewer)d;
             var correctPageNumber = ifdv.CorrectPageNumber(pageNumber);
+
             if (correctPageNumber != ifdv.PageNumber)
+            {
+                ifdv._optimalHeight = ifdv.OptimalHeightRequestedCommand?.Invoke(ifdv, correctPageNumber);
                 ifdv.MainScrollViewer.Visibility = Visibility.Hidden; // to prevent visual bugs
+            }
             return correctPageNumber;
         }
         private int CorrectPageNumber(int value)
@@ -169,6 +186,7 @@ namespace Better_Printing_for_OneNote.Views.Controls
         public delegate void AreaDeleteRequestedHandler(object sender, int pageIndex, double percentageDeleteStart, double percentageDeleteEnd);
         public static readonly DependencyProperty AreaDeleteRequestedCommandProperty = DependencyProperty.Register(nameof(AreaDeleteRequestedCommand), typeof(AreaDeleteRequestedHandler), typeof(InteractiveFixedDocumentViewer));
         #endregion
+
         #region add signature to document command
         public AddSignatureRequestedHandler AddSignatureRequestedCommand
         {
@@ -199,7 +217,6 @@ namespace Better_Printing_for_OneNote.Views.Controls
         {
             InitializeComponent();
             MainGrid.DataContext = this;
-
         }
 
         #region rendering
@@ -236,18 +253,27 @@ namespace Better_Printing_for_OneNote.Views.Controls
         #endregion
 
         #region pagesplitting line
+        private double? _optimalHeight;
         public void UpdateSplittingLine()
         {
             if (IsPageSplitToolSelected && MainDPV.IsMouseOver)
             {
-                var pos = Mouse.GetPosition(PagesGrid);
+                var posOutsideDocument = Mouse.GetPosition(PagesGrid);
+                var posInsideDocument = Mouse.GetPosition(MainDPVGrid);
 
                 PageSplitLine.X2 = PagesGrid.ActualWidth;
-                PageSplitLine.Margin = new Thickness(0, pos.Y, 0, 0);
+                PageSplitLine.Margin = new Thickness(0, posOutsideDocument.Y, 0, 0);
+
+                if (_optimalHeight.HasValue && posInsideDocument.Y > _optimalHeight.Value)
+                    PageSplitLine.Stroke = Brushes.Red;
+                else
+                    PageSplitLine.Stroke = Brushes.Black;
+
                 PageSplitLine.Visibility = Visibility.Visible;
             }
             else
             {
+                PageSplitLine.Stroke = Brushes.Black;
                 PageSplitLine.Visibility = Visibility.Collapsed;
             }
         }
