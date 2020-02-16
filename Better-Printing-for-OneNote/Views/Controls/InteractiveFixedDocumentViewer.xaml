@@ -35,21 +35,26 @@
 
         <Border Padding="0 8 0 8" Background="{StaticResource DarkPrimary}">
             <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
-                <vg:VectorGraphicToggleButton ToolTip="cut out areas or add page breaks" VerticalAlignment="Center" VerticalContentAlignment="Center" IsChecked="{Binding IsPageSplitToolSelected, FallbackValue=true}">
-                    <vg:VectorGraphicToggleButton.VectorGraphic>
-                        <vg:CropVectorGraphic />
-                    </vg:VectorGraphicToggleButton.VectorGraphic>
-                </vg:VectorGraphicToggleButton>
-                
-                <vg:VectorGraphicToggleButton ToolTip="add signatures" VerticalAlignment="Center" VerticalContentAlignment="Center" IsChecked="{Binding IsPageSplitToolSelected, Converter={StaticResource InverseBoolConverter}}" Margin="4 0 0 0">
-                    <vg:VectorGraphicToggleButton.VectorGraphic>
-                        <vg:EditVectorGraphic />
-                    </vg:VectorGraphicToggleButton.VectorGraphic>
-                </vg:VectorGraphicToggleButton>
-                
+                <ToggleButton Style="{StaticResource MonochromeToggleButton}" ToolTip="Cut out Areas or add Page Breaks" VerticalAlignment="Center" VerticalContentAlignment="Center" IsChecked="{Binding IsPageSplitToolSelected, FallbackValue=true}">
+                    <vg:CropVectorGraphic SnapsToDevicePixels="True" />
+                </ToggleButton>
+
+                <ToggleButton Style="{StaticResource MonochromeToggleButton}" ToolTip="Signature" VerticalAlignment="Center" VerticalContentAlignment="Center" IsChecked="{Binding IsPageSplitToolSelected, Converter={StaticResource InverseBoolConverter}}" Margin="4 0 0 0">
+                    <vg:EditVectorGraphic SnapsToDevicePixels="True" />
+                </ToggleButton>
+
                 <controls:IntValueTextBox x:Name="PageNumberTb" PreviewKeyUp="PageNumberTb_PreviewKeyUp" Text="{Binding PageNumber, Converter={StaticResource Add1Converter}}" Width="36" HorizontalContentAlignment="Center" Margin="16 0 0 0" VerticalAlignment="Center" VerticalContentAlignment="Center" />
                 <TextBlock Text="{Binding PageCount, StringFormat=' / {0}', FallbackValue=' / 0'}" Foreground="White" VerticalAlignment="Center"/>
-                <ToggleButton IsChecked="{Binding RenderPageNumbers}" x:Name="PageNumbersInDocBtn" Content="Page Numbers" Margin="16 0 0 0" VerticalAlignment="Center" VerticalContentAlignment="Center" />
+
+                <ToggleButton Style="{StaticResource MonochromeToggleButton}" IsChecked="{Binding RenderPageNumbers}" x:Name="PageNumbersInDocBtn" Margin="16 0 0 0" VerticalAlignment="Center" VerticalContentAlignment="Center" ToolTip="Page Numbers">
+                    <vg:HashVectorGraphic SnapsToDevicePixels="True" />
+                </ToggleButton>
+
+                <Button x:Name="PrintBtn" Margin="4 0 0 0" Style="{StaticResource DarkButton}" ToolTip="Print the Document" Click="PrintBtn_Click">
+                    <Button.Content>
+                        <vg:PrinterVectorGraphic SnapsToDevicePixels="True" />
+                    </Button.Content>
+                </Button>
 
             </StackPanel>
         </Border>

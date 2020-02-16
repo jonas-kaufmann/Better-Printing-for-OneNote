@@ -25,7 +25,7 @@ namespace Better_Printing_for_OneNote.Models
             set
             {
                 _document = value;
-                OnPropertyChanged("Document");
+                OnPropertyChanged(nameof(Document));
             }
         }
 
@@ -315,6 +315,8 @@ namespace Better_Printing_for_OneNote.Models
                 Padding = padding;
                 if (Pages.Count > 0)
                     UpdatePages();
+                else
+                    InitializePages();
             }
         }
 

@@ -5,7 +5,6 @@
         public EditVectorGraphic()
         {
             InitializeComponent();
-            MainViewBox.DataContext = this;
         }
     }
 }

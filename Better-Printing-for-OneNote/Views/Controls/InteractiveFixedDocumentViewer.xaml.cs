@@ -448,5 +448,45 @@ namespace Better_Printing_for_OneNote.Views.Controls
                 e.Handled = true;
             }
         }
+
+        #region printing
+        public delegate void PrintRequestedHandler(object sender);
+        public PrintRequestedHandler PrintRequestedCommand
+        {
+            get => (PrintRequestedHandler)GetValue(PrintRequestedCommandProperty);
+            set => SetValue(PrintRequestedCommandProperty, value);
+        }
+        public static DependencyProperty PrintRequestedCommandProperty = DependencyProperty.Register(nameof(PrintRequestedCommand), typeof(PrintRequestedHandler), typeof(InteractiveFixedDocumentViewer));
+
+        public delegate void PrintDialogValuesChangedHandler(object sender);
+        public PrintDialogValuesChangedHandler PrintDialogValuesChangedCommand
+        {
+            get => (PrintDialogValuesChangedHandler)GetValue(PrintDialogValuesChangedCommandProperty);
+            set => SetValue(PrintDialogValuesChangedCommandProperty, value);
+        }
+        public static DependencyProperty PrintDialogValuesChangedCommandProperty = DependencyProperty.Register(nameof(PrintDialogValuesChangedCommand), typeof(PrintDialogValuesChangedHandler), typeof(InteractiveFixedDocumentViewer));
+
+        public PrintDialog PrintDialog
+        {
+            get => (PrintDialog)GetValue(PrintDialogProperty);
+            set => SetValue(PrintDialogProperty, value);
+        }
+        public static DependencyProperty PrintDialogProperty = DependencyProperty.Register(nameof(PrintDialog), typeof(PrintDialog), typeof(InteractiveFixedDocumentViewer));
+        // show Print Dialog and print the document after confirmation
+        private void PrintBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (PrintDialog != null)
+            {
+                bool? result = PrintDialog.ShowDialog();
+                PrintDialogValuesChangedCommand?.Invoke(this);
+
+                if (result.GetValueOrDefault(false))
+                {
+                    PrintRequestedCommand(this);
+                }
+            }
+        }
+
+        #endregion
     }
 }

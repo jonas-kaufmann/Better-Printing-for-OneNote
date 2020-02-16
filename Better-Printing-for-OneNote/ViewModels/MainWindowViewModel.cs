@@ -10,10 +10,12 @@ using System.Threading;
 using static Better_Printing_for_OneNote.Views.Controls.InteractiveFixedDocumentViewer;
 using Better_Printing_for_OneNote.Properties;
 using System.IO;
-using WpfCropableImageControl;
 using System.Collections.Generic;
 using System.Windows.Input;
 using Better_Printing_for_OneNote.Views.Windows;
+using System.Printing;
+using System.Linq;
+using System.Collections.ObjectModel;
 
 namespace Better_Printing_for_OneNote.ViewModels
 {
@@ -66,83 +68,10 @@ namespace Better_Printing_for_OneNote.ViewModels
             }
             set
             {
-                ProcessNewFilePath(value);
+                if (_filePath != value)
+                    ProcessNewFilePath(value);
             }
         }
-
-        private CropHelper _cropHelper;
-        public CropHelper CropHelper
-        {
-            get
-            {
-                return _cropHelper;
-            }
-            set
-            {
-                _cropHelper = value;
-                OnPropertyChanged("CropHelper");
-            }
-        }
-
-        private PrintDialog _printDialog;
-        public PrintDialog PrintDialog
-        {
-            get
-            {
-                return _printDialog ?? (_printDialog = new PrintDialog());
-            }
-        }
-
-        #region window title
-        private string _windowTitle = Resources.ApplicationTitle;
-        public string WindowTitle
-        {
-            get => _windowTitle;
-            set
-            {
-                if (value != _windowTitle)
-                {
-                    _windowTitle = value;
-                    OnPropertyChanged(nameof(WindowTitle));
-                }
-            }
-        }
-        #endregion
-
-        public PageSplitRequestedHandler SplitPageRequestHandler { get; set; }
-        public UndoRequestedHandler UndoRequestHandler { get; set; }
-        public RedoRequestedHandler RedoRequestHandler { get; set; }
-        public PageDeleteRequestedHandler DeleteRequestHandler { get; set; }
-        public AddSignatureRequestedHandler AddControlToDocRequestHandler { get; set; }
-        public AreaDeleteRequestedHandler AreaDeleteRequestedHandler { get; set; }
-        public OptimalHeightRequestedHandler OptimalHeightRequestedHandler { get; set; }
-
-        private Window Window;
-
-        public MainWindowViewModel(string argFilePath, Window window)
-        {
-            // command handler
-            SplitPageRequestHandler = (sender, pageIndex, splitAtPercentage) => CropHelper.SplitPageAt(pageIndex, splitAtPercentage);
-            UndoRequestHandler = (sender) => CropHelper.UndoChange();
-            RedoRequestHandler = (sender) => CropHelper.RedoChange();
-            DeleteRequestHandler = (sender, pageIndex) => CropHelper.SkipPage(pageIndex);
-            AddControlToDocRequestHandler = (sender, x, y) => CropHelper.AddSignatureTb(x, y);
-            AreaDeleteRequestedHandler = (sender, x, y, z) => CropHelper.DeleteArea(x, y, z);
-            OptimalHeightRequestedHandler = (sender, pageIndex) => CropHelper.GetOptimalHeight(pageIndex);
-
-            Window = window;
-
-            if (argFilePath != "")
-                FilePath = argFilePath;
-
-#if DEBUG
-            //FilePath = @"D:\Daten\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Normales Dokument\Diskrete Signale.pdf";
-            FilePath = @"C:\Users\jokau\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Normales Dokument\Diskrete Signale.pdf";
-            //Print();
-#endif
-
-        }
-
         private void ProcessNewFilePath(string filePath)
         {
             var cts = new CancellationTokenSource();
@@ -160,9 +89,8 @@ namespace Better_Printing_for_OneNote.ViewModels
                         bitmap.Freeze();
                     GeneralHelperClass.ExecuteInUiThread(() =>
                     {
-                        var cropHelper = new CropHelper(bitmaps);
-                        UpdatePrintFormat(cropHelper); // set the format and initialize the first pages
-                        CropHelper = cropHelper;
+                        CropHelper = new CropHelper(bitmaps);
+                        UpdatePrintFormat(CropHelper); // set the format and initialize the first pages
                         busyDialog.Completed = true;
                         busyDialog.Close();
                         _filePath = filePath;
@@ -190,6 +118,203 @@ namespace Better_Printing_for_OneNote.ViewModels
             busyDialog.ShowDialog();
         }
 
+        private CropHelper _cropHelper;
+        public CropHelper CropHelper
+        {
+            get
+            {
+                return _cropHelper;
+            }
+            set
+            {
+                _cropHelper = value;
+                OnPropertyChanged("CropHelper");
+            }
+        }
+
+        public PrintDialog PrintDialog { get; } = new PrintDialog();
+
+
+        #region window title
+        private string _windowTitle = Resources.ApplicationTitle;
+        public string WindowTitle
+        {
+            get => _windowTitle;
+            set
+            {
+                if (value != _windowTitle)
+                {
+                    _windowTitle = value;
+                    OnPropertyChanged(nameof(WindowTitle));
+                }
+            }
+        }
+        #endregion
+
+        public PageSplitRequestedHandler SplitPageRequestHandler { get; set; }
+        public UndoRequestedHandler UndoRequestHandler { get; set; }
+        public RedoRequestedHandler RedoRequestHandler { get; set; }
+        public PageDeleteRequestedHandler DeleteRequestHandler { get; set; }
+        public AddSignatureRequestedHandler AddControlToDocRequestHandler { get; set; }
+        public AreaDeleteRequestedHandler AreaDeleteRequestedHandler { get; set; }
+        public OptimalHeightRequestedHandler OptimalHeightRequestedHandler { get; set; }
+
+        #region Printing
+
+        #region Menu Bar
+        private readonly List<PrintQueue> printQueuesList = new List<PrintQueue>();
+
+        private ObservableCollection<MenuItem> printQueueMenuItems = new ObservableCollection<MenuItem>();
+        public ObservableCollection<MenuItem> PrintQueueMenuItems
+        {
+            get => printQueueMenuItems;
+            set
+            {
+                if (value != printQueueMenuItems)
+                {
+                    printQueueMenuItems = value;
+                    OnPropertyChanged(nameof(PrintQueueMenuItems));
+                }
+            }
+        }
+        public MenuItem SelectedPrintQueueMI { get; private set; }
+
+        private ObservableCollection<MenuItem> paperSizeMenuItems = new ObservableCollection<MenuItem>();
+        public ObservableCollection<MenuItem> PaperSizeMenuItems
+        {
+            get => paperSizeMenuItems;
+            set
+            {
+                if (value != paperSizeMenuItems)
+                {
+                    paperSizeMenuItems = value;
+                    OnPropertyChanged(nameof(PaperSizeMenuItems));
+                }
+            }
+        }
+        public MenuItem SelectedPaperSizeMI { get; private set; }
+
+        private void UpdatePrintQueues()
+        {
+
+            var queues = new PrintServer().GetPrintQueues();
+            printQueuesList.Clear();
+            foreach (var queue in queues)
+                printQueuesList.Add(queue);
+            printQueuesList.OrderBy(q => q.FullName);
+
+            PrintQueueMenuItems.Clear();
+
+            foreach (var queue in printQueuesList)
+            {
+                MenuItem mi = new MenuItem { Header = queue.FullName, IsCheckable = false, StaysOpenOnClick = true, Command = PrintQueueMI_ClickCommand };
+                mi.CommandParameter = mi;
+
+                if (PrintDialog.PrintQueue != null && PrintDialog.PrintQueue.FullName == queue.FullName)
+                {
+                    mi.IsChecked = true;
+                    SelectedPrintQueueMI = mi;
+                }
+                PrintQueueMenuItems.Add(mi);
+            }
+
+            UpdatePaperSizes();
+            UpdatePrintFormat(CropHelper);
+        }
+        private void UpdatePaperSizes()
+        {
+            PaperSizeMenuItems.Clear();
+
+            if (PrintDialog.PrintQueue == null)
+                PaperSizeMenuItems.Add(new MenuItem { IsEnabled = false });
+            else
+            {
+                var paperSizes = PrintDialog.PrintQueue.GetPrintCapabilities().PageMediaSizeCapability;
+                foreach (var paperSize in paperSizes)
+                {
+                    MenuItem mi = new MenuItem { Header = paperSize.PageMediaSizeName, IsCheckable = false, StaysOpenOnClick = true, Command = PaperSizeMI_ClickCommand };
+                    mi.CommandParameter = mi;
+
+                    if (PrintDialog.PrintTicket != null && PrintDialog.PrintTicket.PageMediaSize.PageMediaSizeName == paperSize.PageMediaSizeName)
+                    {
+                        mi.IsChecked = true;
+                        SelectedPaperSizeMI = mi;
+                    }
+
+                    PaperSizeMenuItems.Add(mi);
+                }
+            }
+        }
+
+        private ICommand printQueueMI_ClickCommand;
+        public ICommand PrintQueueMI_ClickCommand { get => printQueueMI_ClickCommand ??= new RelayCommand((sender) => PrintQueueMI_Click(sender)); }
+        private void PrintQueueMI_Click(object sender)
+        {
+            if (sender is MenuItem mi && mi != SelectedPrintQueueMI)
+            {
+                SelectedPrintQueueMI.IsChecked = false;
+                SelectedPrintQueueMI = mi;
+                SelectedPrintQueueMI.IsChecked = true;
+                PrintDialog.PrintQueue = printQueuesList.Where(pq => pq.FullName == (string)SelectedPrintQueueMI.Header).First();
+            }
+
+            if (PrintDialog.PrintQueue != null)
+            {
+                UpdatePaperSizes();
+                UpdatePrintFormat(CropHelper);
+            }
+        }
+
+
+        private ICommand paperSizeMI_ClickCommand;
+        public ICommand PaperSizeMI_ClickCommand { get => paperSizeMI_ClickCommand ??= new RelayCommand((sender) => PaperSizeMI_Click(sender)); }
+        private void PaperSizeMI_Click(object sender)
+        {
+            if (sender is MenuItem mi && mi.Header is PageMediaSizeName newPageMediaSizeName && PrintDialog.PrintTicket.PageMediaSize.PageMediaSizeName != newPageMediaSizeName)
+            {
+                SelectedPaperSizeMI.IsChecked = false;
+                SelectedPaperSizeMI = mi;
+                SelectedPaperSizeMI.IsChecked = true;
+
+                PrintDialog.PrintTicket.PageMediaSize = PrintDialog.PrintQueue.GetPrintCapabilities().PageMediaSizeCapability.Where(pmsc => pmsc.PageMediaSizeName == newPageMediaSizeName).First();
+                UpdatePrintFormat(CropHelper);
+            }
+        }
+        #endregion
+
+        public PrintRequestedHandler PrintRequestedHandler { get; set; }
+        public PrintDialogValuesChangedHandler PrintDialogValuesChangedHandler { get; set; }
+
+        #endregion
+
+        private Window Window;
+
+        public MainWindowViewModel(string argFilePath, Window window)
+        {
+            // command handler
+            SplitPageRequestHandler = (sender, pageIndex, splitAtPercentage) => CropHelper.SplitPageAt(pageIndex, splitAtPercentage);
+            UndoRequestHandler = (sender) => CropHelper.UndoChange();
+            RedoRequestHandler = (sender) => CropHelper.RedoChange();
+            DeleteRequestHandler = (sender, pageIndex) => CropHelper.SkipPage(pageIndex);
+            AddControlToDocRequestHandler = (sender, x, y) => CropHelper.AddSignatureTb(x, y);
+            AreaDeleteRequestedHandler = (sender, x, y, z) => CropHelper.DeleteArea(x, y, z);
+            OptimalHeightRequestedHandler = (sender, pageIndex) => CropHelper.GetOptimalHeight(pageIndex);
+
+            // printing
+            PrintRequestedHandler = (sender) => Print();
+            PrintDialogValuesChangedHandler = (sender) => UpdatePrintQueues();
+            UpdatePrintQueues();
+
+            Window = window;
+
+            if (argFilePath != "")
+                FilePath = argFilePath;
+
+#if DEBUG
+            FilePath = @"C:\Users\jokau\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Normales Dokument\Diskrete Signale.pdf";
+#endif
+
+        }
 
         private void ChoosePrinter()
         {
@@ -200,11 +325,8 @@ namespace Better_Printing_for_OneNote.ViewModels
 
         private void Print()
         {
-            var print = PrintDialog.ShowDialog();
             UpdatePrintFormat(CropHelper);
-            OnPropertyChanged("PrintDialog");
-            if (print.HasValue && print.Value)
-                PrintDialog.PrintDocument(CropHelper.Document.DocumentPaginator, Path.GetFileName(FilePath));
+            PrintDialog.PrintDocument(CropHelper.Document.DocumentPaginator, Path.GetFileName(FilePath));
         }
 
         private const double CmToPx = 96d / 2.54;

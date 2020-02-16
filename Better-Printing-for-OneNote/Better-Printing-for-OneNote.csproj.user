@@ -16,9 +16,6 @@
     <Compile Update="Views\Controls\InteractiveFixedDocumentViewer.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Views\Controls\VectorGraphics\VectorGraphicToggleButton.xaml.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Update="Views\Windows\ThirdPartyNoticesWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -33,7 +30,7 @@
     <Page Update="Views\Controls\InteractiveFixedDocumentViewer.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="Views\Controls\VectorGraphics\VectorGraphicToggleButton.xaml">
+    <Page Update="Views\Controls\VectorGraphics\HashVectorGraphic.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Controls\VectorGraphics\PrinterVectorGraphic.xaml">

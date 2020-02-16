@@ -50,26 +50,32 @@ namespace Better_Printing_for_OneNote.Views.Windows
             {
                 if (!string.IsNullOrWhiteSpace(notice.SoftwareName))
                 {
-                    TextBlock header = new TextBlock
+                    TextBox header = new TextBox
                     {
                         Text = notice.SoftwareName,
                         FontSize = 16,
                         FontWeight = FontWeights.Bold,
                         Margin = new Thickness(0, MainSP.Children.Count > 0 ? 24 : 0, 0, 0),
-                        TextWrapping = TextWrapping.Wrap
+                        TextWrapping = TextWrapping.Wrap,
+                        Background = Brushes.Transparent,
+                        BorderThickness = new Thickness(0),
+                        IsReadOnly = true
+
                     };
 
                     MainSP.Children.Add(header);
 
                     if (!string.IsNullOrWhiteSpace(notice.LicenseText))
                     {
-                        TextBlock licenseText = new TextBlock
+                        TextBox licenseText = new TextBox
                         {
                             Text = notice.LicenseText,
                             Background = lightGray,
                             TextWrapping = TextWrapping.Wrap,
                             Margin = new Thickness(0, 4, 0, 0),
-                            Padding = new Thickness(4)
+                            Padding = new Thickness(4),
+                            BorderThickness = new Thickness(0),
+                            IsReadOnly = true
                         };
 
 

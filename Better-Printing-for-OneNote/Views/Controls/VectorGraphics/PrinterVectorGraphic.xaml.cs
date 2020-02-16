@@ -5,7 +5,6 @@
         public PrinterVectorGraphic()
         {
             InitializeComponent();
-            MainViewBox.DataContext = this;
         }
     }
 }

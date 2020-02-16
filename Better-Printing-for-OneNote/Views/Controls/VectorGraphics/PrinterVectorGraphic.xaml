@@ -5,22 +5,22 @@
 
     <local:MonochromeVectorGraphic.Resources>
         <Style TargetType="Path">
-            <Setter Property="Stroke" Value="{Binding Stroke, Mode=OneWay, FallbackValue=Black}" />
-            <Setter Property="StrokeThickness" Value="{Binding StrokeThickness, FallbackValue=1}" />
+            <Setter Property="Stroke" Value="{Binding Foreground, RelativeSource={RelativeSource FindAncestor, AncestorType=UserControl}}" />
+            <Setter Property="StrokeThickness" Value="{Binding StrokeThickness, FallbackValue=1, RelativeSource={RelativeSource FindAncestor, AncestorType=UserControl}}" />
             <Setter Property="StrokeLineJoin" Value="Round" />
             <Setter Property="StrokeStartLineCap" Value="Round" />
             <Setter Property="StrokeEndLineCap" Value="Round" />
         </Style>
         <Style TargetType="Polyline">
-            <Setter Property="Stroke" Value="{Binding Stroke, Mode=OneWay, FallbackValue=Black}" />
-            <Setter Property="StrokeThickness" Value="{Binding StrokeThickness, FallbackValue=1}" />
+            <Setter Property="Stroke" Value="{Binding Foreground, RelativeSource={RelativeSource FindAncestor, AncestorType=UserControl}}" />
+            <Setter Property="StrokeThickness" Value="{Binding StrokeThickness, FallbackValue=1, RelativeSource={RelativeSource FindAncestor, AncestorType=UserControl}}" />
             <Setter Property="StrokeLineJoin" Value="Round" />
             <Setter Property="StrokeStartLineCap" Value="Round" />
             <Setter Property="StrokeEndLineCap" Value="Round" />
         </Style>
         <Style TargetType="Rectangle">
-            <Setter Property="Stroke" Value="{Binding Stroke, Mode=OneWay, FallbackValue=Black}" />
-            <Setter Property="StrokeThickness" Value="{Binding StrokeThickness, FallbackValue=1}" />
+            <Setter Property="Stroke" Value="{Binding Foreground, RelativeSource={RelativeSource FindAncestor, AncestorType=UserControl}}" />
+            <Setter Property="StrokeThickness" Value="{Binding StrokeThickness, FallbackValue=1, RelativeSource={RelativeSource FindAncestor, AncestorType=UserControl}}" />
             <Setter Property="StrokeLineJoin" Value="Round" />
             <Setter Property="StrokeStartLineCap" Value="Round" />
             <Setter Property="StrokeEndLineCap" Value="Round" />

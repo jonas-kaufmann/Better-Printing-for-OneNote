@@ -11,17 +11,12 @@ namespace Better_Printing_for_OneNote
             new ThirdPartyNoticeModel
             {
                 SoftwareName = "App Icon",
-                LicenseText = "Copyright 2020 Anton Wittig"
+                LicenseText = "Copyright (c) 2020 Anton Wittig"
             },
             new ThirdPartyNoticeModel
             {
                 SoftwareName = "Wpf Cropable Image Control",
                 LicenseText = File.ReadAllText("ThirdPartyNotices/WPF Cropable Image Control - License.txt")
-            },
-            new ThirdPartyNoticeModel
-            {
-                SoftwareName = "Extended WPF Toolkit",
-                LicenseText = File.ReadAllText("ThirdPartyNotices/Extended WPF Toolkit - License.txt")
             },
             new ThirdPartyNoticeModel()
             {
