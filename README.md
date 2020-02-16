@@ -8,9 +8,9 @@ When you try to print handwritten text that is larger than a single page of your
 - easily add page breaks and remove sections
 - automatic reversion of OneNote's weird page splitting (don't worry if it looks weird in OneNote, just print it)
 - add page numbers
-- add a signature
+- add freely placeable signatures (custom texts on all pages)
 - directly print from this application
-- what you see is what you get; if you select a printer to later print to, the page layout will be applied to the document viewer
+- what you see is what you print: the specific printer settings will be applied to the view, e.g. page borders
 - work with any PDF
 
 ## Prerequisites
