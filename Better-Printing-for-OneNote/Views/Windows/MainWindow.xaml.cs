@@ -2,7 +2,7 @@
 using System;
 using System.Windows;
 
-namespace Better_Printing_for_OneNote
+namespace Better_Printing_for_OneNote.Views.Windows
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml

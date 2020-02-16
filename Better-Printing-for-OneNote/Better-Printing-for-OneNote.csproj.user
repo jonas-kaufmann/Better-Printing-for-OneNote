@@ -10,7 +10,7 @@
     </ApplicationDefinition>
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="BusyIndicatorWindow.xaml.cs">
+    <Compile Update="Views\Windows\BusyIndicatorWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\Controls\InteractiveFixedDocumentViewer.xaml.cs">
@@ -21,10 +21,10 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Page Update="BusyIndicatorWindow.xaml">
+    <Page Update="Views\Windows\BusyIndicatorWindow.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="MainWindow.xaml">
+    <Page Update="Views\Windows\MainWindow.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Controls\InteractiveFixedDocumentViewer.xaml">

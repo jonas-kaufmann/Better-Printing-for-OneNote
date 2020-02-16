@@ -1,16 +1,11 @@
-﻿using Better_Printing_for_OneNote.AdditionalClasses;
-using Better_Printing_for_OneNote.Models;
+﻿using Better_Printing_for_OneNote.Models;
 using System.ComponentModel;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 
-namespace Better_Printing_for_OneNote
+namespace Better_Printing_for_OneNote.Views.Windows
 {
-    /// <summary>
-    /// Interaction logic for BusyIndicatorWindow.xaml
-    /// </summary>
     public partial class BusyIndicatorWindow : Window
     {
         private Brush ErrorBrush = new SolidColorBrush(Color.FromRgb(255, 40, 40));

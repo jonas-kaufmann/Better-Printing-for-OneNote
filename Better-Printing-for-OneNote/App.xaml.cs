@@ -1,4 +1,5 @@
 ﻿using Better_Printing_for_OneNote.AdditionalClasses;
+using Better_Printing_for_OneNote.Views.Windows;
 using System;
 using System.Diagnostics;
 using System.IO;
