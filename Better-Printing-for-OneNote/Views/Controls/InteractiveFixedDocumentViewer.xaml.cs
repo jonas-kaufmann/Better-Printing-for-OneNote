@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.ComponentModel;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
@@ -7,7 +8,7 @@ using System.Windows.Media;
 
 namespace Better_Printing_for_OneNote.Views.Controls
 {
-    public partial class InteractiveFixedDocumentViewer : UserControl
+    public partial class InteractiveFixedDocumentViewer : UserControl, INotifyPropertyChanged
     {
         #region properties
         public static readonly DependencyProperty DocumentProperty = DependencyProperty.Register(nameof(Document), typeof(FixedDocument), typeof(InteractiveFixedDocumentViewer), new PropertyMetadata(Document_Changed));
@@ -23,8 +24,9 @@ namespace Better_Printing_for_OneNote.Views.Controls
             {
                 ifdv.MainScrollViewer.Visibility = Visibility.Hidden; // to prevent visual bugs
                 ifdv.UpdateDocument();
+                ifdv.UpdateMergeButtons();
                 ifdv._optimalHeight = ifdv.OptimalHeightRequestedCommand?.Invoke(ifdv, ifdv.PageNumber);
-            } 
+            }
         }
 
         public delegate FixedDocument PageSplitRequestedEventHandler(object sender, int pageNr, double splitAtPercentage);
@@ -94,6 +96,7 @@ namespace Better_Printing_for_OneNote.Views.Controls
             set
             {
                 SetValue(PageNumberProperty, value);
+                UpdateMergeButtons();
                 EditAreaRect.Visibility = Visibility.Collapsed;
             }
         }
@@ -211,6 +214,18 @@ namespace Better_Printing_for_OneNote.Views.Controls
             PagesGrid.Cursor = IsPageSplitToolSelected ? Cursors.Arrow : Cursors.IBeam;
         }
         #endregion
+
+        #region page merge command
+        public PageMergeRequestedHandler PageMergeRequestedCommand
+        {
+            get => (PageMergeRequestedHandler)GetValue(PageMergeRequestedCommandProperty);
+            set => SetValue(PageMergeRequestedCommandProperty, value);
+        }
+
+        public delegate void PageMergeRequestedHandler(object sender, int fromPage, int toPage);
+        public static readonly DependencyProperty PageMergeRequestedCommandProperty = DependencyProperty.Register(nameof(PageMergeRequestedCommand), typeof(PageMergeRequestedHandler), typeof(InteractiveFixedDocumentViewer));
+        #endregion
+
         #endregion
 
         public InteractiveFixedDocumentViewer()
@@ -360,7 +375,6 @@ namespace Better_Printing_for_OneNote.Views.Controls
                     EditAreaRect.Height = y - EditAreaRect.Margin.Top;
 
                 UpdateSplittingLine();
-
             }
             else
                 UpdateSplittingLine();
@@ -488,5 +502,94 @@ namespace Better_Printing_for_OneNote.Views.Controls
         }
 
         #endregion
+
+        #region page merging
+        private Visibility _topMergeBtn_Visibility;
+        public Visibility TopMergeBtn_Visibility
+        {
+            get => _topMergeBtn_Visibility;
+            set
+            {
+                if (value != _topMergeBtn_Visibility)
+                {
+                    _topMergeBtn_Visibility = value;
+                    OnPropertyChanged(nameof(TopMergeBtn_Visibility));
+                }
+            }
+        }
+
+        private Visibility _bottomMergeBtn_Visibility;
+        public Visibility BottomMergeBtn_Visibility
+        {
+            get => _bottomMergeBtn_Visibility;
+            set
+            {
+                if (value != _bottomMergeBtn_Visibility)
+                {
+                    _bottomMergeBtn_Visibility = value;
+                    OnPropertyChanged(nameof(BottomMergeBtn_Visibility));
+                }
+            }
+        }
+
+        private void TopMergeBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (PageNumber > 0)
+                PageMergeRequestedCommand?.Invoke(this, PageNumber - 1, PageNumber);
+        }
+
+        private void BottomMergeBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (PageNumber + 1 < PageCount)
+                PageMergeRequestedCommand?.Invoke(this, PageNumber, PageNumber + 1);
+        }
+
+        private void MainGrid_PreviewMouseMove(object sender, MouseEventArgs e)
+        {
+            if (!(moveViewByMouse && e.RightButton == MouseButtonState.Pressed) && !(IsPageSplitToolSelected && e.LeftButton == MouseButtonState.Pressed))
+                UpdateMergeButtons();
+            else
+            {
+                TopMergeBtn_Visibility = Visibility.Collapsed;
+                BottomMergeBtn_Visibility = Visibility.Collapsed;
+            }
+        }
+
+        public void UpdateMergeButtons()
+        {
+            if (ViewerGrid.IsMouseOver)
+            {
+                var posOutsideDocument = Mouse.GetPosition(ViewerGrid);
+
+                if (posOutsideDocument.Y < 100 && PageNumber > 0)
+                    TopMergeBtn_Visibility = Visibility.Visible;
+                else
+                    TopMergeBtn_Visibility = Visibility.Collapsed;
+
+                if (posOutsideDocument.Y > ViewerGrid.ActualHeight - 100 && PageNumber + 1 < PageCount)
+                    BottomMergeBtn_Visibility = Visibility.Visible;
+                else
+                    BottomMergeBtn_Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                TopMergeBtn_Visibility = Visibility.Collapsed;
+                BottomMergeBtn_Visibility = Visibility.Collapsed;
+            }
+        }
+
+
+        #endregion  
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            if (PropertyChanged != null)
+            {
+                var e = new PropertyChangedEventArgs(propertyName);
+                PropertyChanged(this, e);
+            }
+        }
     }
 }

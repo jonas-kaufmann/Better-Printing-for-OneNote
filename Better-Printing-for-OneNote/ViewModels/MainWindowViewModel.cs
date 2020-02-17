@@ -89,8 +89,9 @@ namespace Better_Printing_for_OneNote.ViewModels
                         bitmap.Freeze();
                     GeneralHelperClass.ExecuteInUiThread(() =>
                     {
-                        CropHelper = new CropHelper(bitmaps);
-                        UpdatePrintFormat(CropHelper); // set the format and initialize the first pages
+                        var cropHelper = new CropHelper(bitmaps);
+                        UpdatePrintFormat(cropHelper); // set the format and initialize the first pages
+                        CropHelper = cropHelper;
                         busyDialog.Completed = true;
                         busyDialog.Close();
                         _filePath = filePath;
@@ -158,6 +159,7 @@ namespace Better_Printing_for_OneNote.ViewModels
         public AddSignatureRequestedHandler AddControlToDocRequestHandler { get; set; }
         public AreaDeleteRequestedHandler AreaDeleteRequestedHandler { get; set; }
         public OptimalHeightRequestedHandler OptimalHeightRequestedHandler { get; set; }
+        public PageMergeRequestedHandler PageMergeRequestedHandler { get; set; }
 
         #region Printing
 
@@ -299,6 +301,7 @@ namespace Better_Printing_for_OneNote.ViewModels
             AddControlToDocRequestHandler = (sender, x, y) => CropHelper.AddSignatureTb(x, y);
             AreaDeleteRequestedHandler = (sender, x, y, z) => CropHelper.DeleteArea(x, y, z);
             OptimalHeightRequestedHandler = (sender, pageIndex) => CropHelper.GetOptimalHeight(pageIndex);
+            PageMergeRequestedHandler = (sender, fromPage, toPage) => CropHelper.MergePages(fromPage, toPage);
 
             // printing
             PrintRequestedHandler = (sender) => Print();
@@ -311,7 +314,8 @@ namespace Better_Printing_for_OneNote.ViewModels
                 FilePath = argFilePath;
 
 #if DEBUG
-            FilePath = @"C:\Users\jokau\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Normales Dokument\Diskrete Signale.pdf";
+            //FilePath = @"C:\Users\jokau\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Normales Dokument\Diskrete Signale.pdf";
+            FilePath = @"C:\Users\fabit\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Normales Dokument\Diskrete Signale.pdf";
 #endif
 
         }
@@ -360,7 +364,7 @@ namespace Better_Printing_for_OneNote.ViewModels
                 paddingY = capabilities.PageImageableArea.OriginHeight;
             }
 
-            if (CropHelper != null)
+            if (cropHelper != null)
                 cropHelper.UpdateFormat(pageHeight, pageWidth, contentHeight, contentWidth, new Thickness(paddingX, paddingY, paddingX, paddingY));
         }
 

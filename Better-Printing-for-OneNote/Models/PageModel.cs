@@ -191,13 +191,13 @@ namespace Better_Printing_for_OneNote.Models
         }
 
         /// <summary>
-        /// Calculates the optimal crop height (with the MaxCropHeight) relative to the page
+        /// Calculates the optimal crop height (with the MaxCropHeight) relative to the whole page (padding/margin is added)
         /// </summary>
         public double CalculateOptimalCropHeight()
         {
             double scalingY = ContentHeight / CropableImage.ActualCropHeight;
             double scalingX = ContentWidth / CropableImage.ActualCropWidth;
-            return MaxCropHeight * Math.Min(scalingX, scalingY);
+            return MaxCropHeight * Math.Min(scalingX, scalingY) + ContentPadding.Top;
         }
     }
 }
