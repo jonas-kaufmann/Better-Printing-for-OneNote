@@ -77,7 +77,7 @@ namespace Better_Printing_for_OneNote.ViewModels
         {
             var cts = new CancellationTokenSource();
             var reporter = new ProgressReporter();
-            var busyDialog = new BusyIndicatorWindow(cts, reporter);
+            var busyDialog = new ConversionBusyWindow(cts, reporter);
             if (Window.IsInitialized)
                 busyDialog.Owner = Window;
 
@@ -344,7 +344,7 @@ namespace Better_Printing_for_OneNote.ViewModels
             var height = Window.Height;
             var dialogThread = new Thread(new ThreadStart(() =>
             {
-                var busyWindow = new BusyWindow();
+                var busyWindow = new PrintingBusyWindow();
                 busyWindow.Show();
                 busyWindow.Left = left + width / 6 - busyWindow.Width / 2;
                 busyWindow.Top = top + height / 6 - busyWindow.Height / 2;

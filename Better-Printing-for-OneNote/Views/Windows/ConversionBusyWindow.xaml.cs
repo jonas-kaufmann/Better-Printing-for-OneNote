@@ -6,7 +6,7 @@ using System.Windows.Media;
 
 namespace Better_Printing_for_OneNote.Views.Windows
 {
-    public partial class BusyIndicatorWindow : Window
+    public partial class ConversionBusyWindow : Window
     {
         private Brush ErrorBrush = new SolidColorBrush(Color.FromRgb(255, 40, 40));
         private CancellationTokenSource CTS;
@@ -28,7 +28,7 @@ namespace Better_Printing_for_OneNote.Views.Windows
             }
         }
 
-        public BusyIndicatorWindow(CancellationTokenSource cts, ProgressReporter reporter)
+        public ConversionBusyWindow(CancellationTokenSource cts, ProgressReporter reporter)
         {
             CTS = cts;
             Reporter = reporter;

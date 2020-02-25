@@ -12,9 +12,9 @@ using System.Windows.Shapes;
 
 namespace Better_Printing_for_OneNote.Views.Windows
 {
-    public partial class BusyWindow : Window
+    public partial class PrintingBusyWindow : Window
     {
-        public BusyWindow()
+        public PrintingBusyWindow()
         {
             InitializeComponent();
         }

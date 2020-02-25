@@ -10,13 +10,13 @@
     </ApplicationDefinition>
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="Views\Windows\BusyIndicatorWindow.xaml.cs">
+    <Compile Update="Views\Windows\ConversionBusyWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\Controls\InteractiveFixedDocumentViewer.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Views\Windows\BusyWindow.xaml.cs">
+    <Compile Update="Views\Windows\PrintingBusyWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\Windows\ThirdPartyNoticesWindow.xaml.cs">
@@ -24,10 +24,10 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Page Update="Views\Windows\BusyIndicatorWindow.xaml">
+    <Page Update="Views\Windows\ConversionBusyWindow.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="Views\Windows\BusyWindow.xaml">
+    <Page Update="Views\Windows\PrintingBusyWindow.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Windows\MainWindow.xaml">
