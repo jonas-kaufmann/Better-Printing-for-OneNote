@@ -16,6 +16,7 @@ using Better_Printing_for_OneNote.Views.Windows;
 using System.Printing;
 using System.Linq;
 using System.Collections.ObjectModel;
+using System.Windows.Threading;
 
 namespace Better_Printing_for_OneNote.ViewModels
 {
@@ -315,7 +316,8 @@ namespace Better_Printing_for_OneNote.ViewModels
 
 #if DEBUG
             //FilePath = @"C:\Users\jokau\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Normales Dokument\Diskrete Signale.pdf";
-            FilePath = @"C:\Users\fabit\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Normales Dokument\Diskrete Signale.pdf";
+            //FilePath = @"C:\Users\fabit\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Normales Dokument\Diskrete Signale.pdf";
+            FilePath = @"D:\Daten\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Normales Dokument\Diskrete Signale.pdf";
 #endif
 
         }
@@ -330,7 +332,36 @@ namespace Better_Printing_for_OneNote.ViewModels
         private void Print()
         {
             UpdatePrintFormat(CropHelper);
+
+
+            Window.IsEnabled = false;
+            var prevResizeMode = Window.ResizeMode;
+            Window.ResizeMode = ResizeMode.NoResize;
+
+            var left = Window.Left;
+            var top = Window.Top;
+            var width = Window.Width;
+            var height = Window.Height;
+            var dialogThread = new Thread(new ThreadStart(() =>
+            {
+                var busyWindow = new BusyWindow();
+                busyWindow.Show();
+                busyWindow.Left = left + width / 6 - busyWindow.Width / 2;
+                busyWindow.Top = top + height / 6 - busyWindow.Height / 2;
+
+                Dispatcher.Run();
+            }));
+            dialogThread.SetApartmentState(ApartmentState.STA);
+            dialogThread.IsBackground = true;
+            dialogThread.Start();
+            
+
             PrintDialog.PrintDocument(CropHelper.Document.DocumentPaginator, Path.GetFileName(FilePath));
+
+            
+            Dispatcher.FromThread(dialogThread).InvokeShutdown();
+            Window.IsEnabled = true;
+            Window.ResizeMode = prevResizeMode; 
         }
 
         private const double CmToPx = 96d / 2.54;

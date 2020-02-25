@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Interactivity;
@@ -26,7 +22,7 @@ namespace Better_Printing_for_OneNote.Views.Behaviors
             FadeOut_Animation = new DoubleAnimation(0, AnimationDuration, FillBehavior.HoldEnd);
             FadeOut_Animation.Completed += (sender, args) =>
             {
-                if(AssociatedObject.Opacity == 0)
+                if (AssociatedObject.Opacity == 0)
                     AssociatedObject.SetCurrentValue(Border.VisibilityProperty, Visibility.Collapsed);
             };
 
@@ -34,28 +30,23 @@ namespace Better_Printing_for_OneNote.Views.Behaviors
                                              InitialState == Visibility.Collapsed
                                                 ? Visibility.Collapsed
                                                 : Visibility.Visible);
+            AssociatedObject.Opacity = 0;
 
             Binding.AddTargetUpdatedHandler(AssociatedObject, Updated);
         }
 
-        private bool _bindingInitilization = true;
         private void Updated(object sender, DataTransferEventArgs e)
         {
-            if (_bindingInitilization)
-                _bindingInitilization = false;
-            else
+            var value = (Visibility)AssociatedObject.GetValue(Border.VisibilityProperty);
+            switch (value)
             {
-                var value = (Visibility)AssociatedObject.GetValue(Border.VisibilityProperty);
-                switch (value)
-                {
-                    case Visibility.Collapsed:
-                        AssociatedObject.SetCurrentValue(Border.VisibilityProperty, Visibility.Visible);
-                        AssociatedObject.BeginAnimation(Border.OpacityProperty, FadeOut_Animation);
-                        break;
-                    case Visibility.Visible:
-                        AssociatedObject.BeginAnimation(Border.OpacityProperty, FadeIn_Animation);
-                        break;
-                }
+                case Visibility.Collapsed:
+                    AssociatedObject.SetCurrentValue(Border.VisibilityProperty, Visibility.Visible);
+                    AssociatedObject.BeginAnimation(Border.OpacityProperty, FadeOut_Animation);
+                    break;
+                case Visibility.Visible:
+                    AssociatedObject.BeginAnimation(Border.OpacityProperty, FadeIn_Animation);
+                    break;
             }
         }
     }

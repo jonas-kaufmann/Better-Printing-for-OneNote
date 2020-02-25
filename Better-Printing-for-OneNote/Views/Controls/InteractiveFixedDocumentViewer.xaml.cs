@@ -535,7 +535,12 @@ namespace Better_Printing_for_OneNote.Views.Controls
         private void TopMergeBtn_Click(object sender, RoutedEventArgs e)
         {
             if (PageNumber > 0)
+            {
+                var lastPage = PageNumber == PageCount-1;
                 PageMergeRequestedCommand?.Invoke(this, PageNumber - 1, PageNumber);
+                if(!lastPage)
+                    PageNumber--;
+            }
         }
 
         private void BottomMergeBtn_Click(object sender, RoutedEventArgs e)

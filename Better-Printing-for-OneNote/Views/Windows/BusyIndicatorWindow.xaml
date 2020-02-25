@@ -6,7 +6,7 @@
         xmlns:resx="clr-namespace:Better_Printing_for_OneNote.Properties"
         mc:Ignorable="d"
         Closing="Window_Closing"
-        Title="{x:Static resx:Resources.ApplicationTitle}" SizeToContent="WidthAndHeight" ResizeMode="NoResize"  WindowStartupLocation="CenterOwner">
+        Title="{x:Static resx:Resources.ApplicationTitle}" SizeToContent="WidthAndHeight" ResizeMode="NoResize" WindowStartupLocation="CenterOwner">
     
     <Border>
         <Grid x:Name="Grid" Margin="10 10 10 10" MinWidth="230">
