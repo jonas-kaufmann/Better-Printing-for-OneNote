@@ -1,4 +1,4 @@
-# Better-Printing-for-OneNote
+# ![Banner.png](https://user-images.githubusercontent.com/4995833/75390279-4c101200-58e8-11ea-80c0-d58cf6a28c32.png)
 This project aims to deliver an improved printing experience for OneNote when printing handwritten pages.
 
 ## Motivation
