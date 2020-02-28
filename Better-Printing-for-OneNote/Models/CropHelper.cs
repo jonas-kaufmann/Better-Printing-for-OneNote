@@ -272,10 +272,19 @@ namespace Better_Printing_for_OneNote.Models
         }
 
         /// <summary>
-        /// Add an editable TextBox to all pages of the document
+        /// Add an editable TextBox to all pages of the document (returns specified textbox, for focusing)
         /// </summary>
-        public void AddSignatureTb(double x, double y)
+        public TextBox AddSignatureTb(double x, double y, int textboxToReturnPageIndex)
         {
+            // match x and y coordinates to height/width of the content of the page
+            x = x - Padding.Left;
+            y = y - Padding.Top;
+
+            if (x < 0 || x > ContentWidth) 
+                return null;
+            if (y < 0 || y > ContentHeight) 
+                return null;
+
             // approximately center textbox on coordinates
             x -= 2;
             y -= 8;
@@ -284,17 +293,20 @@ namespace Better_Printing_for_OneNote.Models
             SignatureAdded signatureAdded = new SignatureAdded(bindableText, x, y);
             CurrentSignatures.Add(signatureAdded);
 
-            foreach (var page in Pages)
+            TextBox textbox = null;
+            for (int i = 0; i<Pages.Count; i++)
             {
                 TextBox tb = CreateSignatureTextBox(bindableText, new Thickness(x, y, 0, 0));
-                page.AddUIElement(tb);
+                Pages[i].AddUIElement(tb);
+                if (i == textboxToReturnPageIndex)
+                    textbox = tb;
             }
+            return textbox;
         }
 
         private TextBox CreateSignatureTextBox(BindableText text, Thickness margin)
         {
-            TextBox tb = new TextBox { AcceptsReturn = true, Background = Brushes.White, BorderThickness = new Thickness(0), Margin = margin };
-            tb.Background = Brushes.Transparent;
+            TextBox tb = new TextBox { AcceptsReturn = true, Background = Brushes.Transparent, BorderThickness = new Thickness(0), Margin = margin };
             Binding binding = new Binding(nameof(text.Text));
             binding.Mode = BindingMode.TwoWay;
             binding.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;

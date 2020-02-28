@@ -197,7 +197,7 @@ namespace Better_Printing_for_OneNote.Views.Controls
             set => SetValue(AddSignatureRequestedCommandProperty, value);
         }
 
-        public delegate void AddSignatureRequestedHandler(object sender, double x, double y);
+        public delegate TextBox AddSignatureRequestedHandler(object sender, double x, double y, int textboxToReturnIndex);
         public static readonly DependencyProperty AddSignatureRequestedCommandProperty = DependencyProperty.Register(nameof(AddSignatureRequestedCommand), typeof(AddSignatureRequestedHandler), typeof(InteractiveFixedDocumentViewer));
         #endregion
 
@@ -339,9 +339,9 @@ namespace Better_Printing_for_OneNote.Views.Controls
                 if (!(Keyboard.FocusedElement is TextBox) && AddSignatureRequestedCommand != null)
                 {
                     var mousePos = e.GetPosition(MainDPV);
-                    AddSignatureRequestedCommand(this, mousePos.X, mousePos.Y);
-                    var pageChildren = Document.Pages[PageNumber].Child.Children;
-                    pageChildren[pageChildren.Count - 1].Focus();
+                    var tb = AddSignatureRequestedCommand(this, mousePos.X, mousePos.Y, PageNumber);
+                    if (tb != null)
+                        tb.Focus();
                 }
             }
         }

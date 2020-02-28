@@ -299,7 +299,7 @@ namespace Better_Printing_for_OneNote.ViewModels
             UndoRequestHandler = (sender) => CropHelper.UndoChange();
             RedoRequestHandler = (sender) => CropHelper.RedoChange();
             DeleteRequestHandler = (sender, pageIndex) => CropHelper.SkipPage(pageIndex);
-            AddControlToDocRequestHandler = (sender, x, y) => CropHelper.AddSignatureTb(x, y);
+            AddControlToDocRequestHandler = (sender, x, y, i) => CropHelper.AddSignatureTb(x, y, i);
             AreaDeleteRequestedHandler = (sender, x, y, z) => CropHelper.DeleteArea(x, y, z);
             OptimalHeightRequestedHandler = (sender, pageIndex) => CropHelper.GetOptimalHeight(pageIndex);
             PageMergeRequestedHandler = (sender, fromPage, toPage) => CropHelper.MergePages(fromPage, toPage);
