@@ -44,8 +44,8 @@ namespace Better_Printing_for_OneNote.Views.Controls
         #endregion
 
         #region zoom properties
-        public double MinZoom { get; set; } = 0.4;
-        public double MaxZoom { get; set; } = 4;
+        public double MinZoom { get; set; } = 0.9;
+        public double MaxZoom { get; set; } = 6;
 
 
         public double Zoom
@@ -562,16 +562,16 @@ namespace Better_Printing_for_OneNote.Views.Controls
 
         public void UpdateMergeButtons()
         {
-            if (ViewerGrid.IsMouseOver)
+            if (PagesGrid.IsMouseOver)
             {
-                var posOutsideDocument = Mouse.GetPosition(ViewerGrid);
+                var posOutsideDocument = Mouse.GetPosition(MainDPVGrid);
 
                 if (posOutsideDocument.Y < 100 && PageNumber > 0)
                     TopMergeBtn_Visibility = Visibility.Visible;
                 else
                     TopMergeBtn_Visibility = Visibility.Collapsed;
 
-                if (posOutsideDocument.Y > ViewerGrid.ActualHeight - 100 && PageNumber + 1 < PageCount)
+                if (posOutsideDocument.Y > MainDPVGrid.ActualHeight - 100 && PageNumber + 1 < PageCount)
                     BottomMergeBtn_Visibility = Visibility.Visible;
                 else
                     BottomMergeBtn_Visibility = Visibility.Collapsed;

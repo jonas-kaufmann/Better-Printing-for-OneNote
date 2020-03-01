@@ -37,6 +37,11 @@ namespace Better_Printing_for_OneNote
             {
                 SoftwareName = "WiX Toolset",
                 LicenseText = File.ReadAllText("ThirdPartyNotices/WiX Toolset - License.txt")
+            },
+            new ThirdPartyNoticeModel
+            {
+                SoftwareName = "Merge Pages Icon",
+                LicenseText = "Icon by Those Icons (https://www.flaticon.com/de/autoren/those-icons) from Flaticon (https://www.flaticon.com/de/)"
             }
         };
     }

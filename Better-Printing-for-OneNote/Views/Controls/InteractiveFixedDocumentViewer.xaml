@@ -61,38 +61,32 @@
             </StackPanel>
         </Border>
 
-        <Grid Grid.Row="2" x:Name="ViewerGrid">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-            <ScrollViewer Grid.RowSpan="3" x:Name="MainScrollViewer" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" PreviewMouseWheel="MainScrollViewer_PreviewMouseWheel">
-                <Grid x:Name="PagesGrid" PreviewMouseRightButtonDown="PagesGrid_PreviewMouseRightButtonDown" PreviewMouseRightButtonUp="PagesGrid_PreviewMouseRightButtonUp" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="24" Visibility="Hidden">
-                    <Border x:Name="MainDPVBorder" BorderBrush="Black" BorderThickness="1">
-                        <Border.Effect>
-                            <DropShadowEffect ShadowDepth="0" BlurRadius="12" />
-                        </Border.Effect>
-                    </Border>
-                    <Grid x:Name="MainDPVGrid">
-                        <DocumentPageView x:Name="MainDPV" PreviewMouseMove="MainDPV_PreviewMouseMove" PreviewMouseLeftButtonUp="MainDPV_PreviewMouseLeftButtonUp" PreviewMouseLeftButtonDown="MainDPV_PreviewMouseLeftButtonDown" MouseLeave="MainDPV_MouseLeave" PageNumber="{Binding PageNumber}" />
-                        <Rectangle x:Name="EditAreaRect" Visibility="Collapsed" Fill="{StaticResource DarkPrimarySelectionBrush}" IsHitTestVisible="False" VerticalAlignment="Top" />
-                    </Grid>
-                    <Line x:Name="PageSplitLine" Visibility="Collapsed" X1="0" Y1="0" Y2="0" Stroke="Black" StrokeThickness="1" IsHitTestVisible="False" />
+        <ScrollViewer Grid.Row="2" x:Name="MainScrollViewer" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" PreviewMouseWheel="MainScrollViewer_PreviewMouseWheel">
+            <Grid x:Name="PagesGrid" PreviewMouseRightButtonDown="PagesGrid_PreviewMouseRightButtonDown" PreviewMouseRightButtonUp="PagesGrid_PreviewMouseRightButtonUp" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="24" Visibility="Hidden">
+                <Border x:Name="MainDPVBorder" BorderBrush="Black" BorderThickness="1">
+                    <Border.Effect>
+                        <DropShadowEffect ShadowDepth="0" BlurRadius="12" />
+                    </Border.Effect>
+                </Border>
+                <Grid x:Name="MainDPVGrid">
+                    <DocumentPageView x:Name="MainDPV" PreviewMouseMove="MainDPV_PreviewMouseMove" PreviewMouseLeftButtonUp="MainDPV_PreviewMouseLeftButtonUp" PreviewMouseLeftButtonDown="MainDPV_PreviewMouseLeftButtonDown" MouseLeave="MainDPV_MouseLeave" PageNumber="{Binding PageNumber}" />
+                    <Rectangle x:Name="EditAreaRect" Visibility="Collapsed" Fill="{StaticResource DarkPrimarySelectionBrush}" IsHitTestVisible="False" VerticalAlignment="Top" />
                 </Grid>
-            </ScrollViewer>
-            <Button Margin="0 24 0 0" Height="30" Width="30" Visibility="{Binding TopMergeBtn_Visibility, Mode=TwoWay, NotifyOnTargetUpdated=True}" Click="TopMergeBtn_Click" Style="{StaticResource DarkButton}" ToolTip="Merge Page with the previous Page" BorderThickness="2">
-                <i:Interaction.Behaviors>
-                    <behaviors:FadingBehavior AnimationDuration="0:0:1" InitialState="Collapsed"/>
-                </i:Interaction.Behaviors>
-                <vg:CropVectorGraphic StrokeThickness="2" Margin="1" />
-            </Button>
-            <Button Grid.Row="2" Margin="0 0 0 24" Height="30" Width="30" Visibility="{Binding BottomMergeBtn_Visibility, Mode=TwoWay, NotifyOnTargetUpdated=True}" Click="BottomMergeBtn_Click" Style="{StaticResource DarkButton}" ToolTip="Merge Page with the following Page" BorderThickness="2">
-                <i:Interaction.Behaviors>
-                    <behaviors:FadingBehavior AnimationDuration="0:0:0.35" InitialState="Collapsed" />
-                </i:Interaction.Behaviors>
-                <vg:EditVectorGraphic StrokeThickness="2" Margin="1"  />
-            </Button>
-        </Grid>
+                <Line x:Name="PageSplitLine" Visibility="Collapsed" X1="0" Y1="0" Y2="0" Stroke="Black" StrokeThickness="1" IsHitTestVisible="False" />
+
+                <Button VerticalAlignment="Top" Margin="0 13 0 0" Width="38" Visibility="{Binding TopMergeBtn_Visibility, Mode=TwoWay, NotifyOnTargetUpdated=True}" Click="TopMergeBtn_Click" Style="{StaticResource LightButton}" ToolTip="Merge Page with the previous Page" BorderThickness="2">
+                    <i:Interaction.Behaviors>
+                        <behaviors:FadingBehavior AnimationDuration="0:0:0.38" InitialState="Collapsed"/>
+                    </i:Interaction.Behaviors>
+                    <vg:MergeVectorGraphic StrokeThickness="2" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                </Button>
+                <Button VerticalAlignment="Bottom" Margin="0 0 0 13" Width="38" Visibility="{Binding BottomMergeBtn_Visibility, Mode=TwoWay, NotifyOnTargetUpdated=True}" Click="BottomMergeBtn_Click" Style="{StaticResource LightButton}" ToolTip="Merge Page with the following Page" BorderThickness="2">
+                    <i:Interaction.Behaviors>
+                        <behaviors:FadingBehavior AnimationDuration="0:0:0.38" InitialState="Collapsed"/>
+                    </i:Interaction.Behaviors>
+                    <vg:MergeVectorGraphic StrokeThickness="2" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                </Button>
+            </Grid>
+        </ScrollViewer>
     </Grid>
 </UserControl>
