@@ -42,19 +42,19 @@
                 </ToggleButton>
 
                 <ToggleButton Style="{StaticResource MonochromeToggleButton}" ToolTip="Signature" VerticalAlignment="Center" VerticalContentAlignment="Center" IsChecked="{Binding IsPageSplitToolSelected, Converter={StaticResource InverseBoolConverter}}" Margin="8 0 0 0" BorderThickness="2">
-                    <vg:EditVectorGraphic StrokeThickness="2" Margin="8 1 8 1" />
+                    <vg:EditVectorGraphic StrokeThickness="1.5" Margin="8 1 8 1" />
                 </ToggleButton>
 
                 <controls:IntValueTextBox x:Name="PageNumberTb" PreviewKeyUp="PageNumberTb_PreviewKeyUp" Text="{Binding PageNumber, Converter={StaticResource Add1Converter}}" Width="36" HorizontalContentAlignment="Center" Margin="32 0 0 0" VerticalAlignment="Center" VerticalContentAlignment="Center" FontSize="20" />
-                <TextBlock Text="{Binding PageCount, StringFormat=' / {0}', FallbackValue=' / 0'}" Foreground="White" VerticalAlignment="Center" FontSize="20" />
+                <TextBlock Text="{Binding PageCount, StringFormat=' / {0}', FallbackValue=' / 0'}" Foreground="White" VerticalAlignment="Top" FontSize="20" />
 
                 <ToggleButton Style="{StaticResource MonochromeToggleButton}" IsChecked="{Binding RenderPageNumbers}" x:Name="PageNumbersInDocBtn" Margin="32 0 0 0" VerticalAlignment="Center" VerticalContentAlignment="Center" ToolTip="Page Numbers" BorderThickness="2">
-                    <vg:HashVectorGraphic StrokeThickness="2" Margin="8 1 8 1" />
+                    <vg:HashVectorGraphic StrokeThickness="1.5" Margin="8 1 8 1" />
                 </ToggleButton>
 
                 <Button x:Name="PrintBtn" Margin="8 0 0 0" Style="{StaticResource DarkButton}" ToolTip="Print the Document" Click="PrintBtn_Click" BorderThickness="2">
                     <Button.Content>
-                        <vg:PrinterVectorGraphic StrokeThickness="2" Margin="8 1 8 1" />
+                        <vg:PrinterVectorGraphic StrokeThickness="1.5" Margin="8 1 8 1" />
                     </Button.Content>
                 </Button>
 
@@ -74,13 +74,13 @@
                 </Grid>
                 <Line x:Name="PageSplitLine" Visibility="Collapsed" X1="0" Y1="0" Y2="0" Stroke="Black" StrokeThickness="1" IsHitTestVisible="False" />
 
-                <Button VerticalAlignment="Top" Margin="0 13 0 0" Width="38" Visibility="{Binding TopMergeBtn_Visibility, Mode=TwoWay, NotifyOnTargetUpdated=True}" Click="TopMergeBtn_Click" Style="{StaticResource LightButton}" ToolTip="Merge Page with the previous Page" BorderThickness="2">
+                <Button VerticalAlignment="Top" Margin="0 13 0 0" Width="36" Visibility="{Binding TopMergeBtn_Visibility, Mode=TwoWay, NotifyOnTargetUpdated=True}" Click="TopMergeBtn_Click" Style="{StaticResource LightButton}" ToolTip="Merge Page with the previous Page" BorderThickness="2">
                     <i:Interaction.Behaviors>
                         <behaviors:FadingBehavior AnimationDuration="0:0:0.38" InitialState="Collapsed"/>
                     </i:Interaction.Behaviors>
                     <vg:MergeVectorGraphic StrokeThickness="2" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                 </Button>
-                <Button VerticalAlignment="Bottom" Margin="0 0 0 13" Width="38" Visibility="{Binding BottomMergeBtn_Visibility, Mode=TwoWay, NotifyOnTargetUpdated=True}" Click="BottomMergeBtn_Click" Style="{StaticResource LightButton}" ToolTip="Merge Page with the following Page" BorderThickness="2">
+                <Button VerticalAlignment="Bottom" Margin="0 0 0 13" Width="36" Visibility="{Binding BottomMergeBtn_Visibility, Mode=TwoWay, NotifyOnTargetUpdated=True}" Click="BottomMergeBtn_Click" Style="{StaticResource LightButton}" ToolTip="Merge Page with the following Page" BorderThickness="2">
                     <i:Interaction.Behaviors>
                         <behaviors:FadingBehavior AnimationDuration="0:0:0.38" InitialState="Collapsed"/>
                     </i:Interaction.Behaviors>
