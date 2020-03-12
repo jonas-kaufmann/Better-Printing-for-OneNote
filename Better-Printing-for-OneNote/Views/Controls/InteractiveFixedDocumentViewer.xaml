@@ -37,18 +37,18 @@
 
         <Border Padding="0 8 0 8" Background="{StaticResource DarkPrimary}">
             <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
-                <ToggleButton Style="{StaticResource MonochromeToggleButton}" ToolTip="Cut out Areas or add Page Breaks" VerticalAlignment="Center" VerticalContentAlignment="Center" IsChecked="{Binding IsPageSplitToolSelected, FallbackValue=true}" BorderThickness="2">
+                <ToggleButton x:Name="CropToolBtn" Style="{StaticResource MonochromeToggleButton}" IsChecked="True" ToolTip="Cut out Areas or add Page Breaks" VerticalAlignment="Center" VerticalContentAlignment="Center" Click="ToolBtn_Click" BorderThickness="2">
                     <vg:CropVectorGraphic StrokeThickness="2" Margin="8 1 8 1" />
                 </ToggleButton>
 
-                <ToggleButton Style="{StaticResource MonochromeToggleButton}" ToolTip="Signature" VerticalAlignment="Center" VerticalContentAlignment="Center" IsChecked="{Binding IsPageSplitToolSelected, Converter={StaticResource InverseBoolConverter}}" Margin="8 0 0 0" BorderThickness="2">
+                <ToggleButton Style="{StaticResource MonochromeToggleButton}" x:Name="SignatureToolBtn" ToolTip="Signature" VerticalAlignment="Center" VerticalContentAlignment="Center" Click="ToolBtn_Click" Margin="8 0 0 0" BorderThickness="2">
                     <vg:EditVectorGraphic StrokeThickness="2" Margin="8 1 8 1" />
                 </ToggleButton>
 
                 <controls:IntValueTextBox x:Name="PageNumberTb" PreviewKeyUp="PageNumberTb_PreviewKeyUp" Text="{Binding PageNumber, Converter={StaticResource Add1Converter}}" Width="36" HorizontalContentAlignment="Center" Margin="32 0 0 0" VerticalAlignment="Center" VerticalContentAlignment="Center" FontSize="20" />
                 <TextBlock Text="{Binding PageCount, StringFormat=' / {0}', FallbackValue=' / 0'}" Foreground="White" VerticalAlignment="Center" FontSize="20" />
 
-                <ToggleButton Style="{StaticResource MonochromeToggleButton}" IsChecked="{Binding RenderPageNumbers}" x:Name="PageNumbersInDocBtn" Margin="32 0 0 0" VerticalAlignment="Center" VerticalContentAlignment="Center" ToolTip="Page Numbers" BorderThickness="2">
+                <ToggleButton Style="{StaticResource MonochromeToggleButton}" IsChecked="{Binding RenderPageNumbers}" x:Name="PageNumbersToolBtn" Click="ToolBtn_Click" Margin="32 0 0 0" VerticalAlignment="Center" VerticalContentAlignment="Center" ToolTip="Page Numbers" BorderThickness="2">
                     <vg:HashVectorGraphic StrokeThickness="2" Margin="8 1 8 1" />
                 </ToggleButton>
 

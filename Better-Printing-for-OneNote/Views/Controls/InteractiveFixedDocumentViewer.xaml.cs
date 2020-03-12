@@ -1,5 +1,4 @@
-﻿using System.ComponentModel;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
@@ -8,7 +7,7 @@ using System.Windows.Media;
 
 namespace Better_Printing_for_OneNote.Views.Controls
 {
-    public partial class InteractiveFixedDocumentViewer : UserControl, INotifyPropertyChanged
+    public partial class InteractiveFixedDocumentViewer : UserControl
     {
         #region properties
         public static readonly DependencyProperty DocumentProperty = DependencyProperty.Register(nameof(Document), typeof(FixedDocument), typeof(InteractiveFixedDocumentViewer), new PropertyMetadata(Document_Changed));
@@ -208,8 +207,8 @@ namespace Better_Printing_for_OneNote.Views.Controls
             set => SetValue(IsPageSplitToolSelectedProperty, value);
         }
         public static DependencyProperty IsPageSplitToolSelectedProperty = DependencyProperty.Register(nameof(IsPageSplitToolSelected), typeof(bool), typeof(InteractiveFixedDocumentViewer), new PropertyMetadata(true, IsPageSplitToolSelected_ChangedCallback));
-        private static void IsPageSplitToolSelected_ChangedCallback(DependencyObject sender, DependencyPropertyChangedEventArgs e) => ((InteractiveFixedDocumentViewer)sender).IsPageSplitToolSelected_Changed();
-        private void IsPageSplitToolSelected_Changed()
+        private static void IsPageSplitToolSelected_ChangedCallback(DependencyObject sender, DependencyPropertyChangedEventArgs e) => ((InteractiveFixedDocumentViewer)sender).IsPageSplitToolSelected_Changed((bool)e.OldValue, (bool)e.NewValue);
+        private void IsPageSplitToolSelected_Changed(bool oldValue, bool newValue)
         {
             PagesGrid.Cursor = IsPageSplitToolSelected ? Cursors.Arrow : Cursors.IBeam;
         }
@@ -584,17 +583,49 @@ namespace Better_Printing_for_OneNote.Views.Controls
         }
 
 
-        #endregion  
+        #endregion
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        #region Toolbar
+        public InteractiveFixedDocumentViewerTools SelectedTool { get; private set; }
 
-        protected virtual void OnPropertyChanged(string propertyName)
+        private void ToolBtn_Click(object sender, RoutedEventArgs e)
         {
-            if (PropertyChanged != null)
+            if (sender is ToggleButton tbtn)
             {
-                var e = new PropertyChangedEventArgs(propertyName);
-                PropertyChanged(this, e);
+                if (!tbtn.IsChecked.GetValueOrDefault(false))
+                    tbtn.IsChecked = true;
+                else
+                {
+                    if (sender == CropToolBtn)
+                    {
+                        SignatureToolBtn.IsChecked = false;
+                        PageNumbersToolBtn.IsChecked = false;
+
+                        var oldTool = SelectedTool;
+                        SelectedTool = InteractiveFixedDocumentViewerTools.Crop;
+                        SelectedToolChanged?.Invoke(this, new SelectedToolChangedEventArgs(oldTool, SelectedTool));
+                    }
+                    else if (sender == SignatureToolBtn)
+                    {
+                        CropToolBtn.IsChecked = false;
+                        PageNumbersToolBtn.IsChecked = false;
+
+                        var oldTool = SelectedTool;
+                        SelectedTool = InteractiveFixedDocumentViewerTools.Signature;
+                        SelectedToolChanged?.Invoke(this, new SelectedToolChangedEventArgs(oldTool, SelectedTool));
+                    }
+                    else if (sender == PageNumbersToolBtn)
+                    {
+                        SignatureToolBtn.IsChecked = false;
+                        CropToolBtn.IsChecked = false;
+
+                        var oldTool = SelectedTool;
+                        SelectedTool = InteractiveFixedDocumentViewerTools.PageNumbers;
+                        SelectedToolChanged?.Invoke(this, new SelectedToolChangedEventArgs(oldTool, SelectedTool));
+                    }
+                }
             }
         }
+        #endregion
     }
 }
