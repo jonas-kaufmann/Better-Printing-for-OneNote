@@ -67,6 +67,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Page Update="Views\Controls\VectorGraphics\MergeVectorGraphic.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Views\Controls\VectorGraphics\HashVectorGraphic.xaml">
       <SubType>Designer</SubType>
     </Page>

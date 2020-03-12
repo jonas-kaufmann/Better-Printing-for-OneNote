@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -14,6 +14,8 @@ namespace Better_Printing_for_OneNote.Models
         #region Properties
 
         public PageContent Page { get; private set; }
+        private FixedPage FixedPage;
+        private Canvas ContentGrid;
         private CropableImage CropableImage;
         public int MaxCropHeight { get; private set; }
         public int OptimalCropHeight { get; private set; } // relative to page
@@ -62,51 +64,57 @@ namespace Better_Printing_for_OneNote.Models
 
         public double PageHeight
         {
-            get => Page.Child.Height;
+            get => FixedPage.Height;
             set
             {
-                if (value != Page.Child.Height)
-                    Page.Child.Height = value;
+                if (value != FixedPage.Height)
+                    FixedPage.Height = value;
             }
         }
 
         public double PageWidth
         {
-            get => Page.Child.Width;
+            get => FixedPage.Width;
             set
             {
-                if (value != Page.Child.Width)
-                    Page.Child.Width = value;
+                if (value != FixedPage.Width)
+                    FixedPage.Width = value;
             }
         }
 
         public Thickness ContentPadding
         {
-            get => CropableImage.Margin;
+            get => ContentGrid.Margin;
             set
             {
-                if (value != CropableImage.Margin)
-                    CropableImage.Margin = value;
+                if (value != ContentGrid.Margin)
+                    ContentGrid.Margin = value;
             }
         }
 
         public double ContentHeight
         {
-            get => CropableImage.Height;
+            get => ContentGrid.Height;
             set
             {
-                if (value != CropableImage.Height)
+                if (value != ContentGrid.Height)
+                {
+                    ContentGrid.Height = value;
                     CropableImage.Height = value;
+                }
             }
         }
 
         public double ContentWidth
         {
-            get => CropableImage.Width;
+            get => ContentGrid.Width;
             set
             {
-                if (value != CropableImage.Width)
+                if (value != ContentGrid.Width)
+                {
+                    ContentGrid.Width = value;
                     CropableImage.Width = value;
+                }
             }
         }
 
@@ -146,11 +154,13 @@ namespace Better_Printing_for_OneNote.Models
         {
             // initialize the page
             Page = new PageContent();
-            var fixedPage = new FixedPage();
+            FixedPage = new FixedPage();
+            ContentGrid = new Canvas() { ClipToBounds = true };
             CropableImage = new CropableImage();
             RenderOptions.SetBitmapScalingMode(CropableImage, BitmapScalingMode.HighQuality);
-            fixedPage.Children.Add(CropableImage);
-            Page.Child = fixedPage;
+            ContentGrid.Children.Add(CropableImage);
+            FixedPage.Children.Add(ContentGrid);
+            Page.Child = FixedPage;
 
             Images = images;
             Skips = skips;
@@ -172,8 +182,9 @@ namespace Better_Printing_for_OneNote.Models
             CropHeight = MaxCropHeight;
         }
 
-        public void AddUIElement(UIElement uielement) => Page.Child.Children.Add(uielement);
-        public void RemoveUIElement(UIElement uielement) => Page.Child.Children.Remove(uielement);
+        public void AddUIElement(UIElement uielement) => ContentGrid.Children.Add(uielement);
+
+        public void RemoveUIElement(UIElement uielement) => ContentGrid.Children.Remove(uielement);
 
         /// <summary>
         /// Calculates the vertical pixel position relative to the page

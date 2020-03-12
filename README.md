@@ -1,5 +1,5 @@
 # ![Banner.png](https://user-images.githubusercontent.com/4995833/75390279-4c101200-58e8-11ea-80c0-d58cf6a28c32.png)
-This project aims to deliver an improved printing experience for OneNote when printing handwritten pages.
+This project aims to deliver an improved printing experience for OneNote when printing handwritten pages. **IMPORTANT: Computer has to be left on until printing is finished!**
 
 ## Motivation
 When you try to print handwritten text that is larger than a single page of your printer, OneNote just cuts the pages where the bounds are. Often times, text gets split in half and also, if that happens, text is duplicated to the next page. To solve this you have to manually add margins into your handwriting, then look at the print preview again, add another margin, and so forth.
@@ -17,6 +17,11 @@ When you try to print handwritten text that is larger than a single page of your
 
 - Windows 10 64 bit
 - [.NET Core](https://dotnet.microsoft.com/download) x64 runtime
+
+## Implementation Notes
+
+- PDFs are being converted to bitmaps in order to make them easily cropable and editable
+- for printing this means that you have to **leave your computer on until printing has finished** due to the bitmaps being larger than the printer's buffer
 
 ## Automation
 

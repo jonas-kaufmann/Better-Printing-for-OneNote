@@ -43,8 +43,8 @@ namespace Better_Printing_for_OneNote.Views.Controls
         #endregion
 
         #region zoom properties
-        public double MinZoom { get; set; } = 0.4;
-        public double MaxZoom { get; set; } = 4;
+        public double MinZoom { get; set; } = 0.9;
+        public double MaxZoom { get; set; } = 6;
 
 
         public double Zoom
@@ -196,22 +196,8 @@ namespace Better_Printing_for_OneNote.Views.Controls
             set => SetValue(AddSignatureRequestedCommandProperty, value);
         }
 
-        public delegate void AddSignatureRequestedHandler(object sender, double x, double y);
+        public delegate TextBox AddSignatureRequestedHandler(object sender, double x, double y, int textboxToReturnIndex);
         public static readonly DependencyProperty AddSignatureRequestedCommandProperty = DependencyProperty.Register(nameof(AddSignatureRequestedCommand), typeof(AddSignatureRequestedHandler), typeof(InteractiveFixedDocumentViewer));
-        #endregion
-
-        #region page split tool
-        public bool IsPageSplitToolSelected
-        {
-            get => (bool)GetValue(IsPageSplitToolSelectedProperty);
-            set => SetValue(IsPageSplitToolSelectedProperty, value);
-        }
-        public static DependencyProperty IsPageSplitToolSelectedProperty = DependencyProperty.Register(nameof(IsPageSplitToolSelected), typeof(bool), typeof(InteractiveFixedDocumentViewer), new PropertyMetadata(true, IsPageSplitToolSelected_ChangedCallback));
-        private static void IsPageSplitToolSelected_ChangedCallback(DependencyObject sender, DependencyPropertyChangedEventArgs e) => ((InteractiveFixedDocumentViewer)sender).IsPageSplitToolSelected_Changed((bool)e.OldValue, (bool)e.NewValue);
-        private void IsPageSplitToolSelected_Changed(bool oldValue, bool newValue)
-        {
-            PagesGrid.Cursor = IsPageSplitToolSelected ? Cursors.Arrow : Cursors.IBeam;
-        }
         #endregion
 
         #region page merge command
@@ -231,6 +217,9 @@ namespace Better_Printing_for_OneNote.Views.Controls
         {
             InitializeComponent();
             MainGrid.DataContext = this;
+
+            //register event handlers
+            SelectedToolChanged += InteractiveFixedDocumentViewer_SelectedToolChanged;
         }
 
         #region rendering
@@ -270,7 +259,7 @@ namespace Better_Printing_for_OneNote.Views.Controls
         private double? _optimalHeight;
         public void UpdateSplittingLine()
         {
-            if (IsPageSplitToolSelected && MainDPV.IsMouseOver)
+            if (SelectedTool == InteractiveFixedDocumentViewerTools.Crop && MainDPV.IsMouseOver)
             {
                 var posOutsideDocument = Mouse.GetPosition(PagesGrid);
                 var posInsideDocument = Mouse.GetPosition(MainDPVGrid);
@@ -300,7 +289,7 @@ namespace Better_Printing_for_OneNote.Views.Controls
 
         private void MainDPV_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (IsPageSplitToolSelected)
+            if (SelectedTool == InteractiveFixedDocumentViewerTools.Crop)
             {
                 EditAreaRect.Width = MainDPV.ActualWidth;
                 EditAreaRect.Height = 0;
@@ -313,7 +302,7 @@ namespace Better_Printing_for_OneNote.Views.Controls
 
         private void MainDPV_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            if (IsPageSplitToolSelected)
+            if (SelectedTool == InteractiveFixedDocumentViewerTools.Crop)
             {
                 // insert page break
                 if ((EditAreaRect.Visibility != Visibility.Visible || (EditAreaRect.Visibility == Visibility.Visible && EditAreaRect.Height <= 1)) && PageSplitRequestedCommand != null && sender is DocumentPageView dPV)
@@ -338,9 +327,9 @@ namespace Better_Printing_for_OneNote.Views.Controls
                 if (!(Keyboard.FocusedElement is TextBox) && AddSignatureRequestedCommand != null)
                 {
                     var mousePos = e.GetPosition(MainDPV);
-                    AddSignatureRequestedCommand(this, mousePos.X, mousePos.Y);
-                    var pageChildren = Document.Pages[PageNumber].Child.Children;
-                    pageChildren[pageChildren.Count - 1].Focus();
+                    var tb = AddSignatureRequestedCommand(this, mousePos.X, mousePos.Y, PageNumber);
+                    if (tb != null)
+                        tb.Focus();
                 }
             }
         }
@@ -362,7 +351,7 @@ namespace Better_Printing_for_OneNote.Views.Controls
 
                 lastMousePos = currentMousePos;
             }
-            else if (IsPageSplitToolSelected && Mouse.LeftButton == MouseButtonState.Pressed)
+            else if (SelectedTool == InteractiveFixedDocumentViewerTools.Crop && Mouse.LeftButton == MouseButtonState.Pressed)
             {
                 double y = e.GetPosition(MainDPV).Y;
                 if (y < lastMousePos.Y)
@@ -550,7 +539,7 @@ namespace Better_Printing_for_OneNote.Views.Controls
 
         private void MainGrid_PreviewMouseMove(object sender, MouseEventArgs e)
         {
-            if (!(moveViewByMouse && e.RightButton == MouseButtonState.Pressed) && !(IsPageSplitToolSelected && e.LeftButton == MouseButtonState.Pressed))
+            if (!(moveViewByMouse && e.RightButton == MouseButtonState.Pressed) && !(SelectedTool == InteractiveFixedDocumentViewerTools.Crop && e.LeftButton == MouseButtonState.Pressed))
                 UpdateMergeButtons();
             else
             {
@@ -561,16 +550,16 @@ namespace Better_Printing_for_OneNote.Views.Controls
 
         public void UpdateMergeButtons()
         {
-            if (ViewerGrid.IsMouseOver)
+            if (PagesGrid.IsMouseOver)
             {
-                var posOutsideDocument = Mouse.GetPosition(ViewerGrid);
+                var posOutsideDocument = Mouse.GetPosition(MainDPVGrid);
 
                 if (posOutsideDocument.Y < 100 && PageNumber > 0)
                     TopMergeBtn_Visibility = Visibility.Visible;
                 else
                     TopMergeBtn_Visibility = Visibility.Collapsed;
 
-                if (posOutsideDocument.Y > ViewerGrid.ActualHeight - 100 && PageNumber + 1 < PageCount)
+                if (posOutsideDocument.Y > MainDPVGrid.ActualHeight - 100 && PageNumber + 1 < PageCount)
                     BottomMergeBtn_Visibility = Visibility.Visible;
                 else
                     BottomMergeBtn_Visibility = Visibility.Collapsed;
