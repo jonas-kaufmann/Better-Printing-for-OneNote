@@ -27,7 +27,11 @@ namespace Better_Printing_for_OneNote.Views.Controls
 
         private MenuItem AddItem_MenuItem;
         private MenuItem Selected_MenuItem;
-        public ObservableCollection<MenuItem> MenuItems { get; set; }
+        public ObservableCollection<MenuItem> MenuItems 
+        { 
+            get => this.ItemsSource as ObservableCollection<MenuItem>;
+            set => this.ItemsSource = value;
+        }
         private DataTemplate MenuItem_Template;
 
         #region ItemCollection
@@ -70,16 +74,6 @@ namespace Better_Printing_for_OneNote.Views.Controls
                             </TextBox.BorderBrush>
                         </TextBox>
                     </DataTemplate>")));
-
-                //emi.Editable_Template = (DataTemplate)XamlReader.Load(new MemoryStream(Encoding.UTF8.GetBytes(
-                //    @"<DataTemplate xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"" 
-                //            xmlns:x=""http://schemas.microsoft.com/winfx/2006/xaml"">
-                //        <TextBox Text=""{" + e.NewValue + @"}"" MinWidth=""100"" MaxWidth=""350"">
-                //            <TextBox.Background>
-                //                <SolidColorBrush Opacity=""0""/>
-                //            </TextBox.Background>
-                //        </TextBox>
-                //    </DataTemplate>")));
             }
         }
         #endregion
@@ -140,7 +134,7 @@ namespace Better_Printing_for_OneNote.Views.Controls
             AddItem_MenuItem.Click += AddItem_Click;
             MenuItems.Add(AddItem_MenuItem);
 
-            DataContext = this;
+            DataContext = DataContext ;
 
             InitializeComponent();
 
@@ -151,10 +145,6 @@ namespace Better_Printing_for_OneNote.Views.Controls
             var mi = new MenuItem { Header = item, IsCheckable = false, StaysOpenOnClick = true, CommandParameter = this, HeaderTemplate = MenuItem_Template };
             mi.Click += MenuItem_Click;
             mi.KeyUp += MenuItem_KeyUp;
-            //mi.MouseDoubleClick += MenuItem_DoubleClick;
-            //mi.MouseLeave += MenuItem_MouseLeave;
-            //mi.MouseEnter += MenuItem_MouseEnter;
-            //mi.IsKeyboardFocusedChanged += MenuItem_IsKeyboardFocusedChanged;
 
             return mi;
         }
@@ -169,30 +159,6 @@ namespace Better_Printing_for_OneNote.Views.Controls
             }
         }
 
-        private void MenuItem_IsKeyboardFocusedChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            //if (sender is MenuItem mi && e.NewValue is bool b)
-            //{
-            //    //if (!b)
-            //    //    mi.HeaderTemplate = NotEditable_Template;
-            //    //else
-            //    //    mi.HeaderTemplate = Editable_Template;
-            //    Trace.WriteLine(b);
-            //}
-        }
-
-        private void MenuItem_MouseLeave(object sender, MouseEventArgs e)
-        {
-            //if (sender is MenuItem mi)
-            //    mi.HeaderTemplate = NotEditable_Template;
-        }
-
-        private void MenuItem_MouseEnter(object sender, MouseEventArgs e)
-        {
-            //if (sender is MenuItem mi)
-            //    mi.HeaderTemplate = Editable_Template;
-        }
-
         private void MenuItem_Click(object sender, RoutedEventArgs e)
         {
             if (sender is MenuItem mi && mi.CommandParameter is EditableMenuItem emi)
@@ -205,12 +171,6 @@ namespace Better_Printing_for_OneNote.Views.Controls
                 ItemChecked_Command?.Invoke(this, mi.Header);
             }
         }
-
-        //private void MenuItem_DoubleClick(object sender, RoutedEventArgs e)
-        //{
-        //    if (sender is MenuItem mi && mi.CommandParameter is EditableMenuItem emi)
-        //        mi.HeaderTemplate = Editable_Template;
-        //}
 
         private void AddItem_Click(object sender, RoutedEventArgs e)
         {
