@@ -17,6 +17,14 @@ using System.Printing;
 using System.Linq;
 using System.Collections.ObjectModel;
 using System.Windows.Threading;
+using System.Diagnostics;
+using System.Text.Json;
+using System.Text;
+using System.Windows.Markup;
+using System.Windows.Data;
+using static Better_Printing_for_OneNote.Views.Controls.EditableMenuItem;
+using System.Collections.Specialized;
+using System.ComponentModel;
 
 namespace Better_Printing_for_OneNote.ViewModels
 {
@@ -29,6 +37,11 @@ namespace Better_Printing_for_OneNote.ViewModels
         public string LOCAL_FOLDER_PATH
         {
             get => GeneralHelperClass.FindResource("LocalFolderPath");
+        }
+
+        public string PRESETS_FOLDER_PATH
+        {
+            get => LOCAL_FOLDER_PATH + "Presets";
         }
 
         private RelayCommand _searchFileCommand;
@@ -165,6 +178,9 @@ namespace Better_Printing_for_OneNote.ViewModels
         #region Printing
 
         #region Menu Bar
+
+        #region print queues
+
         private readonly List<PrintQueue> printQueuesList = new List<PrintQueue>();
 
         private ObservableCollection<MenuItem> printQueueMenuItems = new ObservableCollection<MenuItem>();
@@ -181,21 +197,6 @@ namespace Better_Printing_for_OneNote.ViewModels
             }
         }
         public MenuItem SelectedPrintQueueMI { get; private set; }
-
-        private ObservableCollection<MenuItem> paperSizeMenuItems = new ObservableCollection<MenuItem>();
-        public ObservableCollection<MenuItem> PaperSizeMenuItems
-        {
-            get => paperSizeMenuItems;
-            set
-            {
-                if (value != paperSizeMenuItems)
-                {
-                    paperSizeMenuItems = value;
-                    OnPropertyChanged(nameof(PaperSizeMenuItems));
-                }
-            }
-        }
-        public MenuItem SelectedPaperSizeMI { get; private set; }
 
         private void UpdatePrintQueues()
         {
@@ -224,30 +225,7 @@ namespace Better_Printing_for_OneNote.ViewModels
             UpdatePaperSizes();
             UpdatePrintFormat(CropHelper);
         }
-        private void UpdatePaperSizes()
-        {
-            PaperSizeMenuItems.Clear();
 
-            if (PrintDialog.PrintQueue == null)
-                PaperSizeMenuItems.Add(new MenuItem { IsEnabled = false });
-            else
-            {
-                var paperSizes = PrintDialog.PrintQueue.GetPrintCapabilities().PageMediaSizeCapability;
-                foreach (var paperSize in paperSizes)
-                {
-                    MenuItem mi = new MenuItem { Header = paperSize.PageMediaSizeName, IsCheckable = false, StaysOpenOnClick = true, Command = PaperSizeMI_ClickCommand };
-                    mi.CommandParameter = mi;
-
-                    if (PrintDialog.PrintTicket != null && PrintDialog.PrintTicket.PageMediaSize.PageMediaSizeName == paperSize.PageMediaSizeName)
-                    {
-                        mi.IsChecked = true;
-                        SelectedPaperSizeMI = mi;
-                    }
-
-                    PaperSizeMenuItems.Add(mi);
-                }
-            }
-        }
 
         private ICommand printQueueMI_ClickCommand;
         public ICommand PrintQueueMI_ClickCommand { get => printQueueMI_ClickCommand ??= new RelayCommand((sender) => PrintQueueMI_Click(sender)); }
@@ -268,6 +246,61 @@ namespace Better_Printing_for_OneNote.ViewModels
             }
         }
 
+        #endregion
+
+        #region paper size
+
+        private ObservableCollection<MenuItem> paperSizeMenuItems = new ObservableCollection<MenuItem>();
+        public ObservableCollection<MenuItem> PaperSizeMenuItems
+        {
+            get => paperSizeMenuItems;
+            set
+            {
+                if (value != paperSizeMenuItems)
+                {
+                    paperSizeMenuItems = value;
+                    OnPropertyChanged(nameof(PaperSizeMenuItems));
+                }
+            }
+        }
+        public MenuItem SelectedPaperSizeMI { get; private set; }
+
+        private void UpdatePaperSizes()
+        {
+            PaperSizeMenuItems.Clear();
+
+            if (PrintDialog.PrintQueue == null)
+                PaperSizeMenuItems.Add(new MenuItem { IsEnabled = false });
+            else
+            {
+                var paperSizes = PrintDialog.PrintQueue.GetPrintCapabilities().PageMediaSizeCapability;
+                var foundElement = false;
+                foreach (var paperSize in paperSizes)
+                {
+                    MenuItem mi = new MenuItem { Header = paperSize.PageMediaSizeName, IsCheckable = false, StaysOpenOnClick = true, Command = PaperSizeMI_ClickCommand };
+                    mi.CommandParameter = mi;
+
+                    if (PrintDialog.PrintTicket != null && PrintDialog.PrintTicket.PageMediaSize.PageMediaSizeName == paperSize.PageMediaSizeName)
+                    {
+                        mi.IsChecked = true;
+                        SelectedPaperSizeMI = mi;
+                        foundElement = true;
+                    }
+
+                    PaperSizeMenuItems.Add(mi);
+                }
+
+                if (!foundElement)
+                {
+                    if (paperSizes.Count > 0)
+                    {
+                        PaperSizeMenuItems[0].IsChecked = true;
+                        SelectedPaperSizeMI = PaperSizeMenuItems[0];
+                        PrintDialog.PrintTicket.PageMediaSize = paperSizes[0];
+                    }
+                }
+            }
+        }
 
         private ICommand paperSizeMI_ClickCommand;
         public ICommand PaperSizeMI_ClickCommand { get => paperSizeMI_ClickCommand ??= new RelayCommand((sender) => PaperSizeMI_Click(sender)); }
@@ -283,6 +316,96 @@ namespace Better_Printing_for_OneNote.ViewModels
                 UpdatePrintFormat(CropHelper);
             }
         }
+
+        #endregion
+
+        #region presets
+
+        private ObservableCollection<object> _presets = new ObservableCollection<object>();
+        public ObservableCollection<object> Presets
+        {
+            get => _presets;
+            set
+            {
+                if (value != _presets)
+                {
+                    _presets = value;
+                    OnPropertyChanged(nameof(Presets));
+                }
+            }
+        }
+
+        private void LoadPresets()
+        {
+            Directory.CreateDirectory(PRESETS_FOLDER_PATH);
+
+            foreach (var file in Directory.GetFiles(PRESETS_FOLDER_PATH, "*.json", SearchOption.TopDirectoryOnly))
+            {
+                try
+                {
+                    var text = File.ReadAllText(file);
+                    var preset = JsonSerializer.Deserialize<PresetModel>(text);
+                    Presets.Add(preset);
+                }
+                catch (Exception e)
+                {
+                    Trace.WriteLine($"Preset {file} could not be loaded:\n" + e);
+                }
+            }
+        }
+
+        private void SavePresets()
+        {
+            Directory.CreateDirectory(PRESETS_FOLDER_PATH);
+
+            foreach (var file in Directory.GetFiles(PRESETS_FOLDER_PATH, "*.json", SearchOption.TopDirectoryOnly))
+                File.Delete(file);
+
+            foreach (var item in Presets)
+            {
+                var preset = item as PresetModel;
+                File.WriteAllText($"{PRESETS_FOLDER_PATH}\\{preset.Name}.json", JsonSerializer.Serialize(preset, new JsonSerializerOptions() { WriteIndented = true }));
+            }
+        }
+
+        private void Presets_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            if (e.Action == NotifyCollectionChangedAction.Add)
+                foreach (var item in e.NewItems)
+                {
+                    var preset = item as PresetModel;
+                    preset.PropertyChanged += (sender, e) =>
+                    {
+                        ResolveDuplicatePresets(preset);
+                    };
+
+                    ResolveDuplicatePresets(preset);
+                }
+        }
+
+        private void ResolveDuplicatePresets(PresetModel preset)
+        {
+            if (Presets.Where(p => (p as PresetModel).Name == preset.Name).Count() > 1)
+            {
+                int i = 1;
+                while (Presets.Where(p => (p as PresetModel).Name == preset.Name + i).Count() + 1 > 1)
+                    i++;
+                preset.Name += i;
+            }
+            else if (preset.Name == "")
+            {
+                int i = 1;
+                while (Presets.Where(p => (p as PresetModel).Name == preset.Name + i).Count() + 1 > 1)
+                    i++;
+                preset.Name += i;
+            }
+        }
+
+        public NewItemRequested_Handler NewItemRequested_Handler { get; set; }
+        public ItemChecked_Handler ItemChecked_Handler { get; set; }
+
+        #endregion
+
         #endregion
 
         public PrintRequestedHandler PrintRequestedHandler { get; set; }
@@ -309,6 +432,19 @@ namespace Better_Printing_for_OneNote.ViewModels
             PrintDialogValuesChangedHandler = (sender) => UpdatePrintQueues();
             UpdatePrintQueues();
 
+            //presets
+            Presets.CollectionChanged += Presets_CollectionChanged;
+            NewItemRequested_Handler = (sender) => new PresetModel() { Name = "New preset", Signatures = CropHelper.CurrentSignatures };
+            ItemChecked_Handler = (sender, item) =>
+            {
+                var preset = item as PresetModel;
+                if (preset.Signatures != null)
+                    CropHelper.AddSignatures(preset.Signatures);
+                Trace.WriteLine((item as PresetModel).Name);
+            };
+            LoadPresets();
+
+
             Window = window;
 
             if (argFilePath != "")
@@ -316,10 +452,13 @@ namespace Better_Printing_for_OneNote.ViewModels
 
 #if DEBUG
             //FilePath = @"C:\Users\jokau\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Normales Dokument\Diskrete Signale.pdf";
-            //FilePath = @"C:\Users\fabit\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Normales Dokument\Diskrete Signale.pdf";
-            FilePath = @"D:\Daten\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Normales Dokument\Diskrete Signale.pdf";
+            FilePath = @"C:\Users\fabit\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Normales Dokument\Diskrete Signale.pdf";
 #endif
+        }
 
+        public void OnWindowClosing(object sender, CancelEventArgs e)
+        {
+            SavePresets();
         }
 
         private void ChoosePrinter()
@@ -354,14 +493,14 @@ namespace Better_Printing_for_OneNote.ViewModels
             dialogThread.SetApartmentState(ApartmentState.STA);
             dialogThread.IsBackground = true;
             dialogThread.Start();
-            
+
 
             PrintDialog.PrintDocument(CropHelper.Document.DocumentPaginator, Path.GetFileName(FilePath));
 
-            
+
             Dispatcher.FromThread(dialogThread).InvokeShutdown();
             Window.IsEnabled = true;
-            Window.ResizeMode = prevResizeMode; 
+            Window.ResizeMode = prevResizeMode;
         }
 
         private const double CmToPx = 96d / 2.54;

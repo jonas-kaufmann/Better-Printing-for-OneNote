@@ -1,0 +1,63 @@
+﻿<MenuItem x:Class="Better_Printing_for_OneNote.Views.Controls.EditableMenuItem"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Better_Printing_for_OneNote.Views.Controls"
+             mc:Ignorable="d" x:Name="Test" ItemsSource="{Binding MenuItems}">
+
+    <!--MenuItem.Resources>
+        <CollectionViewSource Source="{Binding ItemCollection}" x:Key="ItemCollection_CVS"/>
+    </MenuItem.Resources>-->
+
+    <!--<MenuItem Header="{Binding AddItemHeader}" StaysOpenOnClick="True" IsCheckable="False" Click="AddItem_Click"/>-->
+
+    <!--<MenuItem.ItemsSource>
+        <CompositeCollection>
+            <CollectionContainer Collection="{Binding Source={StaticResource ItemCollection_CVS}}" />
+            <MenuItem Header="{Binding AddItemHeader}" StaysOpenOnClick="True" IsCheckable="False" CommandParameter="{Binding ItemCollection}" Click="AddItem_Click"/>
+        </CompositeCollection>
+    </MenuItem.ItemsSource>-->
+    <!--<MenuItem.ItemContainerStyle>
+        <Style>
+            <Setter Property="MenuItem.Header" Value="{Binding Name}"/>
+                <Setter Property="MenuItem.StaysOpenOnClick" Value="True"/>
+                <Setter Property="MenuItem.IsCheckable" Value="True"/>
+                <Setter Property="MenuItem.Command" Value="{Binding ElementName=Window, Path=DataContext.ChangePreset_Command}"/>
+            <Setter Property="MenuItem.CommandParameter" Value="{Binding RelativeSource={RelativeSource Self}}"/>
+            -->
+    <!--<Setter Property="MenuItem.Binding" Value="{Binding ElementName=Window, Path=DataContext.Test_Command}"/>-->
+    <!--
+    
+
+            </Style>
+        </MenuItem.ItemContainerStyle>
+    <MenuItem.ItemTemplate>
+            <DataTemplate>
+                
+    -->
+    <!--<Border MouseLeftButtonDown="Border_MouseLeftButtonDown">
+                <Border.InputBindings>
+                                <MouseBinding Gesture="LeftClick" Command="{Binding ElementName=Window, Path=DataContext.Test_Command}"></MouseBinding>
+                            </Border.InputBindings>-->
+    <!--
+    
+                <Label Content="{Binding}" MouseDoubleClick="Label_MouseDoubleClick">
+                    
+    -->
+    <!--<Label.InputBindings>
+                        -->
+    <!--<Binding Gesture="Loaded" Command="{Binding ElementName=Window, Path=DataContext.PresetsLabel_LoadedCommand}"/>-->
+    <!--
+                    </Label.InputBindings>-->
+    <!--
+    
+                </Label>
+                
+    -->
+    <!--</Border>-->
+    <!--
+    
+            </DataTemplate>
+        </MenuItem.ItemTemplate>-->
+</MenuItem>

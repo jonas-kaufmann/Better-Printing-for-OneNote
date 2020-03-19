@@ -5,13 +5,14 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:controls="clr-namespace:Better_Printing_for_OneNote.Views.Controls"
         mc:Ignorable="d"
-        Title="{Binding WindowTitle}" MinWidth="800" MinHeight="600">
+        Title="{Binding WindowTitle}" MinWidth="800" MinHeight="600" Name="Window">
 
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="Open File" Command="{Binding SearchFileCommand}" />
             <MenuItem Header="Printer" Name="PrintQueueMI" ItemsSource="{Binding PrintQueueMenuItems}" />
             <MenuItem Header="Paper Size" ItemsSource="{Binding PaperSizeMenuItems}" />
+            <controls:EditableMenuItem HeaderTextBinding="Binding Name" Header="Presets" AddItemHeader="Add preset" NewItemRequested_Command="{Binding  ElementName=Window, Path=DataContext.NewItemRequested_Handler}" ItemChecked_Command="{Binding ElementName=Window, Path=DataContext.ItemChecked_Handler}" ItemCollection="{Binding ElementName=Window, Path=DataContext.Presets}" />
             <MenuItem Header="Settings" IsEnabled="False" />
             <MenuItem Header="Third Party Notices" Command="{Binding ShowThirdPartyNotices}" />
         </Menu>

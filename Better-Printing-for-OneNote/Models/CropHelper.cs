@@ -30,7 +30,7 @@ namespace Better_Printing_for_OneNote.Models
         }
 
         private CropsAndSkips CurrentCropsAndSkips;
-        private List<SignatureAdded> CurrentSignatures = new List<SignatureAdded>();
+        public List<SignatureAdded> CurrentSignatures { get; set; } = new List<SignatureAdded>();
         private ObservableCollection<PageModel> Pages = new ObservableCollection<PageModel>();
         private List<DocumentChange> UndoChangeList = new List<DocumentChange>();
         private List<DocumentChange> RedoChangeList = new List<DocumentChange>();
@@ -293,15 +293,33 @@ namespace Better_Printing_for_OneNote.Models
             SignatureAdded signatureAdded = new SignatureAdded(bindableText, x, y);
             CurrentSignatures.Add(signatureAdded);
 
+            return AddSignatureToPages(signatureAdded, textboxToReturnPageIndex);
+        }
+
+        private TextBox AddSignatureToPages(SignatureAdded signature, int textboxToReturnPageIndex = -1)
+        {
             TextBox textbox = null;
-            for (int i = 0; i<Pages.Count; i++)
+            for (int i = 0; i < Pages.Count; i++)
             {
-                TextBox tb = CreateSignatureTextBox(bindableText, new Thickness(x, y, 0, 0));
+                TextBox tb = CreateSignatureTextBox(signature.Text, new Thickness(signature.X, signature.Y, 0, 0));
                 Pages[i].AddUIElement(tb);
                 if (i == textboxToReturnPageIndex)
                     textbox = tb;
             }
             return textbox;
+        }
+
+        public void AddSignatures(List<SignatureAdded> signatures)
+        {
+            foreach (var signature in signatures)
+            {
+                if(!CurrentSignatures.Exists(s => s.Equals(signature)))
+                {
+                    var copy = signature.Copy();
+                    CurrentSignatures.Add(copy);
+                    AddSignatureToPages(copy);
+                }
+            }
         }
 
         private TextBox CreateSignatureTextBox(BindableText text, Thickness margin)
@@ -412,6 +430,18 @@ namespace Better_Printing_for_OneNote.Models
             X = x;
             Y = y;
         }
+
+        public SignatureAdded() { }
+
+        internal SignatureAdded Copy()
+        {
+            return new SignatureAdded() { Text = this.Text.Copy(), X=this.X, Y= this.Y };
+        }
+
+        internal bool Equals(SignatureAdded sa)
+        {
+            return this.X == sa.X && this.Y == sa.Y && this.Text.Text == sa.Text.Text;
+        }
     }
 
     class BindableText : NotifyBase
@@ -428,6 +458,11 @@ namespace Better_Printing_for_OneNote.Models
                     OnPropertyChanged(nameof(Text));
                 }
             }
+        }
+
+        internal BindableText Copy()
+        {
+            return new BindableText() { Text = this.Text };
         }
     }
 }
