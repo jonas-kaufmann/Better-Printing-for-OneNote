@@ -299,7 +299,7 @@ namespace Better_Printing_for_OneNote.ViewModels
             UndoRequestHandler = (sender) => CropHelper.UndoChange();
             RedoRequestHandler = (sender) => CropHelper.RedoChange();
             DeleteRequestHandler = (sender, pageIndex) => CropHelper.SkipPage(pageIndex);
-            AddControlToDocRequestHandler = (sender, x, y, i) => CropHelper.AddSignatureTb(x, y, i);
+            AddControlToDocRequestHandler = (sender, x, y, i) => CropHelper.InitialAddSignatureTb(x, y, i);
             AreaDeleteRequestedHandler = (sender, x, y, z) => CropHelper.DeleteArea(x, y, z);
             OptimalHeightRequestedHandler = (sender, pageIndex) => CropHelper.GetOptimalHeight(pageIndex);
             PageMergeRequestedHandler = (sender, fromPage, toPage) => CropHelper.MergePages(fromPage, toPage);
@@ -317,7 +317,7 @@ namespace Better_Printing_for_OneNote.ViewModels
 #if DEBUG
             //FilePath = @"C:\Users\jokau\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Normales Dokument\Diskrete Signale.pdf";
             //FilePath = @"C:\Users\fabit\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Normales Dokument\Diskrete Signale.pdf";
-            FilePath = @"D:\Daten\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Normales Dokument\Diskrete Signale.pdf";
+            FilePath = @"C:\Users\jokau\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Normales Dokument\Diskrete Signale.pdf";
 #endif
 
         }

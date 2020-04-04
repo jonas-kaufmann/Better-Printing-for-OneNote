@@ -30,7 +30,6 @@ namespace Better_Printing_for_OneNote.Models
         }
 
         private CropsAndSkips CurrentCropsAndSkips;
-        private List<SignatureAdded> CurrentSignatures = new List<SignatureAdded>();
         private ObservableCollection<PageModel> Pages = new ObservableCollection<PageModel>();
         private List<DocumentChange> UndoChangeList = new List<DocumentChange>();
         private List<DocumentChange> RedoChangeList = new List<DocumentChange>();
@@ -96,11 +95,14 @@ namespace Better_Printing_for_OneNote.Models
             {
                 if (UndoChangeList[UndoChangeList.Count - 1] is CropsAndSkips cropsAndSkips)
                 {
-                    RedoChangeList.Add(CurrentCropsAndSkips);
                     CurrentCropsAndSkips = cropsAndSkips;
                     UpdatePages();
+                } else if (UndoChangeList[UndoChangeList.Count - 1] is SignatureAdded signatureAdded) {
+                    foreach (var uiElement in signatureAdded.UIElements)
+                        Pages[uiElement.Item1].RemoveUIElement(uiElement.Item2);
                 }
 
+                RedoChangeList.Add(UndoChangeList[UndoChangeList.Count - 1]);
                 UndoChangeList.RemoveAt(UndoChangeList.Count - 1);
             }
         }
@@ -115,7 +117,13 @@ namespace Better_Printing_for_OneNote.Models
                     CurrentCropsAndSkips = cropsAndSkips;
                     UpdatePages();
                 }
+                else if (RedoChangeList[RedoChangeList.Count - 1] is SignatureAdded signatureAdded)
+                {
+                    foreach (var uiElement in signatureAdded.UIElements)
+                        Pages[uiElement.Item1].AddUIElement(uiElement.Item2);
+                }
 
+                UndoChangeList.Add(RedoChangeList[RedoChangeList.Count - 1]);
                 RedoChangeList.RemoveAt(RedoChangeList.Count - 1);
             }
         }
@@ -249,24 +257,29 @@ namespace Better_Printing_for_OneNote.Models
                 document.Pages.Add(page.Page);
             Document = document;
 
-            // read signatures
-            for (int i = 0; i < CurrentSignatures.Count; i++)
+
+            // add signatures
+            for (int i = 0; i < UndoChangeList.Count; i++)
             {
-                var signature = CurrentSignatures[i];
-
-                // remove signatures with empty or only whitespace text
-                if (string.IsNullOrWhiteSpace(signature.Text.Text))
+                if (UndoChangeList[i] is SignatureAdded signatureAdded)
                 {
-                    CurrentSignatures.RemoveAt(i);
-                    i--;
-                    continue;
-                }
+                    // remove empty signatures
+                    if (string.IsNullOrWhiteSpace(signatureAdded.Text.Text))
+                    {
+                        UndoChangeList.RemoveAt(i);
+                        i--;
+                        continue;
+                    }
 
-                foreach (var page in Pages)
-                {
-                    TextBox tb = CreateSignatureTextBox(signature.Text, new Thickness(signature.X, signature.Y, 0, 0));
-                    page.AddUIElement(tb);
-                    page.Page.Child.UpdateLayout();
+                    signatureAdded.UIElements.Clear();
+
+                    // add signature ui element to every page
+                    for (int a = 0; a < Pages.Count; a++)
+                    {
+                        TextBox tb = CreateSignatureTextBox(signatureAdded.Text, new Thickness(signatureAdded.X, signatureAdded.Y, 0, 0));
+                        Pages[a].AddUIElement(tb);
+                        signatureAdded.UIElements.Add((a, tb));
+                    }
                 }
             }
         }
@@ -274,7 +287,7 @@ namespace Better_Printing_for_OneNote.Models
         /// <summary>
         /// Add an editable TextBox to all pages of the document (returns specified textbox, for focusing)
         /// </summary>
-        public TextBox AddSignatureTb(double x, double y, int textboxToReturnPageIndex)
+        public TextBox InitialAddSignatureTb(double x, double y, int textboxToReturnPageIndex)
         {
             // match x and y coordinates to height/width of the content of the page
             x = x - Padding.Left;
@@ -291,16 +304,18 @@ namespace Better_Printing_for_OneNote.Models
 
             BindableText bindableText = new BindableText();
             SignatureAdded signatureAdded = new SignatureAdded(bindableText, x, y);
-            CurrentSignatures.Add(signatureAdded);
 
             TextBox textbox = null;
-            for (int i = 0; i<Pages.Count; i++)
+            for (int i = 0; i < Pages.Count; i++)
             {
                 TextBox tb = CreateSignatureTextBox(bindableText, new Thickness(x, y, 0, 0));
                 Pages[i].AddUIElement(tb);
+                signatureAdded.UIElements.Add((i, tb));
                 if (i == textboxToReturnPageIndex)
                     textbox = tb;
             }
+
+            UndoChangeList.Add(signatureAdded);
             return textbox;
         }
 
@@ -402,6 +417,7 @@ namespace Better_Printing_for_OneNote.Models
 
     class SignatureAdded : DocumentChange
     {
+        public List<(int, UIElement)> UIElements { get; set; } = new List<(int, UIElement)>();
         public BindableText Text { get; set; }
         public double X { get; set; }
         public double Y { get; set; }
