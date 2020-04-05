@@ -45,25 +45,17 @@ namespace Better_Printing_for_OneNote.Views.Windows
         {
             MainSP.Children.Clear();
 
-            SolidColorBrush LightPrimary = (SolidColorBrush)FindResource("LightPrimary");
-            SolidColorBrush DarkPrimary = (SolidColorBrush)FindResource("DarkPrimary");
-
             foreach (var notice in Notices)
             {
                 if (!string.IsNullOrWhiteSpace(notice.SoftwareName))
                 {
-                    TextBox header = new TextBox
+                    TextBlock header = new TextBlock
                     {
                         Text = notice.SoftwareName,
                         FontSize = 18,
                         FontWeight = FontWeights.Bold,
                         Margin = new Thickness(0, MainSP.Children.Count > 0 ? 24 : 0, 0, 0),
-                        TextWrapping = TextWrapping.Wrap,
-                        Foreground = LightPrimary,
-                        Background = Brushes.Transparent,
-                        BorderThickness = new Thickness(0),
-                        IsReadOnly = true,
-                        IsTabStop = false
+                        TextWrapping = TextWrapping.Wrap
                     };
                     header.TextDecorations.Add(TextDecorations.Underline);
 
@@ -71,26 +63,12 @@ namespace Better_Printing_for_OneNote.Views.Windows
 
                     if (!string.IsNullOrWhiteSpace(notice.LicenseText))
                     {
-                        TextBox licenseText = new TextBox
+                        TextBlock licenseText = new TextBlock
                         {
                             Text = notice.LicenseText,
-                            Foreground = LightPrimary,
-                            Background = Brushes.Transparent,
                             TextWrapping = TextWrapping.Wrap,
-                            BorderThickness = new Thickness(0),
-                            IsReadOnly = true,
-                            IsTabStop = false,
                             Margin = new Thickness(0, 4, 0, 0)
                         };
-
-                        //Border border = new Border
-                        //{
-                        //    Child = licenseText,
-                        //    BorderBrush = LightPrimary,
-                        //    BorderThickness = new Thickness(1),
-                        //    CornerRadius = new CornerRadius(1),
-                        //    Margin = new Thickness(0, 4, 0, 0)
-                        //};
 
 
                         MainSP.Children.Add(licenseText);
