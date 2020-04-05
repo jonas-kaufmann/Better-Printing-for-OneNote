@@ -226,7 +226,8 @@ namespace Better_Printing_for_OneNote.Views.Controls
         public void UpdateDocument()
         {
             MainDPV.DocumentPaginator = Document.DocumentPaginator;
-            MainDPV.DocumentPaginator.GetPageCompleted += delegate { this.MainScrollViewer.Visibility = Visibility.Visible; };
+            MainDPV.DocumentPaginator.GetPageCompleted += delegate
+            { this.MainScrollViewer.Visibility = Visibility.Visible; };
             PageCount = Document.Pages.Count;
         }
         public void UpdateZoom()
@@ -524,9 +525,9 @@ namespace Better_Printing_for_OneNote.Views.Controls
         {
             if (PageNumber > 0)
             {
-                var lastPage = PageNumber == PageCount-1;
+                var lastPage = PageNumber == PageCount - 1;
                 PageMergeRequestedCommand?.Invoke(this, PageNumber - 1, PageNumber);
-                if(!lastPage)
+                if (!lastPage)
                     PageNumber--;
             }
         }

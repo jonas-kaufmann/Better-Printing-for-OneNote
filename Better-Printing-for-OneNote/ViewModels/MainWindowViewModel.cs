@@ -441,7 +441,19 @@ namespace Better_Printing_for_OneNote.ViewModels
 
             //presets
             Presets.CollectionChanged += Presets_CollectionChanged;
-            NewPresetRequestedHandler = (sender) => new Preset() { Name = "New preset", Signatures = CropHelper.CurrentSignatures };
+            NewPresetRequestedHandler = (sender) =>
+            {
+                // copy not empty signatures
+                var signatures = new List<SignatureAdded>();
+                foreach (var s in CropHelper.CurrentSignatures)
+                    if (!string.IsNullOrWhiteSpace(s.Text.Text))
+                        signatures.Add(s.Copy());
+                return new Preset()
+                {
+                    Name = "New preset",
+                    Signatures = signatures
+                };
+            };
             PresetChangeRequestedHandler = (sender, item) =>
             {
                 var preset = item as Preset;
@@ -450,7 +462,6 @@ namespace Better_Printing_for_OneNote.ViewModels
             };
             LoadPresets();
 
-
             Window = window;
 
             if (argFilePath != "")
@@ -458,8 +469,8 @@ namespace Better_Printing_for_OneNote.ViewModels
 
 #if DEBUG
             //FilePath = @"C:\Users\jokau\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Normales Dokument\Diskrete Signale.pdf";
-            //FilePath = @"C:\Users\fabit\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Normales Dokument\Diskrete Signale.pdf";
-            FilePath = @"C:\Users\jokau\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Normales Dokument\Diskrete Signale.pdf";
+            FilePath = @"C:\Users\fabit\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Normales Dokument\Diskrete Signale.pdf";
+            //FilePath = @"C:\Users\jokau\OneDrive\Freigabe Fabian-Jonas\BetterPrinting\Normales Dokument\Diskrete Signale.pdf";
 #endif
         }
 

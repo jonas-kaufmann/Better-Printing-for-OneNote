@@ -22,7 +22,8 @@
             <controls:PresetsMenuItem Header="Presets"
                                       NewPresetRequestedCommand="{Binding NewPresetRequestedHandler}"
                                       PresetChangeRequestedCommand="{Binding PresetChangeRequestedHandler}"
-                                      Presets="{Binding Presets}" />
+                                      Presets="{Binding Presets}"
+                                      ToolTip="Signature Presets (add stored signatures to the current document)" />
             <MenuItem Header="Settings"
                       IsEnabled="False" />
             <MenuItem Header="Third Party Notices"

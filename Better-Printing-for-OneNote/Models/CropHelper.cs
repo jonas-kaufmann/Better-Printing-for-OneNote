@@ -327,6 +327,7 @@ namespace Better_Printing_for_OneNote.Models
                     textbox = tb;
             }
 
+            CurrentSignatures.Add(signatureAdded);
             UndoChangeList.Add(signatureAdded);
             return textbox;
         }
@@ -334,14 +335,8 @@ namespace Better_Printing_for_OneNote.Models
         public void AddSignatures(List<SignatureAdded> signatures)
         {
             foreach (var signature in signatures)
-            {
-                if (!UndoChangeList.Exists(s => s is SignatureAdded sa && sa.Equals(signature)))
-                {
-                    var copy = signature.Copy();
-                    UndoChangeList.Add(copy);
-                    AddSignatureToPages(copy);
-                }
-            }
+                if (!CurrentSignatures.Exists(s => s is SignatureAdded sa && sa.Equals(signature)))
+                    AddSignatureToPages(signature.Copy());
         }
 
         private TextBox CreateSignatureTextBox(BindableText text, Thickness margin)
