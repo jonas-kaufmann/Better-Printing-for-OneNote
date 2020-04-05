@@ -1,24 +1,42 @@
 ﻿<local:MonochromeVectorGraphic x:Class="Better_Printing_for_OneNote.Views.Controls.VectorGraphics.HashVectorGraphic"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:Better_Printing_for_OneNote.Views.Controls.VectorGraphics">
+                               xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                               xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                               xmlns:local="clr-namespace:Better_Printing_for_OneNote.Views.Controls.VectorGraphics">
 
     <local:MonochromeVectorGraphic.Resources>
         <Style TargetType="Line">
-            <Setter Property="Stroke" Value="{Binding Foreground, RelativeSource={RelativeSource FindAncestor, AncestorType=UserControl}}" />
-            <Setter Property="StrokeThickness" Value="{Binding StrokeThickness, FallbackValue=1, RelativeSource={RelativeSource FindAncestor, AncestorType=UserControl}}" />
-            <Setter Property="StrokeLineJoin" Value="Round" />
-            <Setter Property="StrokeStartLineCap" Value="Round" />
-            <Setter Property="StrokeEndLineCap" Value="Round" />
+            <Setter Property="Stroke"
+                    Value="{Binding Foreground, RelativeSource={RelativeSource FindAncestor, AncestorType=UserControl}}" />
+            <Setter Property="StrokeThickness"
+                    Value="{Binding StrokeThickness, FallbackValue=1, RelativeSource={RelativeSource FindAncestor, AncestorType=UserControl}}" />
+            <Setter Property="StrokeLineJoin"
+                    Value="Round" />
+            <Setter Property="StrokeStartLineCap"
+                    Value="Round" />
+            <Setter Property="StrokeEndLineCap"
+                    Value="Round" />
         </Style>
     </local:MonochromeVectorGraphic.Resources>
 
     <Viewbox x:Name="MainViewBox">
-        <Canvas Width="24" Height="24">
-            <Line X1="4" Y1="9" X2="20" Y2="9" />
-            <Line X1="4" Y1="15" X2="20" Y2="15" />
-            <Line X1="10" Y1="3" X2="8" Y2="21" />
-            <Line X1="16" Y1="3" X2="14" Y2="21" />
+        <Canvas Width="24"
+                Height="24">
+            <Line X1="4"
+                  Y1="9"
+                  X2="20"
+                  Y2="9" />
+            <Line X1="4"
+                  Y1="15"
+                  X2="20"
+                  Y2="15" />
+            <Line X1="10"
+                  Y1="3"
+                  X2="8"
+                  Y2="21" />
+            <Line X1="16"
+                  Y1="3"
+                  X2="14"
+                  Y2="21" />
         </Canvas>
     </Viewbox>
 </local:MonochromeVectorGraphic>

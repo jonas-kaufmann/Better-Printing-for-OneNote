@@ -57,7 +57,8 @@ namespace Better_Printing_for_OneNote
                 }
                 Trace.WriteLine("Release-Mode");
             }
-            else Trace.WriteLine("Debug-Mode");
+            else
+                Trace.WriteLine("Debug-Mode");
             LOGGING_INITIALIZED = true;
 
             #endregion

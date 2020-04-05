@@ -1,20 +1,26 @@
 ﻿<local:MonochromeVectorGraphic x:Class="Better_Printing_for_OneNote.Views.Controls.VectorGraphics.EditVectorGraphic"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:Better_Printing_for_OneNote.Views.Controls.VectorGraphics">
+                               xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                               xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                               xmlns:local="clr-namespace:Better_Printing_for_OneNote.Views.Controls.VectorGraphics">
 
     <UserControl.Resources>
         <Style TargetType="Path">
-            <Setter Property="Stroke" Value="{Binding Foreground, RelativeSource={RelativeSource FindAncestor, AncestorType=UserControl}}" />
-            <Setter Property="StrokeThickness" Value="{Binding StrokeThickness, FallbackValue=1, RelativeSource={RelativeSource FindAncestor, AncestorType=UserControl}}" />
-            <Setter Property="StrokeLineJoin" Value="Round" />
-            <Setter Property="StrokeStartLineCap" Value="Round" />
-            <Setter Property="StrokeEndLineCap" Value="Round" />
+            <Setter Property="Stroke"
+                    Value="{Binding Foreground, RelativeSource={RelativeSource FindAncestor, AncestorType=UserControl}}" />
+            <Setter Property="StrokeThickness"
+                    Value="{Binding StrokeThickness, FallbackValue=1, RelativeSource={RelativeSource FindAncestor, AncestorType=UserControl}}" />
+            <Setter Property="StrokeLineJoin"
+                    Value="Round" />
+            <Setter Property="StrokeStartLineCap"
+                    Value="Round" />
+            <Setter Property="StrokeEndLineCap"
+                    Value="Round" />
         </Style>
     </UserControl.Resources>
 
     <Viewbox x:Name="MainViewBox">
-        <Canvas Width="24" Height="24">
+        <Canvas Width="24"
+                Height="24">
             <Path Data="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
         </Canvas>
     </Viewbox>
