@@ -29,10 +29,11 @@ namespace Better_Printing_for_OneNote.Models
             }
         }
 
-        private CropsAndSkips CurrentCropsAndSkips;
         private ObservableCollection<PageModel> Pages = new ObservableCollection<PageModel>();
-        private List<DocumentChange> UndoChangeList = new List<DocumentChange>();
-        private List<DocumentChange> RedoChangeList = new List<DocumentChange>();
+        private CropsAndSkips CurrentCropsAndSkips;
+        public readonly List<SignatureAdded> CurrentSignatures = new List<SignatureAdded>();
+        private readonly List<DocumentChange> UndoChangeList = new List<DocumentChange>();
+        private readonly List<DocumentChange> RedoChangeList = new List<DocumentChange>();
 
         private int MaxCropHeight;
         private double PageHeight;
@@ -51,6 +52,7 @@ namespace Better_Printing_for_OneNote.Models
         {
             RedoChangeList.Clear();
             UndoChangeList.Clear();
+            CurrentSignatures.Clear();
 
 
             var bigImageHeight = 0;
@@ -97,7 +99,11 @@ namespace Better_Printing_for_OneNote.Models
                 {
                     CurrentCropsAndSkips = cropsAndSkips;
                     UpdatePages();
-                } else if (UndoChangeList[UndoChangeList.Count - 1] is SignatureAdded signatureAdded) {
+                }
+                else if (UndoChangeList[UndoChangeList.Count - 1] is SignatureAdded signatureAdded)
+                {
+                    CurrentSignatures.Remove(signatureAdded);
+
                     foreach (var uiElement in signatureAdded.UIElements)
                         Pages[uiElement.Item1].RemoveUIElement(uiElement.Item2);
                 }
@@ -119,6 +125,8 @@ namespace Better_Printing_for_OneNote.Models
                 }
                 else if (RedoChangeList[RedoChangeList.Count - 1] is SignatureAdded signatureAdded)
                 {
+                    CurrentSignatures.Add(signatureAdded);
+
                     foreach (var uiElement in signatureAdded.UIElements)
                         Pages[uiElement.Item1].AddUIElement(uiElement.Item2);
                 }
@@ -259,191 +267,225 @@ namespace Better_Printing_for_OneNote.Models
 
 
             // add signatures
-            for (int i = 0; i < UndoChangeList.Count; i++)
+            for (int i = 0; i < CurrentSignatures.Count; i++)
             {
-                if (UndoChangeList[i] is SignatureAdded signatureAdded)
+                SignatureAdded signature = CurrentSignatures[i];
+                // remove empty signatures
+                if (string.IsNullOrWhiteSpace(signature.Text.Text))
                 {
-                    // remove empty signatures
-                    if (string.IsNullOrWhiteSpace(signatureAdded.Text.Text))
-                    {
-                        UndoChangeList.RemoveAt(i);
-                        i--;
-                        continue;
-                    }
+                    CurrentSignatures.RemoveAt(i);
+                    UndoChangeList.Remove(signature);
+                    i--;
+                    continue;
+                }
 
-                    signatureAdded.UIElements.Clear();
+                signature.UIElements.Clear();
 
-                    // add signature ui element to every page
-                    for (int a = 0; a < Pages.Count; a++)
-                    {
-                        TextBox tb = CreateSignatureTextBox(signatureAdded.Text, new Thickness(signatureAdded.X, signatureAdded.Y, 0, 0));
-                        Pages[a].AddUIElement(tb);
-                        signatureAdded.UIElements.Add((a, tb));
-                    }
+                // add signature ui element to every page
+                for (int a = 0; a < Pages.Count; a++)
+                {
+                    TextBox tb = CreateSignatureTextBox(signature.Text, new Thickness(signature.X, signature.Y, 0, 0));
+                    Pages[a].AddUIElement(tb);
+                    signature.UIElements.Add((a, tb));
                 }
             }
         }
 
-        /// <summary>
-        /// Add an editable TextBox to all pages of the document (returns specified textbox, for focusing)
-        /// </summary>
-        public TextBox InitialAddSignatureTb(double x, double y, int textboxToReturnPageIndex)
-        {
-            // match x and y coordinates to height/width of the content of the page
-            x = x - Padding.Left;
-            y = y - Padding.Top;
-
-            if (x < 0 || x > ContentWidth) 
-                return null;
-            if (y < 0 || y > ContentHeight) 
-                return null;
-
-            // approximately center textbox on coordinates
-            x -= 2;
-            y -= 8;
-
-            BindableText bindableText = new BindableText();
-            SignatureAdded signatureAdded = new SignatureAdded(bindableText, x, y);
-
-            TextBox textbox = null;
-            for (int i = 0; i < Pages.Count; i++)
-            {
-                TextBox tb = CreateSignatureTextBox(bindableText, new Thickness(x, y, 0, 0));
-                Pages[i].AddUIElement(tb);
-                signatureAdded.UIElements.Add((i, tb));
-                if (i == textboxToReturnPageIndex)
-                    textbox = tb;
-            }
-
-            UndoChangeList.Add(signatureAdded);
-            return textbox;
-        }
-
-        private TextBox CreateSignatureTextBox(BindableText text, Thickness margin)
-        {
-            TextBox tb = new TextBox { AcceptsReturn = true, Background = Brushes.Transparent, BorderThickness = new Thickness(0), Margin = margin };
-            Binding binding = new Binding(nameof(text.Text));
-            binding.Mode = BindingMode.TwoWay;
-            binding.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-            binding.Source = text;
-            tb.SetBinding(TextBox.TextProperty, binding);
-
-            return tb;
-        }
-
-        public void UpdateFormat(double pageHeight, double pageWidth, double contentHeight, double contentWidth, Thickness padding)
-        {
-            if (PageHeight != pageHeight || PageWidth != pageWidth || contentHeight != ContentHeight || contentWidth != ContentWidth || Padding != padding)
-            {
-                PageHeight = pageHeight;
-                PageWidth = pageWidth;
-                ContentHeight = contentHeight;
-                ContentWidth = contentWidth;
-                Padding = padding;
-                if (Pages.Count > 0)
-                    UpdatePages();
-                else
-                    InitializePages();
-            }
-        }
-
-        private PageModel CreateNewPage(ArrayList skips)
-        {
-            return new PageModel(Images, skips, PageHeight, PageWidth, ContentHeight, ContentWidth, Padding);
-        }
-    }
-
-    class DocumentChange { }
-
-    class CropsAndSkips : DocumentChange
+    /// <summary>
+    /// Add an editable TextBox to all pages of the document (returns specified textbox, for focusing)
+    /// </summary>
+    public TextBox InitialAddSignatureTb(double x, double y, int textboxToReturnPageIndex)
     {
-        public List<int> Crops { get; set; }
-        private List<Skip> _skips;
-        public ReadOnlyCollection<Skip> Skips
-        {
-            get
-            {
-                return new ReadOnlyCollection<Skip>(_skips);
-            }
-        }
+        // match x and y coordinates to height/width of the content of the page
+        x = x - Padding.Left;
+        y = y - Padding.Top;
 
-        public CropsAndSkips(List<int> crops, List<Skip> skips)
-        {
-            Crops = crops;
-            _skips = skips;
-        }
+        if (x < 0 || x > ContentWidth)
+            return null;
+        if (y < 0 || y > ContentHeight)
+            return null;
 
-        public void InsertSkip(Skip skip)
-        {
-            for (int i = 0; i < Skips.Count; i++)
-            {
-                if (skip.SkipEnd < Skips[i].SkipStart)
-                {
-                    // right position for the skip
-                    _skips.Insert(i, skip);
-                    return;
-                }
-                else
-                {
-                    if ((skip.SkipStart <= Skips[i].SkipStart && skip.SkipEnd >= Skips[i].SkipEnd)
-                        || (skip.SkipStart >= Skips[i].SkipStart && skip.SkipEnd >= Skips[i].SkipEnd && skip.SkipStart <= Skips[i].SkipEnd)
-                        || (skip.SkipEnd <= Skips[i].SkipEnd))
-                    {
-                        // skips are overlapping
-                        skip.SkipStart = Math.Min(skip.SkipStart, Skips[i].SkipStart);
-                        skip.SkipEnd = Math.Max(skip.SkipEnd, Skips[i].SkipEnd);
-                        _skips.RemoveAt(i);
-                        i--;
-                    }
-                }
-            }
+        // approximately center textbox on coordinates
+        x -= 2;
+        y -= 8;
 
-            _skips.Add(skip);
-        }
+        BindableText bindableText = new BindableText();
+        SignatureAdded signatureAdded = new SignatureAdded(bindableText, x, y);
 
-        public CropsAndSkips Copy()
-        {
-            var crops = new List<int>();
-            foreach (var c in Crops)
-                crops.Add(c);
-
-            var skips = new List<Skip>();
-            foreach (var s in Skips)
-                skips.Add(s);
-
-            return new CropsAndSkips(crops, skips);
-        }
+        return AddSignatureToPages(signatureAdded, textboxToReturnPageIndex);
     }
 
-    class SignatureAdded : DocumentChange
+    private TextBox AddSignatureToPages(SignatureAdded signatureAdded, int textboxToReturnPageIndex = -1)
     {
-        public List<(int, UIElement)> UIElements { get; set; } = new List<(int, UIElement)>();
-        public BindableText Text { get; set; }
-        public double X { get; set; }
-        public double Y { get; set; }
-
-        public SignatureAdded(BindableText text, double x, double y)
+        TextBox textbox = null;
+        for (int i = 0; i < Pages.Count; i++)
         {
-            Text = text;
-            X = x;
-            Y = y;
+            TextBox tb = CreateSignatureTextBox(signatureAdded.Text, new Thickness(signatureAdded.X, signatureAdded.Y, 0, 0));
+            Pages[i].AddUIElement(tb);
+            signatureAdded.UIElements.Add((i, tb));
+            if (i == textboxToReturnPageIndex)
+                textbox = tb;
         }
+
+        UndoChangeList.Add(signatureAdded);
+        return textbox;
     }
 
-    class BindableText : NotifyBase
+    public void AddSignatures(List<SignatureAdded> signatures)
     {
-        private string text = string.Empty;
-        public string Text
+        foreach (var signature in signatures)
         {
-            get => text;
-            set
+            if (!UndoChangeList.Exists(s => s is SignatureAdded && s.Equals(signature)))
             {
-                if (value != text)
-                {
-                    text = value;
-                    OnPropertyChanged(nameof(Text));
-                }
+                var copy = signature.Copy();
+                UndoChangeList.Add(copy);
+                AddSignatureToPages(copy);
             }
         }
     }
+
+    private TextBox CreateSignatureTextBox(BindableText text, Thickness margin)
+    {
+        TextBox tb = new TextBox { AcceptsReturn = true, Background = Brushes.Transparent, BorderThickness = new Thickness(0), Margin = margin };
+        Binding binding = new Binding(nameof(text.Text));
+        binding.Mode = BindingMode.TwoWay;
+        binding.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+        binding.Source = text;
+        tb.SetBinding(TextBox.TextProperty, binding);
+
+        return tb;
+    }
+
+    public void UpdateFormat(double pageHeight, double pageWidth, double contentHeight, double contentWidth, Thickness padding)
+    {
+        if (PageHeight != pageHeight || PageWidth != pageWidth || contentHeight != ContentHeight || contentWidth != ContentWidth || Padding != padding)
+        {
+            PageHeight = pageHeight;
+            PageWidth = pageWidth;
+            ContentHeight = contentHeight;
+            ContentWidth = contentWidth;
+            Padding = padding;
+            if (Pages.Count > 0)
+                UpdatePages();
+            else
+                InitializePages();
+        }
+    }
+
+    private PageModel CreateNewPage(ArrayList skips)
+    {
+        return new PageModel(Images, skips, PageHeight, PageWidth, ContentHeight, ContentWidth, Padding);
+    }
+}
+
+public class DocumentChange { }
+
+class CropsAndSkips : DocumentChange
+{
+    public List<int> Crops { get; set; }
+    private List<Skip> _skips;
+    public ReadOnlyCollection<Skip> Skips
+    {
+        get
+        {
+            return new ReadOnlyCollection<Skip>(_skips);
+        }
+    }
+
+    public CropsAndSkips(List<int> crops, List<Skip> skips)
+    {
+        Crops = crops;
+        _skips = skips;
+    }
+
+    public void InsertSkip(Skip skip)
+    {
+        for (int i = 0; i < Skips.Count; i++)
+        {
+            if (skip.SkipEnd < Skips[i].SkipStart)
+            {
+                // right position for the skip
+                _skips.Insert(i, skip);
+                return;
+            }
+            else
+            {
+                if ((skip.SkipStart <= Skips[i].SkipStart && skip.SkipEnd >= Skips[i].SkipEnd)
+                    || (skip.SkipStart >= Skips[i].SkipStart && skip.SkipEnd >= Skips[i].SkipEnd && skip.SkipStart <= Skips[i].SkipEnd)
+                    || (skip.SkipEnd <= Skips[i].SkipEnd))
+                {
+                    // skips are overlapping
+                    skip.SkipStart = Math.Min(skip.SkipStart, Skips[i].SkipStart);
+                    skip.SkipEnd = Math.Max(skip.SkipEnd, Skips[i].SkipEnd);
+                    _skips.RemoveAt(i);
+                    i--;
+                }
+            }
+        }
+
+        _skips.Add(skip);
+    }
+
+    public CropsAndSkips Copy()
+    {
+        var crops = new List<int>();
+        foreach (var c in Crops)
+            crops.Add(c);
+
+        var skips = new List<Skip>();
+        foreach (var s in Skips)
+            skips.Add(s);
+
+        return new CropsAndSkips(crops, skips);
+    }
+}
+
+public class SignatureAdded : DocumentChange
+{
+    public List<(int, UIElement)> UIElements { get; set; } = new List<(int, UIElement)>();
+    public BindableText Text { get; set; }
+    public double X { get; set; }
+    public double Y { get; set; }
+
+    public SignatureAdded(BindableText text, double x, double y)
+    {
+        Text = text;
+        X = x;
+        Y = y;
+    }
+
+    public SignatureAdded() { }
+
+    internal SignatureAdded Copy()
+    {
+        return new SignatureAdded() { Text = this.Text.Copy(), X = this.X, Y = this.Y };
+    }
+
+    internal bool Equals(SignatureAdded sa)
+    {
+        return this.X == sa.X && this.Y == sa.Y && this.Text.Text == sa.Text.Text;
+    }
+}
+
+public class BindableText : NotifyBase
+{
+    private string text = string.Empty;
+    public string Text
+    {
+        get => text;
+        set
+        {
+            if (value != text)
+            {
+                text = value;
+                OnPropertyChanged(nameof(Text));
+            }
+        }
+    }
+
+    internal BindableText Copy()
+    {
+        return new BindableText() { Text = this.Text };
+    }
+}
 }

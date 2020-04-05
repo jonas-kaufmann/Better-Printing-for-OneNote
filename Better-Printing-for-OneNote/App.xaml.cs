@@ -14,6 +14,7 @@ namespace Better_Printing_for_OneNote
     {
         private bool DEBUG_MODE = false;
         private bool LOGGING_INITIALIZED = false;
+        private string LOCAL_FOLDER_PATH;
 
         public App()
         {
@@ -29,8 +30,8 @@ namespace Better_Printing_for_OneNote
             #endregion
 
             // initialize Resources
-            var localFolderPath = $"{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Better_Printing_for_OneNote.Properties.Resources.LocalFolderTitle)}\\";
-            Resources["LocalFolderPath"] = localFolderPath;
+            LOCAL_FOLDER_PATH = $"{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Better_Printing_for_OneNote.Properties.Resources.LocalFolderTitle)}\\";
+            Application.Current.Resources["LocalFolderPath"] = LOCAL_FOLDER_PATH;
 
             #region Logging
 
@@ -38,9 +39,9 @@ namespace Better_Printing_for_OneNote
             {
                 try
                 {
-                    GeneralHelperClass.CreateDirectoryIfNotExists(localFolderPath);
-                    File.WriteAllText($"{localFolderPath}logs.txt", ""); // clear logfile
-                    Trace.Listeners.Add(new TextWriterTraceListener($"{localFolderPath}logs.txt"));
+                    GeneralHelperClass.CreateDirectoryIfNotExists(LOCAL_FOLDER_PATH);
+                    File.WriteAllText($"{LOCAL_FOLDER_PATH}logs.txt", ""); // clear logfile
+                    Trace.Listeners.Add(new TextWriterTraceListener($"{LOCAL_FOLDER_PATH}logs.txt"));
                     Trace.AutoFlush = true;
                 }
                 catch (Exception ex)
@@ -48,7 +49,7 @@ namespace Better_Printing_for_OneNote
                     Trace.WriteLine($"Logging konnte nicht aktiviert werden:\n{ex.ToString()}\n");
                     try
                     {
-                        File.Delete($"{localFolderPath}logs.txt");
+                        File.Delete($"{LOCAL_FOLDER_PATH}logs.txt");
                     }
                     catch (Exception)
                     {
@@ -78,6 +79,7 @@ namespace Better_Printing_for_OneNote
         {
             // initialize Resources
             Resources["TempFolderPath"] = Path.GetTempPath();
+            Resources["LocalFolderPath"] = LOCAL_FOLDER_PATH;
 
             var argFilePath = "";
             if (e.Args.Length > 0)

@@ -10,6 +10,9 @@
     </ApplicationDefinition>
   </ItemGroup>
   <ItemGroup>
+    <Compile Update="Views\Controls\EditableMenuItem.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\Controls\InteractiveFixedDocumentViewer.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -18,6 +21,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Page Update="Views\Controls\EditableMenuItem.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Views\Controls\VectorGraphics\MergeVectorGraphic.xaml">
       <SubType>Designer</SubType>
     </Page>
