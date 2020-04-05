@@ -1,0 +1,34 @@
+﻿<MenuItem x:Class="Better_Printing_for_OneNote.Views.Controls.PresetsMenuItem"
+          xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+          xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+          xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+          mc:Ignorable="d"
+          IsCheckable="False"
+          StaysOpenOnClick="True"
+          Focusable="False">
+
+    <MenuItem.ItemsSource>
+        <CompositeCollection>
+            <!--<CollectionContainer Collection="{Binding MenuItems}" />-->
+            <!--<Collection-->
+            <CollectionContainer x:Name="MenuItemsContainer" />
+            <!--<CollectionContainer Collection="{Binding Source={StaticResource TimeSpanMenuItems}}" x:Name="Test2"/>-->
+            <!--<CollectionContainer>
+                <CollectionContainer.Collection>
+                    <CollectionViewSource x:Name="Tets3"></CollectionViewSource>
+                </CollectionContainer.Collection>
+            </CollectionContainer>-->
+
+            <Separator />
+            <!--<CollectionViewSource Source="{Binding MenuItems}"></CollectionViewSource>-->
+            <MenuItem Header="Add preset"
+                      StaysOpenOnClick="True"
+                      IsCheckable="False"
+                      Click="AddPreset_Click"
+                      Focusable="False"
+                      Margin="2 0 0 0" />
+        </CompositeCollection>
+    </MenuItem.ItemsSource>
+
+</MenuItem>

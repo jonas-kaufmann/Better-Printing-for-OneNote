@@ -356,7 +356,7 @@ namespace Better_Printing_for_OneNote.Models
         }
     }
 
-    class DocumentChange { }
+    public class DocumentChange { }
 
     class CropsAndSkips : DocumentChange
     {
@@ -418,7 +418,7 @@ namespace Better_Printing_for_OneNote.Models
         }
     }
 
-    class SignatureAdded : DocumentChange
+    public class SignatureAdded : DocumentChange
     {
         public BindableText Text { get; set; }
         public double X { get; set; }
@@ -444,7 +444,7 @@ namespace Better_Printing_for_OneNote.Models
         }
     }
 
-    class BindableText : NotifyBase
+    public class BindableText : NotifyBase
     {
         private string text = string.Empty;
         public string Text

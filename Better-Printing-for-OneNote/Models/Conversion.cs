@@ -11,7 +11,7 @@ namespace Better_Printing_for_OneNote
 {
     class Conversion
     {
-        private const int DPI = 300;
+        private const int DPI = 50;
         private const double PERCENTAGE_ROWS_FOR_MATCHING = .02;
         private const double ROWS_TO_CHECK_PERCENTAGE = .05;
         private const double MAX_WRONG_PIXELS_PERCENTAGE = .01;

@@ -22,9 +22,9 @@ using System.Text.Json;
 using System.Text;
 using System.Windows.Markup;
 using System.Windows.Data;
-using static Better_Printing_for_OneNote.Views.Controls.EditableMenuItem;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using static Better_Printing_for_OneNote.Views.Controls.PresetsMenuItem;
 
 namespace Better_Printing_for_OneNote.ViewModels
 {
@@ -319,10 +319,17 @@ namespace Better_Printing_for_OneNote.ViewModels
 
         #endregion
 
+        #endregion
+
+        public PrintRequestedHandler PrintRequestedHandler { get; set; }
+        public PrintDialogValuesChangedHandler PrintDialogValuesChangedHandler { get; set; }
+
+        #endregion
+
         #region presets
 
-        private ObservableCollection<object> _presets = new ObservableCollection<object>();
-        public ObservableCollection<object> Presets
+        private ObservableCollection<Preset> _presets = new ObservableCollection<Preset>();
+        public ObservableCollection<Preset> Presets
         {
             get => _presets;
             set
@@ -344,7 +351,7 @@ namespace Better_Printing_for_OneNote.ViewModels
                 try
                 {
                     var text = File.ReadAllText(file);
-                    var preset = JsonSerializer.Deserialize<PresetModel>(text);
+                    var preset = JsonSerializer.Deserialize<Preset>(text);
                     Presets.Add(preset);
                 }
                 catch (Exception e)
@@ -363,8 +370,15 @@ namespace Better_Printing_for_OneNote.ViewModels
 
             foreach (var item in Presets)
             {
-                var preset = item as PresetModel;
-                File.WriteAllText($"{PRESETS_FOLDER_PATH}\\{preset.Name}.json", JsonSerializer.Serialize(preset, new JsonSerializerOptions() { WriteIndented = true }));
+                var preset = item as Preset;
+                try
+                {
+                    File.WriteAllText($"{PRESETS_FOLDER_PATH}\\{preset.Name}.json", JsonSerializer.Serialize(preset, new JsonSerializerOptions() { WriteIndented = true }));
+                }
+                catch (IOException e)
+                {
+                    Trace.WriteLine(string.Format("Error while saving preset {0}: {1}", preset.Name, e));
+                }
             }
         }
 
@@ -373,7 +387,7 @@ namespace Better_Printing_for_OneNote.ViewModels
             if (e.Action == NotifyCollectionChangedAction.Add)
                 foreach (var item in e.NewItems)
                 {
-                    var preset = item as PresetModel;
+                    var preset = item as Preset;
                     preset.PropertyChanged += (sender, e) =>
                     {
                         ResolveDuplicatePresets(preset);
@@ -383,33 +397,26 @@ namespace Better_Printing_for_OneNote.ViewModels
                 }
         }
 
-        private void ResolveDuplicatePresets(PresetModel preset)
+        private void ResolveDuplicatePresets(Preset preset)
         {
-            if (Presets.Where(p => (p as PresetModel).Name == preset.Name).Count() > 1)
+            if (Presets.Where(p => (p as Preset).Name == preset.Name).Count() > 1)
             {
                 int i = 1;
-                while (Presets.Where(p => (p as PresetModel).Name == preset.Name + i).Count() + 1 > 1)
+                while (Presets.Where(p => (p as Preset).Name == preset.Name + i).Count() + 1 > 1)
                     i++;
                 preset.Name += i;
             }
             else if (preset.Name == "")
             {
                 int i = 1;
-                while (Presets.Where(p => (p as PresetModel).Name == preset.Name + i).Count() + 1 > 1)
+                while (Presets.Where(p => (p as Preset).Name == preset.Name + i).Count() + 1 > 1)
                     i++;
                 preset.Name += i;
             }
         }
 
-        public NewItemRequested_Handler NewItemRequested_Handler { get; set; }
-        public ItemChecked_Handler ItemChecked_Handler { get; set; }
-
-        #endregion
-
-        #endregion
-
-        public PrintRequestedHandler PrintRequestedHandler { get; set; }
-        public PrintDialogValuesChangedHandler PrintDialogValuesChangedHandler { get; set; }
+        public NewPresetRequestedHandler NewPresetRequestedHandler { get; set; }
+        public PresetChangeRequestedHandler PresetChangeRequestedHandler { get; set; }
 
         #endregion
 
@@ -434,13 +441,12 @@ namespace Better_Printing_for_OneNote.ViewModels
 
             //presets
             Presets.CollectionChanged += Presets_CollectionChanged;
-            NewItemRequested_Handler = (sender) => new PresetModel() { Name = "New preset", Signatures = CropHelper.CurrentSignatures };
-            ItemChecked_Handler = (sender, item) =>
+            NewPresetRequestedHandler = (sender) => new Preset() { Name = "New preset", Signatures = CropHelper.CurrentSignatures };
+            PresetChangeRequestedHandler = (sender, item) =>
             {
-                var preset = item as PresetModel;
+                var preset = item as Preset;
                 if (preset.Signatures != null)
                     CropHelper.AddSignatures(preset.Signatures);
-                Trace.WriteLine((item as PresetModel).Name);
             };
             LoadPresets();
 
@@ -471,7 +477,6 @@ namespace Better_Printing_for_OneNote.ViewModels
         private void Print()
         {
             UpdatePrintFormat(CropHelper);
-
 
             Window.IsEnabled = false;
             var prevResizeMode = Window.ResizeMode;

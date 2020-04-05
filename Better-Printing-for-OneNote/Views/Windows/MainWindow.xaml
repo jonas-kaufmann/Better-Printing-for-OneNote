@@ -5,18 +5,45 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:controls="clr-namespace:Better_Printing_for_OneNote.Views.Controls"
         mc:Ignorable="d"
-        Title="{Binding WindowTitle}" MinWidth="800" MinHeight="600" Name="Window">
+        Title="{Binding WindowTitle}"
+        MinWidth="800"
+        MinHeight="600"
+        Name="Window">
 
     <DockPanel>
         <Menu DockPanel.Dock="Top">
-            <MenuItem Header="Open File" Command="{Binding SearchFileCommand}" />
-            <MenuItem Header="Printer" Name="PrintQueueMI" ItemsSource="{Binding PrintQueueMenuItems}" />
-            <MenuItem Header="Paper Size" ItemsSource="{Binding PaperSizeMenuItems}" />
-            <controls:EditableMenuItem DataContext="{Binding ElementName=MainIFDV, Path=DataContext}" HeaderTextBinding="Binding Name" Header="Presets" AddItemHeader="Add preset" NewItemRequested_Command="{Binding NewItemRequested_Handler}" ItemChecked_Command="{Binding ItemChecked_Handler}" ItemCollection="{Binding Presets}" />
-            <MenuItem Header="Settings" IsEnabled="False" />
-            <MenuItem Header="Third Party Notices" Command="{Binding ShowThirdPartyNotices}" />
+            <MenuItem Header="Open File"
+                      Command="{Binding SearchFileCommand}" />
+            <MenuItem Header="Printer"
+                      Name="PrintQueueMI"
+                      ItemsSource="{Binding PrintQueueMenuItems}" />
+            <MenuItem Header="Paper Size"
+                      ItemsSource="{Binding PaperSizeMenuItems}" />
+            <controls:PresetsMenuItem Header="Presets"
+                                      NewPresetRequestedCommand="{Binding NewPresetRequestedHandler}"
+                                      PresetChangeRequestedCommand="{Binding PresetChangeRequestedHandler}"
+                                      Presets="{Binding Presets}" />
+            <MenuItem Header="Settings"
+                      IsEnabled="False" />
+            <MenuItem Header="Third Party Notices"
+                      Command="{Binding ShowThirdPartyNotices}" />
         </Menu>
 
-        <controls:InteractiveFixedDocumentViewer x:Name="MainIFDV" SnapsToDevicePixels="True" PrintDialog="{Binding PrintDialog}" PageMergeRequestedCommand="{Binding PageMergeRequestedHandler}" PrintRequestedCommand="{Binding PrintRequestedHandler}" PrintDialogValuesChangedCommand="{Binding PrintDialogValuesChangedHandler}" RenderPageNumbers="{Binding CropHelper.PageNumbersEnabled}" OptimalHeightRequestedCommand="{Binding OptimalHeightRequestedHandler}" PageDeleteRequestedCommand="{Binding DeleteRequestHandler}" RedoRequestedCommand="{Binding RedoRequestHandler}" AreaDeleteRequestedCommand="{Binding AreaDeleteRequestedHandler}"  UndoRequestedCommand="{Binding UndoRequestHandler}" PageSplitRequestedCommand="{Binding SplitPageRequestHandler}" AddSignatureRequestedCommand="{Binding AddControlToDocRequestHandler}" Document="{Binding CropHelper.Document}" Background="{StaticResource LightPrimary}" />
+        <controls:InteractiveFixedDocumentViewer x:Name="MainIFDV"
+                                                 SnapsToDevicePixels="True"
+                                                 PrintDialog="{Binding PrintDialog}"
+                                                 PageMergeRequestedCommand="{Binding PageMergeRequestedHandler}"
+                                                 PrintRequestedCommand="{Binding PrintRequestedHandler}"
+                                                 PrintDialogValuesChangedCommand="{Binding PrintDialogValuesChangedHandler}"
+                                                 RenderPageNumbers="{Binding CropHelper.PageNumbersEnabled}"
+                                                 OptimalHeightRequestedCommand="{Binding OptimalHeightRequestedHandler}"
+                                                 PageDeleteRequestedCommand="{Binding DeleteRequestHandler}"
+                                                 RedoRequestedCommand="{Binding RedoRequestHandler}"
+                                                 AreaDeleteRequestedCommand="{Binding AreaDeleteRequestedHandler}"
+                                                 UndoRequestedCommand="{Binding UndoRequestHandler}"
+                                                 PageSplitRequestedCommand="{Binding SplitPageRequestHandler}"
+                                                 AddSignatureRequestedCommand="{Binding AddControlToDocRequestHandler}"
+                                                 Document="{Binding CropHelper.Document}"
+                                                 Background="{StaticResource LightPrimary}" />
     </DockPanel>
 </Window>

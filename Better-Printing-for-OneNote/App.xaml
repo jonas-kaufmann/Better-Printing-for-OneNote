@@ -2,89 +2,135 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:sys="clr-namespace:System;assembly=System.Runtime"
-             Startup="Application_Startup"
->
+             Startup="Application_Startup">
     <Application.Resources>
         <ResourceDictionary>
             <sys:String x:Key="LocalFolderPath">path to the local folder of the application (uses "LocalFolderTitle" Resource) [is initialized in Application_Startup]</sys:String>
             <sys:String x:Key="TempFolderPath">path to the Windows temp folder of the user [is initialized in Application_Startup]</sys:String>
 
             <!-- theme colors -->
-            <SolidColorBrush x:Key="DarkPrimary" Color="#222" />
-            <SolidColorBrush x:Key="LightPrimary" Color="White" />
-            <SolidColorBrush x:Key="DarkPrimarySelectionBrush" Color="#222" Opacity="0.2" />
+            <SolidColorBrush x:Key="DarkPrimary"
+                             Color="#222" />
+            <SolidColorBrush x:Key="LightPrimary"
+                             Color="White" />
+            <SolidColorBrush x:Key="DarkPrimarySelectionBrush"
+                             Color="#222"
+                             Opacity="0.2" />
 
             <Style TargetType="Button">
-                <Setter Property="Padding" Value="4 0 4 0" />
+                <Setter Property="Padding"
+                        Value="4 0 4 0" />
             </Style>
 
-            <Style TargetType="ToggleButton" x:Key="MonochromeToggleButton">
-                <Setter Property="Foreground" Value="{StaticResource LightPrimary}" />
-                <Setter Property="Background" Value="{StaticResource DarkPrimary}" />
-                <Setter Property="BorderBrush" Value="{StaticResource LightPrimary}" />
-                <Setter Property="Cursor" Value="Hand" />
-                
+            <Style TargetType="ToggleButton"
+                   x:Key="MonochromeToggleButton">
+                <Setter Property="Foreground"
+                        Value="{StaticResource LightPrimary}" />
+                <Setter Property="Background"
+                        Value="{StaticResource DarkPrimary}" />
+                <Setter Property="BorderBrush"
+                        Value="{StaticResource LightPrimary}" />
+                <Setter Property="Cursor"
+                        Value="Hand" />
+
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="{x:Type ToggleButton}">
-                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <Border Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}">
+                                <ContentPresenter HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center" />
                             </Border>
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>
                 <Style.Triggers>
-                    <Trigger Property="IsChecked" Value="True">
-                        <Setter Property="Background" Value="{StaticResource LightPrimary}" />
-                        <Setter Property="Foreground" Value="{StaticResource DarkPrimary }" />
+                    <Trigger Property="IsChecked"
+                             Value="True">
+                        <Setter Property="Background"
+                                Value="{StaticResource LightPrimary}" />
+                        <Setter Property="Foreground"
+                                Value="{StaticResource DarkPrimary }" />
                     </Trigger>
                 </Style.Triggers>
             </Style>
 
-            <Style TargetType="Button" x:Key="DarkButton">
-                <Setter Property="Background" Value="{StaticResource DarkPrimary}" />
-                <Setter Property="Foreground" Value="{StaticResource LightPrimary}" />
-                <Setter Property="BorderBrush" Value="{StaticResource LightPrimary}" />
-                <Setter Property="Cursor" Value="Hand" />
+            <Style TargetType="Button"
+                   x:Key="DarkButton">
+                <Setter Property="Background"
+                        Value="{StaticResource DarkPrimary}" />
+                <Setter Property="Foreground"
+                        Value="{StaticResource LightPrimary}" />
+                <Setter Property="BorderBrush"
+                        Value="{StaticResource LightPrimary}" />
+                <Setter Property="Cursor"
+                        Value="Hand" />
 
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="{x:Type Button}">
-                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <Border Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}">
+                                <ContentPresenter HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center" />
                             </Border>
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>
                 <Style.Triggers>
-                    <Trigger Property="IsMouseOver" Value="True">
-                        <Setter Property="Background" Value="{StaticResource LightPrimary}" />
-                        <Setter Property="Foreground" Value="{StaticResource DarkPrimary}" />
+                    <Trigger Property="IsMouseOver"
+                             Value="True">
+                        <Setter Property="Background"
+                                Value="{StaticResource LightPrimary}" />
+                        <Setter Property="Foreground"
+                                Value="{StaticResource DarkPrimary}" />
                     </Trigger>
-                    <Trigger Property="IsPressed" Value="True">
-                        <Setter Property="Background" Value="{StaticResource DarkPrimary}" />
-                        <Setter Property="Foreground" Value="{StaticResource LightPrimary}" />
+                    <Trigger Property="IsPressed"
+                             Value="True">
+                        <Setter Property="Background"
+                                Value="{StaticResource DarkPrimary}" />
+                        <Setter Property="Foreground"
+                                Value="{StaticResource LightPrimary}" />
                     </Trigger>
                 </Style.Triggers>
             </Style>
 
-            <Style TargetType="Button" x:Key="LightButton">
-                <Setter Property="Background" Value="Transparent" />
-                <Setter Property="Foreground" Value="{StaticResource DarkPrimary}" />
-                <Setter Property="BorderBrush" Value="Transparent" />
-                <Setter Property="Cursor" Value="Hand" />
+            <Style TargetType="Button"
+                   x:Key="LightButton">
+                <Setter Property="Background"
+                        Value="Transparent" />
+                <Setter Property="Foreground"
+                        Value="{StaticResource DarkPrimary}" />
+                <Setter Property="BorderBrush"
+                        Value="Transparent" />
+                <Setter Property="Cursor"
+                        Value="Hand" />
 
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="{x:Type Button}">
-                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <Border Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}">
+                                <ContentPresenter HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center" />
                             </Border>
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>
+            </Style>
+
+            <!-- fix Data Errors -->
+            <Style TargetType="MenuItem">
+                <Setter Property="HorizontalContentAlignment"
+                        Value="Left" />
+                <Setter Property="VerticalContentAlignment"
+                        Value="Center" />
             </Style>
         </ResourceDictionary>
+
     </Application.Resources>
 
 </Application>

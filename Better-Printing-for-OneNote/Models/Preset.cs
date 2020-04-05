@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Better_Printing_for_OneNote.Models
 {
-    class PresetModel : NotifyBase
+    public class Preset : NotifyBase
     {
         private string _name { get; set; }
         public string Name

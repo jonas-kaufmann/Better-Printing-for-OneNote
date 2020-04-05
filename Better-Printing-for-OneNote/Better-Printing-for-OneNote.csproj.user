@@ -10,7 +10,7 @@
     </ApplicationDefinition>
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="Views\Controls\EditableMenuItem.xaml.cs">
+    <Compile Update="Views\Controls\EditablePresetMenuItem.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Views\Controls\InteractiveFixedDocumentViewer.xaml.cs">
@@ -21,7 +21,13 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Page Update="Views\Controls\EditableMenuItem.xaml">
+    <Page Update="Views\Controls\PresetsMenuItem.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Controls\EditablePresetMenuItem.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Views\Controls\VectorGraphics\TrashCanVectorGraphic.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\Controls\VectorGraphics\MergeVectorGraphic.xaml">

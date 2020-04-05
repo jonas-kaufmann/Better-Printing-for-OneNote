@@ -7,8 +7,11 @@
         xmlns:resx="clr-namespace:Better_Printing_for_OneNote.Properties"
         mc:Ignorable="d"
         Title="{x:Static resx:Resources.ApplicationTitle}"
-        Closing="Window_Closing" ResizeMode="NoResize" SizeToContent="WidthAndHeight">
+        Closing="Window_Closing"
+        ResizeMode="NoResize"
+        SizeToContent="WidthAndHeight">
 
-    <toolkit:BusyIndicator BusyContent="Printing..." IsBusy="True"/>
+    <toolkit:BusyIndicator BusyContent="Printing..."
+                           IsBusy="True" />
 
 </Window>

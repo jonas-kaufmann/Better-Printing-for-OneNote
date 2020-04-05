@@ -42,7 +42,12 @@ namespace Better_Printing_for_OneNote
             {
                 SoftwareName = "Merge Pages Icon",
                 LicenseText = "Icon by Those Icons (https://www.flaticon.com/de/autoren/those-icons) from Flaticon (https://www.flaticon.com/de/)"
-            }
+            },
+            new ThirdPartyNoticeModel
+            {
+                SoftwareName = "Trash Can Icon",
+                LicenseText = "Icon by Cole Bemis (https://twitter.com/colebemis) from Feathericons (https://feathericons.com/)"
+            },
         };
     }
 }
