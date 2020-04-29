@@ -23,18 +23,6 @@ namespace Better_Printing_for_OneNote.Views.Controls
 {
     public partial class PresetsMenuItem : MenuItem
     {
-
-        //public event PropertyChangedEventHandler PropertyChanged;
-
-        //protected virtual void OnPropertyChanged(string propertyName)
-        //{
-        //    if (PropertyChanged != null)
-        //    {
-        //        var e = new PropertyChangedEventArgs(propertyName);
-        //        PropertyChanged(this, e);
-        //    }
-        //}
-
         #region properties
 
         private MenuItem Selected_MenuItem;
@@ -78,6 +66,17 @@ namespace Better_Printing_for_OneNote.Views.Controls
         public static readonly DependencyProperty NewPresetRequestedProperty = DependencyProperty.Register(nameof(NewPresetRequestedCommand), typeof(NewPresetRequestedHandler), typeof(PresetsMenuItem));
         #endregion
 
+        #region clear signatures requested command
+        public ClearSignaturesRequestedHandler ClearSignaturesRequestedCommand
+        {
+            get => (ClearSignaturesRequestedHandler)GetValue(ClearSignaturesRequestedProperty);
+            set => SetValue(ClearSignaturesRequestedProperty, value);
+        }
+
+        public delegate void ClearSignaturesRequestedHandler(object sender);
+        public static readonly DependencyProperty ClearSignaturesRequestedProperty = DependencyProperty.Register(nameof(ClearSignaturesRequestedCommand), typeof(ClearSignaturesRequestedHandler), typeof(PresetsMenuItem));
+        #endregion
+
         #endregion
 
         public PresetsMenuItem()
@@ -91,29 +90,6 @@ namespace Better_Printing_for_OneNote.Views.Controls
         {
             return new EditablePresetMenuItem() { DataContext = preset, ParentMenuItem = this };
         }
-
-        //private void MenuItem_KeyUp(object sender, KeyEventArgs e)
-        //{
-        //    if (sender is MenuItem mi && e.Key == Key.Delete)
-        //    {
-        //        MenuItems[MenuItems.Count - 1].Focus();
-        //        MenuItems.Remove(mi);
-        //        ItemCollection.Remove(mi.Header);
-        //    }
-        //}
-
-        //private void MenuItem_Click(object sender, RoutedEventArgs e)
-        //{
-        //    if (sender is MenuItem mi && mi.CommandParameter is ExtendedMenuItem emi)
-        //    {
-        //        if (Selected_MenuItem != null)
-        //            Selected_MenuItem.IsChecked = false;
-        //        Selected_MenuItem = mi;
-        //        Selected_MenuItem.IsChecked = true;
-
-        //        ItemChecked_Command?.Invoke(this, mi.Header);
-        //    }
-        //}
 
         public void SelectionChanged(MenuItem mi)
         {
@@ -132,18 +108,20 @@ namespace Better_Printing_for_OneNote.Views.Controls
             Presets.Remove((Preset)mi.DataContext);
         }
 
+        private void ClearSignatures_Click(object sender, RoutedEventArgs e)
+        {
+            ClearSignaturesRequestedCommand?.Invoke(this);
+            Selected_MenuItem.IsChecked = false;
+        }
+
         private void AddPreset_Click(object sender, RoutedEventArgs e)
         {
-            //var i = this;
-            //if (sender is MenuItem _mi && _mi.CommandParameter is PresetsMenuItem emi)
-            //{
             var newItem = NewPresetRequestedCommand?.Invoke(this);
             Presets.Add(newItem);
             var mi = CreateNewMenuItem(newItem);
             MenuItems.Add(mi);
 
             mi.Focus();
-            //}
         }
     }
 }

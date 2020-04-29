@@ -174,6 +174,7 @@ namespace Better_Printing_for_OneNote.ViewModels
         public AreaDeleteRequestedHandler AreaDeleteRequestedHandler { get; set; }
         public OptimalHeightRequestedHandler OptimalHeightRequestedHandler { get; set; }
         public PageMergeRequestedHandler PageMergeRequestedHandler { get; set; }
+        public ClearSignaturesRequestedHandler ClearSignaturesRequestedHandler { get; set; }
 
         #region Printing
 
@@ -433,6 +434,7 @@ namespace Better_Printing_for_OneNote.ViewModels
             AreaDeleteRequestedHandler = (sender, x, y, z) => CropHelper.DeleteArea(x, y, z);
             OptimalHeightRequestedHandler = (sender, pageIndex) => CropHelper.GetOptimalHeight(pageIndex);
             PageMergeRequestedHandler = (sender, fromPage, toPage) => CropHelper.MergePages(fromPage, toPage);
+            ClearSignaturesRequestedHandler = (sender) => CropHelper.ClearSignatures();
 
             // printing
             PrintRequestedHandler = (sender) => Print();

@@ -3,6 +3,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -284,7 +286,7 @@ namespace Better_Printing_for_OneNote.Models
                 // add signature ui element to every page
                 for (int a = 0; a < Pages.Count; a++)
                 {
-                    TextBox tb = CreateSignatureTextBox(signature.Text, new Thickness(signature.X, signature.Y, 0, 0));
+                    TextBox tb = CreateSignatureTextBox(signature.Text, new Thickness(signature.X, signature.Y, 0, 0), a + 1, Pages.Count);
                     Pages[a].AddUIElement(tb);
                     signature.UIElements.Add((a, tb));
                 }
@@ -320,7 +322,7 @@ namespace Better_Printing_for_OneNote.Models
             TextBox textbox = null;
             for (int i = 0; i < Pages.Count; i++)
             {
-                TextBox tb = CreateSignatureTextBox(signatureAdded.Text, new Thickness(signatureAdded.X, signatureAdded.Y, 0, 0));
+                TextBox tb = CreateSignatureTextBox(signatureAdded.Text, new Thickness(signatureAdded.X, signatureAdded.Y, 0, 0), i + 1, Pages.Count);
                 Pages[i].AddUIElement(tb);
                 signatureAdded.UIElements.Add((i, tb));
                 if (i == textboxToReturnPageIndex)
@@ -339,16 +341,49 @@ namespace Better_Printing_for_OneNote.Models
                     AddSignatureToPages(signature.Copy());
         }
 
-        private TextBox CreateSignatureTextBox(BindableText text, Thickness margin)
+        private TextBox CreateSignatureTextBox(BindableText text, Thickness margin, int page, int of)
         {
             TextBox tb = new TextBox { AcceptsReturn = true, Background = Brushes.Transparent, BorderThickness = new Thickness(0), Margin = margin };
-            Binding binding = new Binding(nameof(text.Text));
-            binding.Mode = BindingMode.TwoWay;
-            binding.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
-            binding.Source = text;
-            tb.SetBinding(TextBox.TextProperty, binding);
+
+            Binding CreateBinding()
+            {
+                var binding = new Binding(nameof(text.Text));
+                binding.Mode = BindingMode.TwoWay;
+                binding.UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged;
+                binding.Source = text;
+                return binding;
+            }
+
+            var rawTextBinding = CreateBinding();
+
+            var pageCountBinding = CreateBinding();
+            pageCountBinding.Converter = new PageCountConverter(page, of);
+
+            tb.GotKeyboardFocus += (sender, e) =>
+                tb.SetBinding(TextBox.TextProperty, rawTextBinding);
+            tb.LostKeyboardFocus += (sender, e) =>
+                tb.SetBinding(TextBox.TextProperty, pageCountBinding);
+
+            tb.SetBinding(TextBox.TextProperty, pageCountBinding);
 
             return tb;
+        }
+
+        public void ClearSignatures()
+        {
+            while (CurrentSignatures.Count > 0)
+            {
+                var index = CurrentSignatures.Count - 1;
+                var currentSignature = CurrentSignatures[index];
+                UndoChangeList.Add(currentSignature);
+                CurrentSignatures.RemoveAt(index);
+
+                for (var i = 0; i < Pages.Count; i++)
+                {
+                    foreach (var uiElement in currentSignature.UIElements)
+                        Pages[i].RemoveUIElement(uiElement.Item2);
+                }
+            }
         }
 
         public void UpdateFormat(double pageHeight, double pageWidth, double contentHeight, double contentWidth, Thickness padding)
@@ -370,6 +405,33 @@ namespace Better_Printing_for_OneNote.Models
         private PageModel CreateNewPage(ArrayList skips)
         {
             return new PageModel(Images, skips, PageHeight, PageWidth, ContentHeight, ContentWidth, Padding);
+        }
+    }
+
+    public class PageCountConverter : IValueConverter
+    {
+        public const string PAGE_COUNT_TOKEN = "${page}";
+        public const string OF_PAGES_TOKEN = "${of}";
+        private int Page;
+        private int Of;
+
+        public PageCountConverter(int page, int of)
+        {
+            Page = page;
+            Of = of;
+        }
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            var builder = new StringBuilder("" + value);
+            builder.Replace(PAGE_COUNT_TOKEN, "" + Page);
+            builder.Replace(OF_PAGES_TOKEN, "" + Of);
+            return builder.ToString();
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return value;
         }
     }
 

@@ -19,9 +19,10 @@
                       ItemsSource="{Binding PrintQueueMenuItems}" />
             <MenuItem Header="Paper Size"
                       ItemsSource="{Binding PaperSizeMenuItems}" />
-            <controls:PresetsMenuItem Header="Presets"
+            <controls:PresetsMenuItem Header="Signature Presets"
                                       NewPresetRequestedCommand="{Binding NewPresetRequestedHandler}"
                                       PresetChangeRequestedCommand="{Binding PresetChangeRequestedHandler}"
+                                      ClearSignaturesRequestedCommand="{Binding ClearSignaturesRequestedHandler}"
                                       Presets="{Binding Presets}"
                                       ToolTip="Signature Presets (add stored signatures to the current document)" />
             <MenuItem Header="Settings"
