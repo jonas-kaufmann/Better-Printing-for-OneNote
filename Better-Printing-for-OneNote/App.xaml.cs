@@ -7,9 +7,6 @@ using System.Windows;
 
 namespace Better_Printing_for_OneNote
 {
-    /// <summary>
-    /// Interaction logic for App.xaml
-    /// </summary>
     public partial class App : Application
     {
         private bool DEBUG_MODE = false;
@@ -39,7 +36,7 @@ namespace Better_Printing_for_OneNote
             {
                 try
                 {
-                    GeneralHelperClass.CreateDirectoryIfNotExists(LOCAL_FOLDER_PATH);
+                    Directory.CreateDirectory(LOCAL_FOLDER_PATH);
                     File.WriteAllText($"{LOCAL_FOLDER_PATH}logs.txt", ""); // clear logfile
                     Trace.Listeners.Add(new TextWriterTraceListener($"{LOCAL_FOLDER_PATH}logs.txt"));
                     Trace.AutoFlush = true;
@@ -66,14 +63,13 @@ namespace Better_Printing_for_OneNote
 
         private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            var output = $"UnhandledException:\n{e.ToString()}";
-            Trace.WriteLine(output);
-            if (!LOGGING_INITIALIZED)
-            {
-                var localFolderPath = GeneralHelperClass.FindResource("LocalFolderPath");
-                GeneralHelperClass.CreateDirectoryIfNotExists(localFolderPath);
-                File.WriteAllText($"{localFolderPath}logs.txt", output);
-            }
+            var exceptionText = e.ExceptionObject.ToString();
+            var logfolderPath = GeneralHelperClass.FindResource("LocalFolderPath") + "exceptions and crashes";
+            var logfilePath = $"{logfolderPath}\\{(e.IsTerminating ? "crash" : "exception")}_{DateTime.Now.ToString("dd-MM-yy_THH-mm-ss")}.txt";
+            Directory.CreateDirectory(logfolderPath);
+
+            File.WriteAllText(logfilePath, $"Unhandled Exception:\n\n{exceptionText}"); //write exception to file
+            Process.Start("explorer.exe", string.Format("/select,\"{0}\"", logfilePath)); //open file in explorer and highlight
         }
 
         private void Application_Startup(object sender, StartupEventArgs e)
