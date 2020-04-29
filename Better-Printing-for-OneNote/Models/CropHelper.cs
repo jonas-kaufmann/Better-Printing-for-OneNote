@@ -371,7 +371,8 @@ namespace Better_Printing_for_OneNote.Models
                     changes.Added.Add(copy);
                 }
 
-            UndoChangeList.Add(changes);
+            if (changes.Added.Count > 0)
+                UndoChangeList.Add(changes);
         }
 
         private TextBox CreateSignatureTextBox(BindableText text, Thickness margin, int page, int of)
@@ -422,7 +423,8 @@ namespace Better_Printing_for_OneNote.Models
                 }
             }
 
-            UndoChangeList.Add(changes);
+            if (changes.Removed.Count > 0)
+                UndoChangeList.Add(changes);
         }
 
         public void UpdateFormat(double pageHeight, double pageWidth, double contentHeight, double contentWidth, Thickness padding)
