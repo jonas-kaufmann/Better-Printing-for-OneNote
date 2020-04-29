@@ -25,7 +25,6 @@ namespace Better_Printing_for_OneNote.Views.Controls
     {
         #region properties
 
-        private MenuItem Selected_MenuItem;
         private ObservableCollection<MenuItem> MenuItems = new ObservableCollection<MenuItem>();
 
         #region Presets
@@ -88,16 +87,11 @@ namespace Better_Printing_for_OneNote.Views.Controls
 
         private MenuItem CreateNewMenuItem(Preset preset)
         {
-            return new EditablePresetMenuItem() { DataContext = preset, ParentMenuItem = this };
+            return new EditablePresetMenuItem() { DataContext = preset, ParentMenuItem = this, IsCheckable = false };
         }
 
         public void SelectionChanged(MenuItem mi)
         {
-            if (Selected_MenuItem != null)
-                Selected_MenuItem.IsChecked = false;
-            Selected_MenuItem = mi;
-            Selected_MenuItem.IsChecked = true;
-
             PresetChangeRequestedCommand?.Invoke(this, (Preset)mi.DataContext);
         }
 
@@ -111,7 +105,6 @@ namespace Better_Printing_for_OneNote.Views.Controls
         private void ClearSignatures_Click(object sender, RoutedEventArgs e)
         {
             ClearSignaturesRequestedCommand?.Invoke(this);
-            Selected_MenuItem.IsChecked = false;
         }
 
         private void AddPreset_Click(object sender, RoutedEventArgs e)

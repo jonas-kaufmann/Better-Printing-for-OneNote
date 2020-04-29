@@ -12,6 +12,7 @@ using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using WpfCropableImageControl;
+using static Better_Printing_for_OneNote.Models.SignatureChange;
 
 namespace Better_Printing_for_OneNote.Models
 {
@@ -33,7 +34,7 @@ namespace Better_Printing_for_OneNote.Models
 
         private ObservableCollection<PageModel> Pages = new ObservableCollection<PageModel>();
         private CropsAndSkips CurrentCropsAndSkips;
-        public readonly List<SignatureAdded> CurrentSignatures = new List<SignatureAdded>();
+        public readonly List<SignatureChange> CurrentSignatures = new List<SignatureChange>();
         private readonly List<DocumentChange> UndoChangeList = new List<DocumentChange>();
         private readonly List<DocumentChange> RedoChangeList = new List<DocumentChange>();
 
@@ -86,7 +87,6 @@ namespace Better_Printing_for_OneNote.Models
             CurrentCropsAndSkips.Crops.Add(bigImageHeight - positionY);
             Pages.Add(lastPage);
 
-
             var document = new FixedDocument();
             foreach (var p in Pages)
                 document.Pages.Add(p.Page);
@@ -102,12 +102,9 @@ namespace Better_Printing_for_OneNote.Models
                     CurrentCropsAndSkips = cropsAndSkips;
                     UpdatePages();
                 }
-                else if (UndoChangeList[UndoChangeList.Count - 1] is SignatureAdded signatureAdded)
+                else if (UndoChangeList[UndoChangeList.Count - 1] is SignatureChanges signatureChanges)
                 {
-                    CurrentSignatures.Remove(signatureAdded);
-
-                    foreach (var uiElement in signatureAdded.UIElements)
-                        Pages[uiElement.Item1].RemoveUIElement(uiElement.Item2);
+                    ProcessSignatureChanges(signatureChanges, true);
                 }
 
                 RedoChangeList.Add(UndoChangeList[UndoChangeList.Count - 1]);
@@ -125,16 +122,40 @@ namespace Better_Printing_for_OneNote.Models
                     CurrentCropsAndSkips = cropsAndSkips;
                     UpdatePages();
                 }
-                else if (RedoChangeList[RedoChangeList.Count - 1] is SignatureAdded signatureAdded)
+                else if (RedoChangeList[RedoChangeList.Count - 1] is SignatureChanges signatureChanges)
                 {
-                    CurrentSignatures.Add(signatureAdded);
-
-                    foreach (var uiElement in signatureAdded.UIElements)
-                        Pages[uiElement.Item1].AddUIElement(uiElement.Item2);
+                    ProcessSignatureChanges(signatureChanges, false);
                 }
 
                 UndoChangeList.Add(RedoChangeList[RedoChangeList.Count - 1]);
                 RedoChangeList.RemoveAt(RedoChangeList.Count - 1);
+            }
+        }
+
+        private void ProcessSignatureChanges(SignatureChanges signatureChanges, bool inverted)
+        {
+            List<SignatureChange> added = signatureChanges.Added;
+            List<SignatureChange> removed = signatureChanges.Removed;
+            if (inverted)
+            {
+                added = signatureChanges.Removed;
+                removed = signatureChanges.Added;
+            }
+
+            foreach (var signatureChange in added)
+            {
+                CurrentSignatures.Add(signatureChange);
+
+                foreach (var uiElement in signatureChange.UIElements)
+                    Pages[uiElement.Item1].AddUIElement(uiElement.Item2);
+            }
+
+            foreach (var signatureChange in removed)
+            {
+                CurrentSignatures.Remove(signatureChange);
+
+                foreach (var uiElement in signatureChange.UIElements)
+                    Pages[uiElement.Item1].RemoveUIElement(uiElement.Item2);
             }
         }
 
@@ -271,25 +292,18 @@ namespace Better_Printing_for_OneNote.Models
             // add signatures
             for (int i = 0; i < CurrentSignatures.Count; i++)
             {
-                SignatureAdded signature = CurrentSignatures[i];
+                var signature = CurrentSignatures[i];
                 // remove empty signatures
                 if (string.IsNullOrWhiteSpace(signature.Text.Text))
                 {
                     CurrentSignatures.RemoveAt(i);
-                    UndoChangeList.Remove(signature);
                     i--;
                     continue;
                 }
 
                 signature.UIElements.Clear();
 
-                // add signature ui element to every page
-                for (int a = 0; a < Pages.Count; a++)
-                {
-                    TextBox tb = CreateSignatureTextBox(signature.Text, new Thickness(signature.X, signature.Y, 0, 0), a + 1, Pages.Count);
-                    Pages[a].AddUIElement(tb);
-                    signature.UIElements.Add((a, tb));
-                }
+                AddSignatureToPages(signature);
             }
         }
 
@@ -311,34 +325,53 @@ namespace Better_Printing_for_OneNote.Models
             x -= 2;
             y -= 8;
 
-            BindableText bindableText = new BindableText();
-            SignatureAdded signatureAdded = new SignatureAdded(bindableText, x, y);
+            var bindableText = new BindableText();
+            var signatureChange = new SignatureChange(bindableText, x, y);
 
-            return AddSignatureToPages(signatureAdded, textboxToReturnPageIndex);
+            return AddSignatureNoCopy(signatureChange, textboxToReturnPageIndex);
         }
 
-        private TextBox AddSignatureToPages(SignatureAdded signatureAdded, int textboxToReturnPageIndex = -1)
+        private TextBox AddSignatureToPages(SignatureChange signatureChange, int textboxToReturnPageIndex = -1)
         {
             TextBox textbox = null;
             for (int i = 0; i < Pages.Count; i++)
             {
-                TextBox tb = CreateSignatureTextBox(signatureAdded.Text, new Thickness(signatureAdded.X, signatureAdded.Y, 0, 0), i + 1, Pages.Count);
+                TextBox tb = CreateSignatureTextBox(signatureChange.Text, new Thickness(signatureChange.X, signatureChange.Y, 0, 0), i + 1, Pages.Count);
                 Pages[i].AddUIElement(tb);
-                signatureAdded.UIElements.Add((i, tb));
+                signatureChange.UIElements.Add((i, tb));
                 if (i == textboxToReturnPageIndex)
                     textbox = tb;
             }
 
-            CurrentSignatures.Add(signatureAdded);
-            UndoChangeList.Add(signatureAdded);
             return textbox;
         }
 
-        public void AddSignatures(List<SignatureAdded> signatures)
+        private TextBox AddSignatureNoCopy(SignatureChange signatureChange, int textboxToReturnPageIndex = -1)
         {
+            CurrentSignatures.Add(signatureChange);
+
+            var changes = new SignatureChanges();
+            changes.Added.Add(signatureChange);
+            UndoChangeList.Add(changes);
+
+            return AddSignatureToPages(signatureChange, textboxToReturnPageIndex);
+        }
+
+        public void AddSignaturesAndCopy(List<SignatureChange> signatures)
+        {
+            var changes = new SignatureChanges();
             foreach (var signature in signatures)
-                if (!CurrentSignatures.Exists(s => s is SignatureAdded sa && sa.Equals(signature)))
-                    AddSignatureToPages(signature.Copy());
+                if (!CurrentSignatures.Exists(s => s is SignatureChange sc && sc.Equals(signature)))
+                {
+                    var copy = signature.Copy();
+
+                    CurrentSignatures.Add(copy);
+                    AddSignatureToPages(copy);
+
+                    changes.Added.Add(copy);
+                }
+
+            UndoChangeList.Add(changes);
         }
 
         private TextBox CreateSignatureTextBox(BindableText text, Thickness margin, int page, int of)
@@ -371,11 +404,15 @@ namespace Better_Printing_for_OneNote.Models
 
         public void ClearSignatures()
         {
+            var changes = new SignatureChanges();
+
             while (CurrentSignatures.Count > 0)
             {
                 var index = CurrentSignatures.Count - 1;
                 var currentSignature = CurrentSignatures[index];
-                UndoChangeList.Add(currentSignature);
+
+                changes.Removed.Add(currentSignature);
+
                 CurrentSignatures.RemoveAt(index);
 
                 for (var i = 0; i < Pages.Count; i++)
@@ -384,6 +421,8 @@ namespace Better_Printing_for_OneNote.Models
                         Pages[i].RemoveUIElement(uiElement.Item2);
                 }
             }
+
+            UndoChangeList.Add(changes);
         }
 
         public void UpdateFormat(double pageHeight, double pageWidth, double contentHeight, double contentWidth, Thickness padding)
@@ -497,28 +536,34 @@ namespace Better_Printing_for_OneNote.Models
         }
     }
 
-    public class SignatureAdded : DocumentChange
+    public class SignatureChanges : DocumentChange
+    {
+        public List<SignatureChange> Added { get; set; } = new List<SignatureChange>();
+        public List<SignatureChange> Removed { get; set; } = new List<SignatureChange>();
+    }
+
+    public class SignatureChange
     {
         public List<(int, UIElement)> UIElements { get; set; } = new List<(int, UIElement)>();
         public BindableText Text { get; set; }
         public double X { get; set; }
         public double Y { get; set; }
 
-        public SignatureAdded(BindableText text, double x, double y)
+        public SignatureChange(BindableText text, double x, double y)
         {
             Text = text;
             X = x;
             Y = y;
         }
 
-        public SignatureAdded() { }
+        public SignatureChange() { }
 
-        internal SignatureAdded Copy()
+        internal SignatureChange Copy()
         {
-            return new SignatureAdded() { Text = this.Text.Copy(), X = this.X, Y = this.Y };
+            return new SignatureChange(this.Text.Copy(), this.X, this.Y);
         }
 
-        internal bool Equals(SignatureAdded sa)
+        internal bool Equals(SignatureChange sa)
         {
             return this.X == sa.X && this.Y == sa.Y && this.Text.Text == sa.Text.Text;
         }

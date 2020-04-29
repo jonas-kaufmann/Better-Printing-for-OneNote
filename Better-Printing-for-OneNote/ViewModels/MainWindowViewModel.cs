@@ -82,8 +82,7 @@ namespace Better_Printing_for_OneNote.ViewModels
             }
             set
             {
-                if (_filePath != value)
-                    ProcessNewFilePath(value);
+                ProcessNewFilePath(value);
             }
         }
         private void ProcessNewFilePath(string filePath)
@@ -446,7 +445,7 @@ namespace Better_Printing_for_OneNote.ViewModels
             NewPresetRequestedHandler = (sender) =>
             {
                 // copy not empty signatures
-                var signatures = new List<SignatureAdded>();
+                var signatures = new List<SignatureChange>();
                 foreach (var s in CropHelper.CurrentSignatures)
                     if (!string.IsNullOrWhiteSpace(s.Text.Text))
                         signatures.Add(s.Copy());
@@ -460,7 +459,7 @@ namespace Better_Printing_for_OneNote.ViewModels
             {
                 var preset = item as Preset;
                 if (preset.Signatures != null)
-                    CropHelper.AddSignatures(preset.Signatures);
+                    CropHelper.AddSignaturesAndCopy(preset.Signatures);
             };
             LoadPresets();
 

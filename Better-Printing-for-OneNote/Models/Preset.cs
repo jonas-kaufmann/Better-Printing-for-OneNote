@@ -15,7 +15,7 @@ namespace Better_Printing_for_OneNote.Models
             get => _name;
             set
             {
-                if(_name != value)
+                if (_name != value)
                 {
                     _name = ValidateName(value);
                     OnPropertyChanged(nameof(Name));
@@ -23,8 +23,8 @@ namespace Better_Printing_for_OneNote.Models
             }
         }
 
-        private List<SignatureAdded> _signatures { get; set; }
-        public List<SignatureAdded> Signatures
+        private List<SignatureChange> _signatures { get; set; }
+        public List<SignatureChange> Signatures
         {
             get => _signatures;
             set
