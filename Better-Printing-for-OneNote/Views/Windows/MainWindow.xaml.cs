@@ -19,7 +19,6 @@ namespace Better_Printing_for_OneNote.Views.Windows
             // register event handlers
             PreviewKeyDown += (sender, e) =>
             {
-                if (MainIFDV.IsMouseOver)
                     MainIFDV.OnApplication_PreviewKeyDown(sender, e);
             };
             Closing += viewModel.OnWindowClosing;
